@@ -1,0 +1,17 @@
+devcontainer*
+.DS_Store
+.github
+.claude*
+.hive*
+.next
+.idea/
+.vscode/
+*.iml
+*.log
+*.tmp
+*.bak
+*.swp
+.env
+.env.local
+node_modules/
+dist/
