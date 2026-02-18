@@ -1,0 +1,204 @@
+- table:
+    schema: public
+    name: auth_user
+  configuration:
+    custom_root_fields:
+      select: auth_users
+      select_by_pk: auth_user
+      select_aggregate: auth_users_aggregate
+    custom_column_names: {}
+  object_relationships:
+    - name: user
+      using:
+        manual_configuration:
+          remote_table:
+            schema: public
+            name: users
+          column_mapping:
+            id: id
+  array_relationships:
+    - name: sessions
+      using:
+        foreign_key_constraint_on:
+          column: user_id
+          table:
+            schema: public
+            name: auth_session
+    - name: accounts
+      using:
+        foreign_key_constraint_on:
+          column: user_id
+          table:
+            schema: public
+            name: auth_account
+
+- table:
+    schema: public
+    name: auth_session
+  configuration:
+    custom_root_fields:
+      select: auth_sessions
+      select_by_pk: auth_session
+      select_aggregate: auth_sessions_aggregate
+  object_relationships:
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+
+- table:
+    schema: public
+    name: auth_account
+  configuration:
+    custom_root_fields:
+      select: auth_accounts
+      select_by_pk: auth_account
+      select_aggregate: auth_accounts_aggregate
+  object_relationships:
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+
+- table:
+    schema: public
+    name: users
+  configuration:
+    custom_root_fields:
+      select: users
+      select_by_pk: user
+      select_aggregate: users_aggregate
+  object_relationships:
+    - name: auth_user
+      using:
+        foreign_key_constraint_on: id
+  array_relationships:
+    - name: clients
+      using:
+        foreign_key_constraint_on:
+          column: user_id
+          table:
+            schema: public
+            name: clients
+    - name: services
+      using:
+        foreign_key_constraint_on:
+          column: user_id
+          table:
+            schema: public
+            name: services
+    - name: appointments
+      using:
+        foreign_key_constraint_on:
+          column: user_id
+          table:
+            schema: public
+            name: appointments
+
+- table:
+    schema: public
+    name: clients
+  configuration:
+    custom_root_fields:
+      select: clients
+      select_by_pk: client
+      select_aggregate: clients_aggregate
+  object_relationships:
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+  array_relationships:
+    - name: pets
+      using:
+        foreign_key_constraint_on:
+          column: client_id
+          table:
+            schema: public
+            name: pets
+    - name: appointments
+      using:
+        foreign_key_constraint_on:
+          column: client_id
+          table:
+            schema: public
+            name: appointments
+
+- table:
+    schema: public
+    name: pets
+  configuration:
+    custom_root_fields:
+      select: pets
+      select_by_pk: pet
+      select_aggregate: pets_aggregate
+  object_relationships:
+    - name: client
+      using:
+        foreign_key_constraint_on: client_id
+  array_relationships:
+    - name: appointments
+      using:
+        foreign_key_constraint_on:
+          column: pet_id
+          table:
+            schema: public
+            name: appointments
+
+- table:
+    schema: public
+    name: services
+  configuration:
+    custom_root_fields:
+      select: services
+      select_by_pk: service
+      select_aggregate: services_aggregate
+  object_relationships:
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+  array_relationships:
+    - name: appointments
+      using:
+        foreign_key_constraint_on:
+          column: service_id
+          table:
+            schema: public
+            name: appointments
+
+- table:
+    schema: public
+    name: appointments
+  configuration:
+    custom_root_fields:
+      select: appointments
+      select_by_pk: appointment
+      select_aggregate: appointments_aggregate
+  object_relationships:
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+    - name: client
+      using:
+        foreign_key_constraint_on: client_id
+    - name: pet
+      using:
+        foreign_key_constraint_on: pet_id
+    - name: service
+      using:
+        foreign_key_constraint_on: service_id
+
+- table:
+    schema: public
+    name: weather_cache
+  configuration:
+    custom_root_fields:
+      select: weather_cache
+      select_by_pk: weather_cache_item
+      select_aggregate: weather_cache_aggregate
+
+- table:
+    schema: public
+    name: route_cache
+  configuration:
+    custom_root_fields:
+      select: route_cache
+      select_by_pk: route_cache_item
+      select_aggregate: route_cache_aggregate
