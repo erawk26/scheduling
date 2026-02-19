@@ -330,10 +330,8 @@ export class SyncEngine {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Simulate 95% success rate
-    if (Math.random() < 0.05) {
-      throw new Error('Simulated sync failure');
-    }
+    // TODO: Replace with actual Hasura GraphQL mutations
+    // Simulation always succeeds for now
 
     console.log(
       `[SyncEngine] Synced ${item.mutation_type} ${item.table_name}:${item.record_id}`

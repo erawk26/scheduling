@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Kysely } from 'kysely';
 import {
   getSQLiteManager,
@@ -53,6 +53,7 @@ export function useDatabase() {
 export function DatabaseProvider({ children }: { children: React.ReactNode }) {
   const [db, setDb] = useState<Kysely<Database> | null>(null);
   const [syncEngine, setSyncEngine] = useState<SyncEngine | null>(null);
+  const syncEngineRef = useRef<SyncEngine | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
@@ -79,6 +80,7 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
 
         // Create sync engine
         const sync = new SyncEngine(kyselyDb);
+        syncEngineRef.current = sync;
         setSyncEngine(sync);
 
         // Start background sync worker
@@ -105,8 +107,8 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
     // Cleanup on unmount
     return () => {
       mounted = false;
-      if (syncEngine) {
-        syncEngine.stopSyncWorker();
+      if (syncEngineRef.current) {
+        syncEngineRef.current.stopSyncWorker();
       }
     };
   }, []);

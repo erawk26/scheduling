@@ -3,15 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Calendar, Users, Briefcase, Route, Cloud, Settings, LayoutDashboard } from 'lucide-react'
+import { Calendar, Users, Briefcase, Settings, LayoutDashboard } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Appointments', href: '/dashboard/appointments', icon: Calendar },
   { name: 'Clients', href: '/dashboard/clients', icon: Users },
   { name: 'Services', href: '/dashboard/services', icon: Briefcase },
-  { name: 'Routes', href: '/dashboard/routes', icon: Route },
-  { name: 'Weather', href: '/dashboard/weather', icon: Cloud },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -28,7 +26,9 @@ export function Sidebar() {
           </div>
           <nav className="flex-1 px-3 py-4 space-y-1">
             {navigation.map((item) => {
-              const isActive = pathname === item.href
+              const isActive = item.href === '/dashboard'
+                ? pathname === '/dashboard'
+                : pathname.startsWith(item.href)
               return (
                 <Link
                   key={item.name}
