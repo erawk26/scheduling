@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import {
@@ -17,8 +18,7 @@ import {
   Briefcase,
   DollarSign,
   Plus,
-  Route,
-  Cloud,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 import { useDatabase } from '@/providers/database-provider';
 import { useServices } from '@/hooks/use-services';
@@ -31,13 +31,20 @@ export default function DashboardPage() {
   const { data: clients } = useClients();
   const { data: todayAppointments } = useTodayAppointments();
   const { data: allAppointments } = useAppointments();
+  const upcomingStartDate = useMemo(() => new Date().toISOString(), []);
   const { data: upcomingAppointments } = useAppointments({
-    startDate: new Date().toISOString(),
+    startDate: upcomingStartDate,
   });
 
-  // Create lookup maps for client and service names
-  const clientMap = new Map(clients?.map((c) => [c.id, c]) || []);
-  const serviceMap = new Map(services?.map((s) => [s.id, s]) || []);
+  // Create lookup maps for client and service names (memoized)
+  const clientMap = useMemo(
+    () => new Map(clients?.map((c) => [c.id, c]) || []),
+    [clients]
+  );
+  const serviceMap = useMemo(
+    () => new Map(services?.map((s) => [s.id, s]) || []),
+    [services]
+  );
 
   // Get stats with real data
   const stats = [
@@ -249,15 +256,9 @@ export default function DashboardPage() {
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/dashboard/routes">
-                  <Route className="w-4 h-4 mr-2" />
-                  View Routes
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/dashboard/weather">
-                  <Cloud className="w-4 h-4 mr-2" />
-                  Check Weather
+                <Link href="/dashboard/settings">
+                  <SettingsIcon className="w-4 h-4 mr-2" />
+                  Settings
                 </Link>
               </Button>
             </div>

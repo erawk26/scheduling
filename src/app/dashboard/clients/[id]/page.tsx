@@ -347,7 +347,12 @@ export default function ClientDetailPage() {
                         id="age_years"
                         type="number"
                         step="0.1"
-                        {...petForm.register('age_years', { valueAsNumber: true })}
+                        {...petForm.register('age_years', {
+                          setValueAs: (v: string) => {
+                            const n = parseFloat(v);
+                            return isNaN(n) ? undefined : n;
+                          },
+                        })}
                         placeholder="3"
                       />
                     </div>
@@ -357,7 +362,12 @@ export default function ClientDetailPage() {
                         id="weight_lbs"
                         type="number"
                         step="0.1"
-                        {...petForm.register('weight_lbs', { valueAsNumber: true })}
+                        {...petForm.register('weight_lbs', {
+                          setValueAs: (v: string) => {
+                            const n = parseFloat(v);
+                            return isNaN(n) ? undefined : n;
+                          },
+                        })}
                         placeholder="65"
                       />
                     </div>

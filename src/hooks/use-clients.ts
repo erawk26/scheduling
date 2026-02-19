@@ -189,6 +189,33 @@ export function useDeleteClient() {
 
       const now = new Date().toISOString();
 
+      // Cascade soft-delete to pets belonging to this client
+      await db
+        .updateTable('pets')
+        .set({
+          deleted_at: now,
+          updated_at: now,
+          needs_sync: 1,
+          sync_operation: 'DELETE',
+        })
+        .where('client_id', '=', id)
+        .where('deleted_at', 'is', null)
+        .execute();
+
+      // Cascade soft-delete to appointments belonging to this client
+      await db
+        .updateTable('appointments')
+        .set({
+          deleted_at: now,
+          updated_at: now,
+          needs_sync: 1,
+          sync_operation: 'DELETE',
+        })
+        .where('client_id', '=', id)
+        .where('deleted_at', 'is', null)
+        .execute();
+
+      // Soft-delete the client
       await db
         .updateTable('clients')
         .set({
@@ -202,6 +229,8 @@ export function useDeleteClient() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['pets'] });
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
     },
   });
 }

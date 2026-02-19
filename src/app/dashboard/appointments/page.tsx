@@ -23,6 +23,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -88,11 +99,10 @@ export default function AppointmentsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
 
-  // Get today's date range
-  const today = new Date();
-  const todayStart = startOfDay(today).toISOString();
-  const todayEnd = endOfDay(today).toISOString();
-  const now = new Date().toISOString();
+  // Get today's date range (memoized to prevent re-render loops)
+  const todayStart = useMemo(() => startOfDay(new Date()).toISOString(), []);
+  const todayEnd = useMemo(() => endOfDay(new Date()).toISOString(), []);
+  const now = useMemo(() => new Date().toISOString(), []);
 
   // Query appointments for different tabs
   const { data: todayAppointments, isLoading: isLoadingToday } = useAppointments({
@@ -304,9 +314,7 @@ function AppointmentCard({
   };
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to cancel this appointment?')) {
-      deleteAppointment.mutate(appointment.id);
-    }
+    deleteAppointment.mutate(appointment.id);
   };
 
   return (
@@ -395,14 +403,33 @@ function AppointmentCard({
               >
                 Mark No Show
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleDelete}
-                className="text-red-600"
-              >
-                Cancel Appointment
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 -ml-2">
+                Cancel
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to cancel this appointment? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Cancel Appointment
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>
@@ -575,16 +602,16 @@ function AppointmentForm({
           <div>
             <Label htmlFor="pet_id">Pet (Optional)</Label>
             <Select
-              value={watch('pet_id') || ''}
+              value={watch('pet_id') || 'none'}
               onValueChange={(value) =>
-                setValue('pet_id', value || undefined)
+                setValue('pet_id', value === 'none' ? undefined : value)
               }
             >
               <SelectTrigger id="pet_id">
                 <SelectValue placeholder="Select a pet (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {pets.map((pet) => (
                   <SelectItem key={pet.id} value={pet.id}>
                     {pet.name} ({pet.species})

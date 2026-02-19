@@ -10,7 +10,7 @@
 import React, { createContext, useContext, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { useSession } from "@/hooks/use-session"
+import { useSession, clearCachedSession } from "@/hooks/use-session"
 import type {
   AuthSession,
   SignInCredentials,
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Invalidate session cache to refetch
       await queryClient.invalidateQueries({ queryKey: ["auth-session"] })
 
-      router.push("/verify-email")
+      router.push("/dashboard")
     } catch (error) {
       console.error("Sign up error:", error)
       throw error
@@ -103,8 +103,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         credentials: "include",
       })
 
-      // Clear session cache
+      // Clear session cache (both React Query and localStorage)
       queryClient.setQueryData(["auth-session"], null)
+      clearCachedSession()
 
       router.push("/sign-in")
     } catch (error) {

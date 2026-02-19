@@ -16,7 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { User, Building, Shield, LogOut } from 'lucide-react'
+import { User, Building, Shield, LogOut, Database, Trash2 } from 'lucide-react'
+import { useSeedMockData, useCleanupMockData } from '@/hooks/use-mock-data'
 
 const US_TIMEZONES = [
   { value: 'America/New_York', label: 'Eastern Time (ET)' },
@@ -41,6 +42,10 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+
+  const seedMockData = useSeedMockData()
+  const cleanupMockData = useCleanupMockData()
+  const [seedMessage, setSeedMessage] = useState('')
 
   // Get userId from session or use fallback
   const userId = session?.user?.id || 'local-user'
@@ -84,19 +89,47 @@ export default function SettingsPage() {
     setSaveMessage('')
 
     try {
-      await db
-        .updateTable('users')
-        .set({
-          business_name: businessName,
-          phone: phone,
-          timezone: timezone,
-          service_area_miles: serviceAreaMiles,
-          updated_at: new Date().toISOString(),
-          needs_sync: 1,
-          sync_operation: 'UPDATE',
-        })
+      const now = new Date().toISOString()
+
+      // Check if user row exists
+      const existingUser = await db
+        .selectFrom('users')
+        .select('id')
         .where('id', '=', userId)
-        .execute()
+        .executeTakeFirst()
+
+      if (existingUser) {
+        await db
+          .updateTable('users')
+          .set({
+            business_name: businessName,
+            phone: phone,
+            timezone: timezone,
+            service_area_miles: serviceAreaMiles,
+            updated_at: now,
+            needs_sync: 1,
+            sync_operation: 'UPDATE',
+          })
+          .where('id', '=', userId)
+          .execute()
+      } else {
+        await db
+          .insertInto('users')
+          .values({
+            id: userId,
+            business_name: businessName,
+            phone: phone,
+            timezone: timezone,
+            service_area_miles: serviceAreaMiles,
+            created_at: now,
+            updated_at: now,
+            version: 1,
+            needs_sync: 1,
+            sync_operation: 'INSERT',
+            synced_at: null,
+          })
+          .execute()
+      }
 
       setSaveMessage('Settings saved successfully!')
       setTimeout(() => setSaveMessage(''), 3000)
@@ -141,6 +174,10 @@ export default function SettingsPage() {
           <TabsTrigger value="account">
             <Shield className="w-4 h-4 mr-2" />
             Account
+          </TabsTrigger>
+          <TabsTrigger value="devtools">
+            <Database className="w-4 h-4 mr-2" />
+            Dev Tools
           </TabsTrigger>
         </TabsList>
 
@@ -419,6 +456,69 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-500 mt-2 text-center">
                 Account deletion is not yet implemented
               </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Dev Tools Tab */}
+        <TabsContent value="devtools" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mock Data</CardTitle>
+              <CardDescription>
+                Seed or clean up test data for development
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Seed realistic test data including clients, pets, services, and appointments to test the application.
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  onClick={async () => {
+                    try {
+                      await seedMockData.mutateAsync()
+                      setSeedMessage('Mock data seeded successfully!')
+                      setTimeout(() => setSeedMessage(''), 3000)
+                    } catch (error) {
+                      setSeedMessage('Failed to seed data. Try cleaning up first.')
+                      setTimeout(() => setSeedMessage(''), 3000)
+                    }
+                  }}
+                  disabled={seedMockData.isPending}
+                  className="flex-1"
+                >
+                  <Database className="w-4 h-4 mr-2" />
+                  {seedMockData.isPending ? 'Seeding...' : 'Seed Mock Data'}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    try {
+                      await cleanupMockData.mutateAsync()
+                      setSeedMessage('All data cleaned up!')
+                      setTimeout(() => setSeedMessage(''), 3000)
+                    } catch (error) {
+                      setSeedMessage('Failed to clean up data.')
+                      setTimeout(() => setSeedMessage(''), 3000)
+                    }
+                  }}
+                  disabled={cleanupMockData.isPending}
+                  className="flex-1"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {cleanupMockData.isPending ? 'Cleaning...' : 'Clean Mock Data'}
+                </Button>
+              </div>
+              {seedMessage && (
+                <p className={`text-sm text-center ${
+                  seedMessage.includes('success') || seedMessage.includes('cleaned')
+                    ? 'text-green-600'
+                    : 'text-red-600'
+                }`}>
+                  {seedMessage}
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

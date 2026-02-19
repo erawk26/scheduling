@@ -6,7 +6,8 @@
 
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useDatabase } from '@/providers/database-provider';
 import { v4 as uuidv4 } from 'uuid';
 import { startOfDay, endOfDay } from 'date-fns';
@@ -71,6 +72,7 @@ export function useAppointments(options?: UseAppointmentsOptions) {
       return appointments;
     },
     enabled: isReady && !!db,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -78,9 +80,8 @@ export function useAppointments(options?: UseAppointmentsOptions) {
  * Convenience hook for today's appointments
  */
 export function useTodayAppointments() {
-  const today = new Date();
-  const start = startOfDay(today).toISOString();
-  const end = endOfDay(today).toISOString();
+  const start = useMemo(() => startOfDay(new Date()).toISOString(), []);
+  const end = useMemo(() => endOfDay(new Date()).toISOString(), []);
 
   return useAppointments({
     startDate: start,

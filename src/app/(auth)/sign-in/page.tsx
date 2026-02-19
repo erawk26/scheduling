@@ -87,12 +87,9 @@ export default function SignInPage() {
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <Link
-              href="/forgot-password"
-              className="text-sm text-primary hover:underline"
-            >
+            <span className="text-sm text-gray-400 cursor-not-allowed">
               Forgot password?
-            </Link>
+            </span>
           </div>
           <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}
