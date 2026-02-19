@@ -2,7 +2,7 @@
 
 > **CRITICAL**: This file provides essential context for AI assistants. Read this FIRST before any work.
 
-## 🎯 Project Overview
+## Project Overview
 
 **What**: Local-first scheduling platform for mobile service professionals
 **Why**: Solve iOS PWA limitations with offline-first architecture
@@ -17,43 +17,53 @@
 
 ---
 
-## 🚨 MANDATORY READING ORDER
+## Mandatory Reading Order
 
 Before touching ANY code, read these documents in order:
 
-1. **[AI_GUARDRAILS.md](./docs/AI_GUARDRAILS.md)** - ⚠️ CRITICAL rules you MUST follow
+1. **[AI_GUARDRAILS.md](./docs/AI_GUARDRAILS.md)** - CRITICAL rules you MUST follow
 2. **[tech_requirements_guide.md](./docs/tech_requirements_guide.md)** - The ONLY source of truth
 3. **[HIVE_PROJECT_PLAN.md](./docs/HIVE_PROJECT_PLAN.md)** - Development roadmap
 
 ---
 
-## 🏗️ Current Project State
+## Current Project State
 
-### Completed ✅
+### Completed
 - Technical requirements defined
 - Architecture decisions locked
-- Database schema designed
+- Database schema designed (SQLite WASM + Kysely)
 - Project plan created
+- Next.js 15 project initialized
+- Better Auth integration (sign-in, sign-up, sign-out)
+- SQLite WASM setup with Kysely query builder
+- Base UI components (shadcn/ui)
+- Dashboard with live stats (appointments, clients, services, revenue)
+- Services CRUD (create, edit, delete with validation)
+- Clients CRUD with pet management (nested pets per client)
+- Appointments CRUD with scheduling (date/time picker, service/client selection, auto-duration)
+- Settings page (profile, notifications, business hours)
+- TanStack Query hooks for all entities
 
-### In Progress 🔄
-- Project initialization
-- SQLite WASM setup
-- Better Auth integration
-- Base UI components
-
-### Not Started ❌
-- Calendar interface
-- Weather integration
-- Route optimization
+### In Progress
+- Calendar interface (visual calendar view)
+- Weather integration (Tomorrow.io API)
+- Route optimization (Google Maps)
+- PostgreSQL + Hasura sync engine
 - PWA setup
+
+### Not Started
+- Offline sync queue with conflict resolution
+- Push notifications
+- Route optimization UI
+- Production deployment
 
 ---
 
-## ⚠️ CRITICAL RULES - NEVER VIOLATE
+## Tech Stack (LOCKED - NEVER SUBSTITUTE)
 
-### Tech Stack (LOCKED)
 ```yaml
-✅ MUST USE:
+MUST USE:
 - Better Auth (NOT Supabase/Clerk)
 - PostgreSQL + Hasura (NOT Supabase)
 - SQLite WASM + Kysely (NOT Prisma)
@@ -61,244 +71,173 @@ Before touching ANY code, read these documents in order:
 - TanStack Query (NOT SWR)
 - React Hook Form + Zod
 - date-fns (NOT moment)
+- pnpm (package manager)
+- shadcn/ui + Tailwind CSS v4
 
-❌ NEVER USE:
+NEVER USE:
 - Supabase anything
-- Clerk Auth
-- Firebase
-- Prisma ORM
-- Apollo Client
-- Redux/MobX
-- Moment.js
-- Lodash
+- Clerk Auth / Firebase
+- Prisma ORM / Apollo Client
+- Redux / MobX
+- Moment.js / Lodash
 ```
 
-### Architecture Rules
+---
+
+## Architecture Rules
+
 1. **EVERY operation is local-first** - SQLite before network
 2. **NEVER block on network** - Queue and retry
-3. **ALWAYS write tests first** - TDD is mandatory
-4. **Functions < 50 lines** - Clean code enforced
-5. **80% test coverage minimum** - 100% for critical paths
+3. **Functions < 50 lines** - Clean code enforced
+4. **This is LOCAL-FIRST** (not just offline-first) - Performance matters (<200ms always)
+5. **Simple > Clever** - Boring technology > Cutting edge
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-minimal-app/
+ke-agenda-v2/
 ├── src/
-│   ├── app/                 # Next.js 15 App Router
-│   ├── components/          # React components
-│   ├── hooks/              # Custom hooks
-│   ├── lib/                # Core libraries
-│   │   ├── auth.ts         # Better Auth config
-│   │   ├── database/       # SQLite + Kysely
-│   │   ├── graphql/        # Hasura queries
-│   │   ├── weather/        # Tomorrow.io
-│   │   └── routes/         # Google Maps
-│   ├── providers/          # React contexts
-│   └── types/              # TypeScript types
+│   ├── app/                  # Next.js 15 App Router
+│   │   ├── (auth)/           # Sign-in, sign-up pages
+│   │   └── dashboard/        # Main app pages
+│   │       ├── appointments/
+│   │       ├── clients/      # Includes [id]/ detail page
+│   │       ├── services/
+│   │       ├── settings/
+│   │       ├── routes/
+│   │       └── weather/
+│   ├── components/
+│   │   ├── layout/           # Header, Sidebar
+│   │   └── ui/               # shadcn/ui primitives
+│   ├── hooks/                # TanStack Query hooks (use-clients, use-services, etc.)
+│   ├── lib/
+│   │   ├── auth.ts           # Better Auth config
+│   │   ├── database/         # SQLite WASM + Kysely schema & operations
+│   │   └── validations/      # Zod schemas for all forms
+│   ├── providers/            # Auth, Database, Query providers
+│   └── types/                # TypeScript types
 ├── docs/
-│   ├── AI_GUARDRAILS.md    # Rules for AI
-│   ├── tech_requirements_guide.md  # Tech spec
-│   └── HIVE_PROJECT_PLAN.md  # Roadmap
-└── tests/                   # Test files
+│   ├── AI_GUARDRAILS.md
+│   ├── tech_requirements_guide.md
+│   ├── HIVE_PROJECT_PLAN.md
+│   └── design/               # Design system docs
+└── public/                   # Static assets
 ```
 
 ---
 
-## 🎯 Current Sprint Focus
+## Development Workflow
 
-### Week 1-3: Foundation
-- [ ] Initialize Next.js 15.4.5 project
-- [ ] Setup PostgreSQL + Hasura
-- [ ] Integrate Better Auth
-- [ ] Configure SQLite WASM
-- [ ] Implement Kysely for both DBs
-- [ ] Create sync engine
-- [ ] Build base UI components
-
-### Success Criteria
-- [ ] Local CRUD operations work
-- [ ] Auth flow complete
-- [ ] Basic sync functioning
-- [ ] Tests passing with 80% coverage
-
----
-
-## 💻 Development Workflow
+### Package Manager
+This project uses **pnpm**. All commands use `pnpm`:
+```bash
+pnpm install          # Install dependencies
+pnpm dev              # Start development server
+pnpm build            # Production build
+pnpm test             # Run tests
+pnpm lint             # Lint check
+```
 
 ### Before Writing Code
-1. **Read the guardrails** - AI_GUARDRAILS.md
-2. **Write tests first** - TDD is mandatory
-3. **Check tech requirements** - No substitutions
-4. **Verify offline-first** - Must work without internet
+1. Read the guardrails (AI_GUARDRAILS.md)
+2. Check tech requirements - no substitutions allowed
+3. Verify offline-first - must work without internet
 
 ### Code Standards
-```typescript
-// EVERY function must:
-✅ Be < 50 lines
-✅ Have a single responsibility
-✅ Have descriptive names
-✅ Handle errors gracefully
-✅ Work offline
-✅ Have tests
-
-// NEVER:
-❌ Use 'any' type
-❌ Have magic numbers
-❌ Leave console.log
-❌ Comment out code
-❌ Skip error handling
-❌ Block on network
-```
+- Functions < 50 lines, single responsibility
+- No `any` type, no magic numbers
+- No `console.log` left in production code
+- Handle errors gracefully, never block on network
+- Use skeletons for loading states (never spinners for local ops)
+- Minimum 44px touch targets for mobile
+- Proper ARIA labels for accessibility
 
 ### Git Workflow
 ```bash
 # Branch naming
 feature/calendar-ui
 fix/sync-queue-retry
-test/appointment-validation
 
-# Commit messages
+# Commit messages (conventional commits)
 feat: Add appointment creation with offline support
 fix: Handle sync conflicts with last-write-wins
-test: Add coverage for weather service
-docs: Update API documentation
 ```
 
 ---
 
-## 🔍 Quick Decision Guide
+## Known Patterns
 
-### When you need to make a technical decision:
+### DateTime Handling
+- Store datetimes as local ISO strings WITHOUT timezone suffix (no `.000Z`)
+- Use `format(date, "yyyy-MM-dd'T'HH:mm:ss")` for constructing form values
+- Use `parseISO()` from date-fns for parsing stored datetime strings
+- Form datetime inputs: combine date + time as `${date}T${time}:00`
+
+### Price Handling
+- Store prices as `price_cents` (integer) in the database
+- Display as dollars: `(price_cents / 100).toFixed(2)`
+- In forms, use a controlled `priceDisplay` state - do NOT use `register()` with custom `onChange`
+
+### React Hook Form + Radix/shadcn
+- Never spread `register()` on inputs that also need custom `onChange` or `value` - they conflict
+- For controlled components (Select, Switch, custom inputs), use `form.watch()` + `form.setValue()`
+
+### Auth
+- `TEMP_USER_ID = 'local-user'` is used across all CRUD hooks until full auth sync is implemented
+- Auth session available via `useAuth()` from `@/providers/auth-provider`
+
+---
+
+## Design System
+
+Refer to `/docs/design/` for full specifications:
+- **Design system**: `/docs/design/design-system.md` - colors, spacing, typography
+- **Components**: `/docs/design/component-library.md` - existing patterns
+- **UI patterns**: `/docs/design/ui-patterns.md` - responsiveness, interactions
+
+When making UI changes, follow the design system documentation and use shadcn/ui components from `@/components/ui/`.
+
+---
+
+## Performance Targets
+
+| Metric | Target |
+|--------|--------|
+| Local operations | <200ms |
+| Sync success rate | >99.5% |
+| Offline duration | 72+ hours |
+| Bundle size | <450KB |
+| Route optimization | <5s for 20 stops |
+
+---
+
+## Quick Decision Guide
 
 ```
 Is it in tech_requirements_guide.md?
-  YES → Use exactly as specified
-  NO ↓
-    
-Does it require a new dependency?
-  YES → STOP! Get approval first
-  NO ↓
-    
-Will it work offline for 72+ hours?
-  NO → STOP! Redesign for local-first
-  YES ↓
-    
-Does it add vendor lock-in?
-  YES → STOP! Find portable solution
-  NO ↓
-    
-Are there tests written first?
-  NO → STOP! Write tests first
-  YES ↓
-    
-Proceed with implementation
+  YES -> Use exactly as specified
+  NO  -> Does it require a new dependency?
+           YES -> Get approval first
+           NO  -> Will it work offline for 72+ hours?
+                    NO  -> Redesign for local-first
+                    YES -> Does it add vendor lock-in?
+                             YES -> Find portable solution
+                             NO  -> Proceed with implementation
 ```
 
 ---
 
-## 📊 Performance Targets
+## Key Documentation Links
 
-Every feature MUST meet these requirements:
-
-| Metric | Target | Current |
-|--------|--------|---------|
-| Local operations | <200ms | Not measured |
-| Sync success rate | >99.5% | Not implemented |
-| Offline duration | 72+ hours | Not tested |
-| Bundle size | <450KB | Not built |
-| Route optimization | <5s for 20 stops | Not implemented |
-| Test coverage | >80% | 0% |
-
----
-
-## 🐛 Common Issues & Solutions
-
-### Problem: "Should I use Supabase?"
-**Answer**: NO! Use Better Auth + PostgreSQL + Hasura
-
-### Problem: "Prisma would be easier"
-**Answer**: NO! Use Kysely for type-safe queries
-
-### Problem: "Loading spinner while saving"
-**Answer**: NO! Local save + optimistic update + background sync
-
-### Problem: "This works online only"
-**Answer**: Redesign for local-first with SQLite WASM
-
-### Problem: "Function is 100+ lines"
-**Answer**: Break into smaller functions, max 50 lines
-
-### Problem: "No tests yet, will add later"
-**Answer**: Write tests FIRST, then implementation
-
----
-
-## 🚀 Getting Started
-
-### First Time Setup
-```bash
-# Clone repository
-git clone [repository-url]
-cd minimal-app
-
-# Install dependencies
-npm install
-
-# Setup environment
-cp .env.example .env.local
-# Edit .env.local with your keys
-
-# Start development
-npm run dev
-
-# Run tests
-npm test
-
-# Check coverage
-npm run test:coverage
-```
-
-### Daily Workflow
-```bash
-# Start your day
-git pull origin main
-npm install  # In case deps changed
-npm test     # Ensure tests pass
-
-# Create feature branch
-git checkout -b feature/your-feature
-
-# Write tests first!
-npm run test:watch
-
-# Implement feature
-# ... code ...
-
-# Verify everything
-npm test
-npm run lint
-npm run type-check
-
-# Commit with conventional commits
-git add .
-git commit -m "feat: your feature description"
-git push origin feature/your-feature
-```
-
----
-
-## 📚 Key Documentation Links
-
-### Internal Docs
+### Internal
 - [AI Guardrails](./docs/AI_GUARDRAILS.md) - MUST READ
 - [Tech Requirements](./docs/tech_requirements_guide.md) - Source of truth
 - [Project Plan](./docs/HIVE_PROJECT_PLAN.md) - Development roadmap
 - [User Stories](./docs/user_stories_acceptance_criteria.md) - Feature specs
 
-### External Docs
+### External
 - [Better Auth](https://better-auth.com) - Authentication
 - [Kysely](https://kysely.dev) - Database queries
 - [Hasura](https://hasura.io/docs) - GraphQL engine
@@ -307,83 +246,6 @@ git push origin feature/your-feature
 
 ---
 
-## ⚠️ RED FLAGS - Stop Immediately If:
-
-1. Someone suggests Supabase/Firebase/Clerk
-2. Someone wants to skip offline support
-3. Someone says "we'll add tests later"
-4. Someone wants to change core architecture
-5. Someone creates 100+ line functions
-6. Someone adds vendor lock-in
-
-**If any red flag appears → Check AI_GUARDRAILS.md → Check tech_requirements_guide.md → Escalate if needed**
-
----
-
-## 🎨 Visual Development
-
-### Design System Documentation
-- **Main design documentation**: `/docs/design/README.md`
-- **Design system specifications**: `/docs/design/design-system.md`
-- **Component library**: `/docs/design/component-library.md`
-- **UI/UX patterns**: `/docs/design/ui-patterns.md`
-- When making visual (front-end, UI/UX) changes, always refer to the design system documentation for guidance
-
-### Quick Visual Check
-IMMEDIATELY after implementing any front-end change:
-1. **Identify what changed** - Review the modified components/pages
-2. **Navigate to affected pages** - Use `mcp__playwright__browser_navigate` to visit each changed view
-3. **Verify design compliance** - Compare against `/docs/design/` documentation
-4. **Validate feature implementation** - Ensure the change fulfills the user's specific request
-5. **Check acceptance criteria** - Review any provided context files or requirements
-6. **Capture evidence** - Take full page screenshot at desktop viewport (1440px) of each changed view
-7. **Check for errors** - Run `mcp__playwright__browser_console_messages`
-
-This verification ensures changes meet design standards and user requirements.
-
-### Design Implementation Checklist
-Before implementing UI changes:
-- [ ] Review `/docs/design/design-system.md` for color, spacing, and typography tokens
-- [ ] Check `/docs/design/component-library.md` for existing component patterns
-- [ ] Verify mobile responsiveness requirements in `/docs/design/ui-patterns.md`
-- [ ] Use shadcn/ui components from `@/components/ui/`
-- [ ] Apply Tailwind CSS v4 utility classes consistently
-- [ ] Ensure minimum 44px touch targets for mobile
-- [ ] Implement loading states with skeletons (never spinners for local ops)
-- [ ] Add proper ARIA labels for accessibility
-
----
-
-## 📝 Notes for AI Assistants
-
-### Your Priorities
-1. **Follow guardrails** - AI_GUARDRAILS.md is law
-2. **Test first** - TDD is mandatory
-3. **Local first** - Everything works offline
-4. **Clean code** - Small functions, clear names
-5. **No vendor lock-in** - Portable solutions only
-6. **Design consistency** - Follow design system strictly
-
-### When Stuck
-- Check tech_requirements_guide.md
-- Review AI_GUARDRAILS.md
-- Consult design documentation in `/docs/design/`
-- Look at existing patterns in codebase
-- Ask for clarification rather than guess
-- Default to simpler solution
-
-### Remember
-- This is a LOCAL-FIRST app (not offline-first)
-- Performance matters (<200ms always)
-- User experience > Developer experience
-- Simple > Clever
-- Boring technology > Cutting edge
-- Design consistency > Individual creativity
-
----
-
 **Project Version**: 3.0.0
-**Last Updated**: December 2024
-**Status**: Foundation Phase (Week 1-3)
-
-**⚠️ When in doubt, consult tech_requirements_guide.md - it is the ONLY source of truth**
+**Last Updated**: February 2026
+**Status**: Foundation phase - CRUD complete, sync and advanced features in progress
