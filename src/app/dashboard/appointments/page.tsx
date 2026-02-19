@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parseISO, addMinutes, startOfDay, endOfDay } from 'date-fns';
 import {
   Calendar,
+  List,
   Plus,
   Clock,
   MapPin,
@@ -67,6 +68,7 @@ import { usePets } from '@/hooks/use-pets';
 import { useDatabase } from '@/providers/database-provider';
 import { appointmentSchema, type AppointmentFormData } from '@/lib/validations';
 import type { Appointment, Client, Service } from '@/lib/database/types';
+import { CalendarView } from '@/components/appointments/calendar-view';
 
 type AppointmentStatus =
   | 'scheduled'
@@ -98,6 +100,7 @@ export default function AppointmentsPage() {
   const { isReady } = useDatabase();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
 
   // Get today's date range (memoized to prevent re-render loops)
   const todayStart = useMemo(() => startOfDay(new Date()).toISOString(), []);
@@ -174,99 +177,129 @@ export default function AppointmentsPage() {
             Manage your upcoming and past appointments
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Schedule Appointment
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'calendar' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('calendar')}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              Calendar
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Schedule Appointment</DialogTitle>
-              <DialogDescription>
-                Create a new appointment for a client
-              </DialogDescription>
-            </DialogHeader>
-            <AppointmentForm
-              clients={clients || []}
-              services={services || []}
-              onSuccess={() => setIsCreateDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="mr-2 h-4 w-4" />
+              List
+            </Button>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Schedule Appointment
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Schedule Appointment</DialogTitle>
+                <DialogDescription>
+                  Create a new appointment for a client
+                </DialogDescription>
+              </DialogHeader>
+              <AppointmentForm
+                clients={clients || []}
+                services={services || []}
+                onSuccess={() => setIsCreateDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <Tabs defaultValue="today" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="today">Today</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
-        </TabsList>
+      {viewMode === 'calendar' ? (
+        <CalendarView
+          appointments={allAppointments || []}
+          clientsMap={clientsMap}
+          servicesMap={servicesMap}
+          onAppointmentClick={setEditingAppointment}
+          onCreateAppointment={() => setIsCreateDialogOpen(true)}
+        />
+      ) : (
+        <Tabs defaultValue="today" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="today">Today</TabsTrigger>
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="past">Past</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="today" className="space-y-4">
-          {isLoadingToday ? (
-            <div className="space-y-4">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-          ) : todayAppointments && todayAppointments.length > 0 ? (
-            todayAppointments.map((appointment) => (
-              <AppointmentCard
-                key={appointment.id}
-                appointment={appointment}
-                client={clientsMap.get(appointment.client_id)}
-                service={servicesMap.get(appointment.service_id)}
-                onEdit={setEditingAppointment}
-              />
-            ))
-          ) : (
-            <EmptyState message="No appointments scheduled for today" />
-          )}
-        </TabsContent>
+          <TabsContent value="today" className="space-y-4">
+            {isLoadingToday ? (
+              <div className="space-y-4">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            ) : todayAppointments && todayAppointments.length > 0 ? (
+              todayAppointments.map((appointment) => (
+                <AppointmentCard
+                  key={appointment.id}
+                  appointment={appointment}
+                  client={clientsMap.get(appointment.client_id)}
+                  service={servicesMap.get(appointment.service_id)}
+                  onEdit={setEditingAppointment}
+                />
+              ))
+            ) : (
+              <EmptyState message="No appointments scheduled for today" />
+            )}
+          </TabsContent>
 
-        <TabsContent value="upcoming" className="space-y-4">
-          {isLoadingAll ? (
-            <div className="space-y-4">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-          ) : upcomingAppointments.length > 0 ? (
-            upcomingAppointments.map((appointment) => (
-              <AppointmentCard
-                key={appointment.id}
-                appointment={appointment}
-                client={clientsMap.get(appointment.client_id)}
-                service={servicesMap.get(appointment.service_id)}
-                onEdit={setEditingAppointment}
-              />
-            ))
-          ) : (
-            <EmptyState message="No upcoming appointments" />
-          )}
-        </TabsContent>
+          <TabsContent value="upcoming" className="space-y-4">
+            {isLoadingAll ? (
+              <div className="space-y-4">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            ) : upcomingAppointments.length > 0 ? (
+              upcomingAppointments.map((appointment) => (
+                <AppointmentCard
+                  key={appointment.id}
+                  appointment={appointment}
+                  client={clientsMap.get(appointment.client_id)}
+                  service={servicesMap.get(appointment.service_id)}
+                  onEdit={setEditingAppointment}
+                />
+              ))
+            ) : (
+              <EmptyState message="No upcoming appointments" />
+            )}
+          </TabsContent>
 
-        <TabsContent value="past" className="space-y-4">
-          {isLoadingAll ? (
-            <div className="space-y-4">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-          ) : pastAppointments.length > 0 ? (
-            pastAppointments.map((appointment) => (
-              <AppointmentCard
-                key={appointment.id}
-                appointment={appointment}
-                client={clientsMap.get(appointment.client_id)}
-                service={servicesMap.get(appointment.service_id)}
-                onEdit={setEditingAppointment}
-              />
-            ))
-          ) : (
-            <EmptyState message="No past appointments" />
-          )}
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="past" className="space-y-4">
+            {isLoadingAll ? (
+              <div className="space-y-4">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            ) : pastAppointments.length > 0 ? (
+              pastAppointments.map((appointment) => (
+                <AppointmentCard
+                  key={appointment.id}
+                  appointment={appointment}
+                  client={clientsMap.get(appointment.client_id)}
+                  service={servicesMap.get(appointment.service_id)}
+                  onEdit={setEditingAppointment}
+                />
+              ))
+            ) : (
+              <EmptyState message="No past appointments" />
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
 
       {editingAppointment && (
         <Dialog
