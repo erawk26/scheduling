@@ -61,6 +61,7 @@ export default function SignUpPage() {
                 id="firstName"
                 name="firstName"
                 type="text"
+                autoComplete="given-name"
                 placeholder="John"
                 required
                 disabled={isLoading}
@@ -72,6 +73,7 @@ export default function SignUpPage() {
                 id="lastName"
                 name="lastName"
                 type="text"
+                autoComplete="family-name"
                 placeholder="Doe"
                 required
                 disabled={isLoading}
@@ -84,6 +86,7 @@ export default function SignUpPage() {
               id="email"
               name="email"
               type="email"
+              autoComplete="email"
               placeholder="john@example.com"
               required
               disabled={isLoading}
@@ -96,6 +99,7 @@ export default function SignUpPage() {
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
                 minLength={8}
                 required
                 disabled={isLoading}

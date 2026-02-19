@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clear session cache
       queryClient.setQueryData(["auth-session"], null)
 
-      router.push("/dashboard")
+      router.push("/sign-in")
     } catch (error) {
       console.error("Sign out error:", error)
       throw error

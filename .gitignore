@@ -56,3 +56,9 @@ next-env.d.ts
 .playwright*
 .github
 devcontainer*
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
+page-*.png

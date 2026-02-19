@@ -54,6 +54,7 @@ export default function SignInPage() {
               id="email"
               name="email"
               type="email"
+              autoComplete="email"
               placeholder="john@example.com"
               required
               disabled={isLoading}
@@ -66,6 +67,7 @@ export default function SignInPage() {
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 required
                 disabled={isLoading}
               />
