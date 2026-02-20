@@ -28,6 +28,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { Appointment } from '@/lib/database/types';
+import type { WeatherForecast } from '@/lib/weather/types';
+import { WeatherDayIcon } from '@/components/appointments/weather-badge';
 
 // ============================================================================
 // Types
@@ -41,6 +43,7 @@ interface CalendarViewProps {
   appointments: Appointment[];
   clientsMap: Map<string, { first_name: string; last_name: string }>;
   servicesMap: Map<string, { name: string; duration_minutes: number }>;
+  forecastByDate?: Map<string, WeatherForecast>;
   onDateSelect?: (date: Date) => void;
   onAppointmentClick?: (appointment: Appointment) => void;
   onCreateAppointment?: (date: Date) => void;
@@ -161,11 +164,12 @@ interface MonthViewProps {
   currentDate: Date;
   appointments: Appointment[];
   clientsMap: Map<string, { first_name: string; last_name: string }>;
+  forecastByDate?: Map<string, WeatherForecast>;
   onDateSelect?: (date: Date) => void;
   onAppointmentClick?: (appointment: Appointment) => void;
 }
 
-function MonthView({ currentDate, appointments, clientsMap, onDateSelect, onAppointmentClick }: MonthViewProps) {
+function MonthView({ currentDate, appointments, clientsMap, forecastByDate, onDateSelect, onAppointmentClick }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
@@ -216,18 +220,25 @@ function MonthView({ currentDate, appointments, clientsMap, onDateSelect, onAppo
                 }
               }}
             >
-              {/* Day number */}
-              <div
-                className={cn(
-                  'text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full',
-                  isTodayDay
-                    ? 'bg-blue-600 text-white'
-                    : isCurrentMonth
-                    ? 'text-gray-900'
-                    : 'text-gray-400'
-                )}
-              >
-                {format(day, 'd')}
+              {/* Day number + weather icon */}
+              <div className="flex items-center justify-between mb-1">
+                <div
+                  className={cn(
+                    'text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full',
+                    isTodayDay
+                      ? 'bg-blue-600 text-white'
+                      : isCurrentMonth
+                      ? 'text-gray-900'
+                      : 'text-gray-400'
+                  )}
+                >
+                  {format(day, 'd')}
+                </div>
+                {(() => {
+                  const dateStr = format(day, 'yyyy-MM-dd');
+                  const forecast = forecastByDate?.get(dateStr);
+                  return forecast ? <WeatherDayIcon forecast={forecast} /> : null;
+                })()}
               </div>
 
               {/* Appointment pills */}
@@ -526,6 +537,7 @@ export function CalendarView({
   appointments,
   clientsMap,
   servicesMap,
+  forecastByDate,
   onDateSelect,
   onAppointmentClick,
   onCreateAppointment: _onCreateAppointment,
@@ -638,6 +650,7 @@ export function CalendarView({
             currentDate={currentDate}
             appointments={visibleAppointments}
             clientsMap={clientsMap}
+            forecastByDate={forecastByDate}
             onDateSelect={handleDateSelect}
             onAppointmentClick={onAppointmentClick}
           />

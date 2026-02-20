@@ -69,6 +69,9 @@ import { useDatabase } from '@/providers/database-provider';
 import { appointmentSchema, type AppointmentFormData } from '@/lib/validations';
 import type { Appointment, Client, Service } from '@/lib/database/types';
 import { CalendarView } from '@/components/appointments/calendar-view';
+import { WeatherBadge } from '@/components/appointments/weather-badge';
+import { useWeatherForecast } from '@/hooks/use-weather';
+import type { WeatherForecast } from '@/lib/weather/types';
 
 type AppointmentStatus =
   | 'scheduled'
@@ -139,6 +142,15 @@ export default function AppointmentsPage() {
   // Query clients and services for lookups
   const { data: clients } = useClients();
   const { data: services } = useServices();
+
+  // Weather forecasts (default location - TODO: use user's configured location)
+  const { data: weatherForecasts } = useWeatherForecast(40.7128, -74.006);
+
+  // Build forecast lookup by date
+  const forecastByDate = useMemo(() => {
+    if (!weatherForecasts) return new Map<string, WeatherForecast>();
+    return new Map(weatherForecasts.map((f) => [f.date, f]));
+  }, [weatherForecasts]);
 
   // Create lookup maps
   const clientsMap = useMemo(() => {
@@ -225,6 +237,7 @@ export default function AppointmentsPage() {
           appointments={allAppointments || []}
           clientsMap={clientsMap}
           servicesMap={servicesMap}
+          forecastByDate={forecastByDate}
           onAppointmentClick={setEditingAppointment}
           onCreateAppointment={() => setIsCreateDialogOpen(true)}
         />
@@ -249,6 +262,7 @@ export default function AppointmentsPage() {
                   appointment={appointment}
                   client={clientsMap.get(appointment.client_id)}
                   service={servicesMap.get(appointment.service_id)}
+                  forecastByDate={forecastByDate}
                   onEdit={setEditingAppointment}
                 />
               ))
@@ -270,6 +284,7 @@ export default function AppointmentsPage() {
                   appointment={appointment}
                   client={clientsMap.get(appointment.client_id)}
                   service={servicesMap.get(appointment.service_id)}
+                  forecastByDate={forecastByDate}
                   onEdit={setEditingAppointment}
                 />
               ))
@@ -291,6 +306,7 @@ export default function AppointmentsPage() {
                   appointment={appointment}
                   client={clientsMap.get(appointment.client_id)}
                   service={servicesMap.get(appointment.service_id)}
+                  forecastByDate={forecastByDate}
                   onEdit={setEditingAppointment}
                 />
               ))
@@ -330,6 +346,7 @@ interface AppointmentCardProps {
   appointment: Appointment;
   client?: Client;
   service?: Service;
+  forecastByDate?: Map<string, WeatherForecast>;
   onEdit: (appointment: Appointment) => void;
 }
 
@@ -337,6 +354,7 @@ function AppointmentCard({
   appointment,
   client,
   service,
+  forecastByDate,
   onEdit,
 }: AppointmentCardProps) {
   const updateStatus = useUpdateAppointmentStatus();
@@ -364,6 +382,13 @@ function AppointmentCard({
               <Badge className={statusColors[appointment.status]}>
                 {statusLabels[appointment.status]}
               </Badge>
+              {service?.weather_dependent === 1 && (() => {
+                const aptDate = appointment.start_time.slice(0, 10);
+                const forecast = forecastByDate?.get(aptDate);
+                return forecast && !forecast.is_outdoor_suitable ? (
+                  <WeatherBadge forecast={forecast} compact />
+                ) : null;
+              })()}
             </div>
 
             <div className="space-y-2 text-sm text-gray-600">
