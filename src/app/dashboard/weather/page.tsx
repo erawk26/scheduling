@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
 import {
   Sun,
@@ -24,9 +25,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWeatherForecast } from '@/hooks/use-weather';
-import { useUserLocation } from '@/hooks/use-user-location';
 import { useBusinessLocation } from '@/hooks/use-business-location';
 import { useAppointments } from '@/hooks/use-appointments';
+import { useClients } from '@/hooks/use-clients';
 import { useServices } from '@/hooks/use-services';
 import type { WeatherForecast } from '@/lib/weather/types';
 
@@ -55,18 +56,73 @@ function WeatherIcon({ name, className }: { name: string; className?: string }) 
 // Page Component
 // ============================================================================
 
-export default function WeatherPage() {
-  const { lat: geoLat, lon: geoLon, status: geoStatus, requestLocation } = useUserLocation();
-  const { data: bizLoc } = useBusinessLocation();
+type LocationMode = 'business' | 'next_appointment' | 'browser';
 
-  // Business location takes priority, browser geolocation as fallback
-  const lat = bizLoc?.lat ?? geoLat;
-  const lon = bizLoc?.lon ?? geoLon;
+export default function WeatherPage() {
+  const [mode, setMode] = useState<LocationMode>('business');
+
+  // Data sources
+  const { data: bizLoc } = useBusinessLocation();
+  const { data: appointments } = useAppointments();
+  const { data: clients } = useClients();
+  const { data: services } = useServices();
+
+  // Next upcoming appointment's client location (computed but only used when toggled)
+  const now = new Date().toISOString();
+  const nextApt = (appointments ?? [])
+    .filter((a) => a.start_time > now && a.status !== 'cancelled')
+    .sort((a, b) => a.start_time.localeCompare(b.start_time))[0];
+  const nextClient = nextApt && clients
+    ? clients.find((c) => c.id === nextApt.client_id)
+    : null;
+  const nextAptLat = nextClient?.latitude ?? nextApt?.latitude ?? null;
+  const nextAptLon = nextClient?.longitude ?? nextApt?.longitude ?? null;
+  const hasNextAptLoc = nextAptLat != null && nextAptLon != null;
+
+  // Browser geolocation (only triggered on demand)
+  const [browserLat, setBrowserLat] = useState<number | null>(null);
+  const [browserLon, setBrowserLon] = useState<number | null>(null);
+  const [geoDetecting, setGeoDetecting] = useState(false);
+  const requestBrowserLocation = useCallback(() => {
+    if (!navigator.geolocation) return;
+    setGeoDetecting(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setBrowserLat(Math.round(pos.coords.latitude * 100) / 100);
+        setBrowserLon(Math.round(pos.coords.longitude * 100) / 100);
+        setGeoDetecting(false);
+      },
+      () => setGeoDetecting(false),
+      { enableHighAccuracy: false, timeout: 10000 }
+    );
+  }, []);
+
+  // Resolve lat/lon based on selected mode
   const hasBizLoc = bizLoc?.lat != null && bizLoc?.lon != null;
+  let lat: number | null = null;
+  let lon: number | null = null;
+  let locationLabel = '';
+
+  if (mode === 'business' && hasBizLoc) {
+    lat = bizLoc!.lat;
+    lon = bizLoc!.lon;
+    locationLabel = 'Business location';
+  } else if (mode === 'next_appointment' && hasNextAptLoc) {
+    lat = nextAptLat;
+    lon = nextAptLon;
+    locationLabel = `Next appointment \u2014 ${nextClient?.first_name ?? ''} ${nextClient?.last_name ?? ''}`.trim();
+  } else if (mode === 'browser' && browserLat != null) {
+    lat = browserLat;
+    lon = browserLon;
+    locationLabel = 'Browser location';
+  } else if (hasBizLoc) {
+    // Fallback to business if selected mode has no data
+    lat = bizLoc!.lat;
+    lon = bizLoc!.lon;
+    locationLabel = 'Business location (fallback)';
+  }
 
   const { data: forecasts, isLoading, isError } = useWeatherForecast(lat, lon);
-  const { data: appointments } = useAppointments();
-  const { data: services } = useServices();
 
   // Build a set of weather-dependent service IDs
   const weatherDependentServiceIds = new Set(
@@ -93,30 +149,47 @@ export default function WeatherPage() {
         </p>
       </div>
 
-      {/* Location Status */}
-      <div className="flex items-center gap-3 text-sm text-gray-600">
-        <MapPin className="h-4 w-4" />
-        {hasBizLoc ? (
-          <span>
-            Using your business location ({lat}, {lon})
-          </span>
-        ) : geoStatus === 'loading' ? (
-          <span>Detecting your location...</span>
-        ) : lat !== null && lon !== null ? (
-          <span>
-            Using browser location ({lat}, {lon})
-          </span>
-        ) : geoStatus === 'denied' ? (
-          <span className="text-amber-700">
-            Location access denied. Set your business location in Settings.
-          </span>
-        ) : null}
-        {!hasBizLoc && (geoStatus === 'denied' || geoStatus === 'granted') && (
-          <Button variant="outline" size="sm" onClick={requestLocation}>
-            <MapPin className="h-3 w-3 mr-1" />
-            Update Location
+      {/* Location Toggle */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 rounded-lg border p-1">
+          <Button
+            variant={mode === 'business' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMode('business')}
+            disabled={!hasBizLoc}
+          >
+            Business
           </Button>
-        )}
+          <Button
+            variant={mode === 'next_appointment' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMode('next_appointment')}
+            disabled={!hasNextAptLoc}
+          >
+            Next Appointment
+          </Button>
+          <Button
+            variant={mode === 'browser' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => {
+              setMode('browser');
+              if (browserLat === null) requestBrowserLocation();
+            }}
+          >
+            {geoDetecting ? 'Detecting...' : 'My Location'}
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <MapPin className="h-4 w-4" />
+          {lat !== null && lon !== null ? (
+            <span>{locationLabel}</span>
+          ) : (
+            <span className="text-amber-700">
+              No location available. Set your business location in Settings.
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Loading State */}
