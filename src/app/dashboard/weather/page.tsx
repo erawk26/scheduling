@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWeatherForecast } from '@/hooks/use-weather';
 import { useUserLocation } from '@/hooks/use-user-location';
+import { useBusinessLocation } from '@/hooks/use-business-location';
 import { useAppointments } from '@/hooks/use-appointments';
 import { useServices } from '@/hooks/use-services';
 import type { WeatherForecast } from '@/lib/weather/types';
@@ -55,7 +56,13 @@ function WeatherIcon({ name, className }: { name: string; className?: string }) 
 // ============================================================================
 
 export default function WeatherPage() {
-  const { lat, lon, status: geoStatus, requestLocation } = useUserLocation();
+  const { lat: geoLat, lon: geoLon, status: geoStatus, requestLocation } = useUserLocation();
+  const { data: bizLoc } = useBusinessLocation();
+
+  // Business location takes priority, browser geolocation as fallback
+  const lat = bizLoc?.lat ?? geoLat;
+  const lon = bizLoc?.lon ?? geoLon;
+  const hasBizLoc = bizLoc?.lat != null && bizLoc?.lon != null;
 
   const { data: forecasts, isLoading, isError } = useWeatherForecast(lat, lon);
   const { data: appointments } = useAppointments();
@@ -89,18 +96,22 @@ export default function WeatherPage() {
       {/* Location Status */}
       <div className="flex items-center gap-3 text-sm text-gray-600">
         <MapPin className="h-4 w-4" />
-        {geoStatus === 'loading' && <span>Detecting your location...</span>}
-        {geoStatus === 'granted' && lat !== null && lon !== null && (
+        {hasBizLoc ? (
           <span>
-            Showing weather for your location ({lat}, {lon})
+            Using your business location ({lat}, {lon})
           </span>
-        )}
-        {geoStatus === 'denied' && (
+        ) : geoStatus === 'loading' ? (
+          <span>Detecting your location...</span>
+        ) : lat !== null && lon !== null ? (
+          <span>
+            Using browser location ({lat}, {lon})
+          </span>
+        ) : geoStatus === 'denied' ? (
           <span className="text-amber-700">
-            Location access denied.
+            Location access denied. Set your business location in Settings.
           </span>
-        )}
-        {(geoStatus === 'denied' || geoStatus === 'granted') && (
+        ) : null}
+        {!hasBizLoc && (geoStatus === 'denied' || geoStatus === 'granted') && (
           <Button variant="outline" size="sm" onClick={requestLocation}>
             <MapPin className="h-3 w-3 mr-1" />
             Update Location

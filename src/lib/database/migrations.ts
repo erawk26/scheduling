@@ -15,6 +15,8 @@ export const SQLITE_MIGRATIONS = [
     phone TEXT,
     timezone TEXT DEFAULT 'America/New_York',
     service_area_miles INTEGER DEFAULT 25,
+    business_latitude REAL,
+    business_longitude REAL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     version INTEGER DEFAULT 1,
@@ -166,12 +168,31 @@ export const SQLITE_MIGRATIONS = [
 ];
 
 /**
+ * Incremental ALTER TABLE migrations for existing databases.
+ * Each runs independently; "duplicate column" errors are silently ignored.
+ */
+const ALTER_MIGRATIONS = [
+  `ALTER TABLE users ADD COLUMN business_latitude REAL`,
+  `ALTER TABLE users ADD COLUMN business_longitude REAL`,
+];
+
+/**
  * Run all migrations on a SQLite database
  */
 export async function runMigrations(db: any): Promise<void> {
   try {
     for (const migration of SQLITE_MIGRATIONS) {
       await db.exec(migration);
+    }
+
+    // Run ALTER TABLE migrations (ignore "duplicate column" errors)
+    for (const alter of ALTER_MIGRATIONS) {
+      try {
+        await db.exec(alter);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (!msg.includes('duplicate column')) throw e;
+      }
     }
   } catch (error) {
     throw new Error(

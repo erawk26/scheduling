@@ -105,19 +105,27 @@ export function WeatherBadge({ forecast, compact = false }: WeatherBadgeProps) {
 export function AppointmentWeatherBadge({
   clientLat,
   clientLon,
+  fallbackLat,
+  fallbackLon,
   appointmentDate,
   isWeatherDependent,
   compact = true,
 }: {
   clientLat: number | null;
   clientLon: number | null;
+  fallbackLat?: number | null;
+  fallbackLon?: number | null;
   appointmentDate: string;
   isWeatherDependent: boolean;
   compact?: boolean;
 }) {
+  // Fallback chain: client coords → business location
+  const effectiveLat = clientLat ?? fallbackLat ?? null;
+  const effectiveLon = clientLon ?? fallbackLon ?? null;
+
   // Round to 0.1° (~7 miles) for cache efficiency
-  const roundedLat = clientLat !== null ? Math.round(clientLat * 10) / 10 : null;
-  const roundedLon = clientLon !== null ? Math.round(clientLon * 10) / 10 : null;
+  const roundedLat = effectiveLat !== null ? Math.round(effectiveLat * 10) / 10 : null;
+  const roundedLon = effectiveLon !== null ? Math.round(effectiveLon * 10) / 10 : null;
 
   const date = appointmentDate.slice(0, 10);
   const { data: forecast } = useWeatherForDate(roundedLat, roundedLon, date);

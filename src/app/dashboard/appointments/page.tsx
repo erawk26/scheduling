@@ -72,6 +72,7 @@ import { CalendarView } from '@/components/appointments/calendar-view';
 import { AppointmentWeatherBadge } from '@/components/appointments/weather-badge';
 import { useWeatherForecast } from '@/hooks/use-weather';
 import { useUserLocation } from '@/hooks/use-user-location';
+import { useBusinessLocation } from '@/hooks/use-business-location';
 import type { WeatherForecast } from '@/lib/weather/types';
 
 type AppointmentStatus =
@@ -144,9 +145,14 @@ export default function AppointmentsPage() {
   const { data: clients } = useClients();
   const { data: services } = useServices();
 
-  // Weather forecasts for calendar view (user's browser location)
+  // Business location fallback for weather badges
+  const { data: bizLoc } = useBusinessLocation();
+
+  // Weather forecasts for calendar view (business location → browser geolocation)
   const { lat: userLat, lon: userLon } = useUserLocation();
-  const { data: weatherForecasts } = useWeatherForecast(userLat, userLon);
+  const calendarLat = bizLoc?.lat ?? userLat;
+  const calendarLon = bizLoc?.lon ?? userLon;
+  const { data: weatherForecasts } = useWeatherForecast(calendarLat, calendarLon);
 
   // Build forecast lookup by date
   const forecastByDate = useMemo(() => {
@@ -264,6 +270,8 @@ export default function AppointmentsPage() {
                   appointment={appointment}
                   client={clientsMap.get(appointment.client_id)}
                   service={servicesMap.get(appointment.service_id)}
+                  fallbackLat={bizLoc?.lat}
+                  fallbackLon={bizLoc?.lon}
                   onEdit={setEditingAppointment}
                 />
               ))
@@ -285,6 +293,8 @@ export default function AppointmentsPage() {
                   appointment={appointment}
                   client={clientsMap.get(appointment.client_id)}
                   service={servicesMap.get(appointment.service_id)}
+                  fallbackLat={bizLoc?.lat}
+                  fallbackLon={bizLoc?.lon}
                   onEdit={setEditingAppointment}
                 />
               ))
@@ -306,6 +316,8 @@ export default function AppointmentsPage() {
                   appointment={appointment}
                   client={clientsMap.get(appointment.client_id)}
                   service={servicesMap.get(appointment.service_id)}
+                  fallbackLat={bizLoc?.lat}
+                  fallbackLon={bizLoc?.lon}
                   onEdit={setEditingAppointment}
                 />
               ))
@@ -345,6 +357,8 @@ interface AppointmentCardProps {
   appointment: Appointment;
   client?: Client;
   service?: Service;
+  fallbackLat?: number | null;
+  fallbackLon?: number | null;
   onEdit: (appointment: Appointment) => void;
 }
 
@@ -352,6 +366,8 @@ function AppointmentCard({
   appointment,
   client,
   service,
+  fallbackLat,
+  fallbackLon,
   onEdit,
 }: AppointmentCardProps) {
   const updateStatus = useUpdateAppointmentStatus();
@@ -382,6 +398,8 @@ function AppointmentCard({
               <AppointmentWeatherBadge
                 clientLat={client?.latitude ?? appointment.latitude}
                 clientLon={client?.longitude ?? appointment.longitude}
+                fallbackLat={fallbackLat}
+                fallbackLon={fallbackLon}
                 appointmentDate={appointment.start_time}
                 isWeatherDependent={service?.weather_dependent === 1}
               />

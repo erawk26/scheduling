@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { User, Building, Shield, LogOut, Database, Trash2 } from 'lucide-react'
+import { User, Building, Shield, LogOut, Database, Trash2, MapPin } from 'lucide-react'
 import { useSeedMockData, useCleanupMockData } from '@/hooks/use-mock-data'
 
 const US_TIMEZONES = [
@@ -39,6 +39,9 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState('')
   const [timezone, setTimezone] = useState('America/New_York')
   const [serviceAreaMiles, setServiceAreaMiles] = useState(25)
+  const [businessLat, setBusinessLat] = useState<string>('')
+  const [businessLon, setBusinessLon] = useState<string>('')
+  const [geoDetecting, setGeoDetecting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
@@ -67,6 +70,8 @@ export default function SettingsPage() {
           setPhone(result.phone || '')
           setTimezone(result.timezone || 'America/New_York')
           setServiceAreaMiles(result.service_area_miles || 25)
+          setBusinessLat(result.business_latitude != null ? String(result.business_latitude) : '')
+          setBusinessLon(result.business_longitude != null ? String(result.business_longitude) : '')
         }
       } catch (error) {
         console.error('Failed to load user data:', error)
@@ -98,6 +103,9 @@ export default function SettingsPage() {
         .where('id', '=', userId)
         .executeTakeFirst()
 
+      const parsedLat = businessLat ? parseFloat(businessLat) : null
+      const parsedLon = businessLon ? parseFloat(businessLon) : null
+
       if (existingUser) {
         await db
           .updateTable('users')
@@ -106,6 +114,8 @@ export default function SettingsPage() {
             phone: phone,
             timezone: timezone,
             service_area_miles: serviceAreaMiles,
+            business_latitude: isNaN(parsedLat as number) ? null : parsedLat,
+            business_longitude: isNaN(parsedLon as number) ? null : parsedLon,
             updated_at: now,
             needs_sync: 1,
             sync_operation: 'UPDATE',
@@ -121,6 +131,8 @@ export default function SettingsPage() {
             phone: phone,
             timezone: timezone,
             service_area_miles: serviceAreaMiles,
+            business_latitude: isNaN(parsedLat as number) ? null : parsedLat,
+            business_longitude: isNaN(parsedLon as number) ? null : parsedLon,
             created_at: now,
             updated_at: now,
             version: 1,
@@ -317,6 +329,71 @@ export default function SettingsPage() {
                       <p className="text-xs text-gray-500">
                         Maximum distance you will travel for appointments
                       </p>
+                    </div>
+
+                    <Separator />
+
+                    {/* Business Location */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Business Location</Label>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Used for weather forecasts when a client has no address
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={geoDetecting}
+                          onClick={() => {
+                            if (!navigator.geolocation) return
+                            setGeoDetecting(true)
+                            navigator.geolocation.getCurrentPosition(
+                              (pos) => {
+                                setBusinessLat(String(Math.round(pos.coords.latitude * 10000) / 10000))
+                                setBusinessLon(String(Math.round(pos.coords.longitude * 10000) / 10000))
+                                setGeoDetecting(false)
+                              },
+                              () => setGeoDetecting(false),
+                              { enableHighAccuracy: false, timeout: 10000 }
+                            )
+                          }}
+                        >
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {geoDetecting ? 'Detecting...' : 'Use My Location'}
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="businessLat" className="text-xs">Latitude</Label>
+                          <Input
+                            id="businessLat"
+                            type="text"
+                            inputMode="decimal"
+                            value={businessLat}
+                            onChange={(e) => setBusinessLat(e.target.value)}
+                            placeholder="e.g. 40.7128"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="businessLon" className="text-xs">Longitude</Label>
+                          <Input
+                            id="businessLon"
+                            type="text"
+                            inputMode="decimal"
+                            value={businessLon}
+                            onChange={(e) => setBusinessLon(e.target.value)}
+                            placeholder="e.g. -74.006"
+                          />
+                        </div>
+                      </div>
+                      {businessLat && businessLon && (
+                        <p className="text-xs text-green-600">
+                          Location set: {businessLat}, {businessLon}
+                        </p>
+                      )}
                     </div>
                   </div>
 

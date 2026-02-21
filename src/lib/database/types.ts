@@ -17,6 +17,8 @@ export interface UsersTable {
   phone: string | null;
   timezone: string;
   service_area_miles: number;
+  business_latitude: number | null;
+  business_longitude: number | null;
   created_at: string;
   updated_at: string;
   version: number;
