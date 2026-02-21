@@ -17,6 +17,7 @@ import {
   Thermometer,
 } from 'lucide-react';
 import type { WeatherForecast } from '@/lib/weather/types';
+import { useWeatherForDate } from '@/hooks/use-weather';
 
 interface WeatherBadgeProps {
   forecast: WeatherForecast;
@@ -94,6 +95,36 @@ export function WeatherBadge({ forecast, compact = false }: WeatherBadgeProps) {
       </div>
     </div>
   );
+}
+
+/**
+ * Self-fetching weather badge for appointment cards.
+ * Uses client coordinates when available. TanStack Query
+ * deduplicates identical coordinate pairs automatically.
+ */
+export function AppointmentWeatherBadge({
+  clientLat,
+  clientLon,
+  appointmentDate,
+  isWeatherDependent,
+  compact = true,
+}: {
+  clientLat: number | null;
+  clientLon: number | null;
+  appointmentDate: string;
+  isWeatherDependent: boolean;
+  compact?: boolean;
+}) {
+  // Round to 0.1° (~7 miles) for cache efficiency
+  const roundedLat = clientLat !== null ? Math.round(clientLat * 10) / 10 : null;
+  const roundedLon = clientLon !== null ? Math.round(clientLon * 10) / 10 : null;
+
+  const date = appointmentDate.slice(0, 10);
+  const { data: forecast } = useWeatherForDate(roundedLat, roundedLon, date);
+
+  if (!isWeatherDependent || !forecast || forecast.is_outdoor_suitable) return null;
+
+  return <WeatherBadge forecast={forecast} compact={compact} />;
 }
 
 /**

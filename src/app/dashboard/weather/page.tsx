@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import {
   Sun,
@@ -23,10 +22,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWeatherForecast } from '@/hooks/use-weather';
+import { useUserLocation } from '@/hooks/use-user-location';
 import { useAppointments } from '@/hooks/use-appointments';
 import { useServices } from '@/hooks/use-services';
 import type { WeatherForecast } from '@/lib/weather/types';
@@ -53,23 +51,11 @@ function WeatherIcon({ name, className }: { name: string; className?: string }) 
 }
 
 // ============================================================================
-// Default location (configurable via UI)
-// ============================================================================
-
-const DEFAULT_LAT = 40.7128;
-const DEFAULT_LON = -74.006;
-
-// ============================================================================
 // Page Component
 // ============================================================================
 
 export default function WeatherPage() {
-  const [lat, setLat] = useState<number>(DEFAULT_LAT);
-  const [lon, setLon] = useState<number>(DEFAULT_LON);
-  const [locationInput, setLocationInput] = useState({
-    lat: String(DEFAULT_LAT),
-    lon: String(DEFAULT_LON),
-  });
+  const { lat, lon, status: geoStatus, requestLocation } = useUserLocation();
 
   const { data: forecasts, isLoading, isError } = useWeatherForecast(lat, lon);
   const { data: appointments } = useAppointments();
@@ -88,15 +74,6 @@ export default function WeatherPage() {
     return forecast && !forecast.is_outdoor_suitable;
   });
 
-  const handleLocationUpdate = () => {
-    const newLat = parseFloat(locationInput.lat);
-    const newLon = parseFloat(locationInput.lon);
-    if (!isNaN(newLat) && !isNaN(newLon)) {
-      setLat(newLat);
-      setLon(newLon);
-    }
-  };
-
   const todayForecast = forecasts?.[0];
 
   return (
@@ -109,46 +86,27 @@ export default function WeatherPage() {
         </p>
       </div>
 
-      {/* Location Config */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-blue-600" />
-            <CardTitle className="text-base">Service Area Location</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-end gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="lat">Latitude</Label>
-              <Input
-                id="lat"
-                type="text"
-                value={locationInput.lat}
-                onChange={(e) =>
-                  setLocationInput((prev) => ({ ...prev, lat: e.target.value }))
-                }
-                className="w-32"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="lon">Longitude</Label>
-              <Input
-                id="lon"
-                type="text"
-                value={locationInput.lon}
-                onChange={(e) =>
-                  setLocationInput((prev) => ({ ...prev, lon: e.target.value }))
-                }
-                className="w-32"
-              />
-            </div>
-            <Button onClick={handleLocationUpdate} variant="outline">
-              Update
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Location Status */}
+      <div className="flex items-center gap-3 text-sm text-gray-600">
+        <MapPin className="h-4 w-4" />
+        {geoStatus === 'loading' && <span>Detecting your location...</span>}
+        {geoStatus === 'granted' && lat !== null && lon !== null && (
+          <span>
+            Showing weather for your location ({lat}, {lon})
+          </span>
+        )}
+        {geoStatus === 'denied' && (
+          <span className="text-amber-700">
+            Location access denied.
+          </span>
+        )}
+        {(geoStatus === 'denied' || geoStatus === 'granted') && (
+          <Button variant="outline" size="sm" onClick={requestLocation}>
+            <MapPin className="h-3 w-3 mr-1" />
+            Update Location
+          </Button>
+        )}
+      </div>
 
       {/* Loading State */}
       {isLoading && (
