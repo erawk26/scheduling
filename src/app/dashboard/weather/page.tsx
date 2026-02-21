@@ -152,22 +152,24 @@ export default function WeatherPage() {
       {/* Location Toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 rounded-lg border p-1">
-          <Button
-            variant={mode === 'business' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('business')}
-            disabled={!hasBizLoc}
-          >
-            Business
-          </Button>
-          <Button
-            variant={mode === 'next_appointment' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('next_appointment')}
-            disabled={!hasNextAptLoc}
-          >
-            Next Appointment
-          </Button>
+          {hasBizLoc && (
+            <Button
+              variant={mode === 'business' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMode('business')}
+            >
+              Business
+            </Button>
+          )}
+          {hasNextAptLoc && (
+            <Button
+              variant={mode === 'next_appointment' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMode('next_appointment')}
+            >
+              Next Appointment
+            </Button>
+          )}
           <Button
             variant={mode === 'browser' ? 'default' : 'ghost'}
             size="sm"
