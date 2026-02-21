@@ -22,22 +22,18 @@ export interface TomorrowIoValues {
   visibility: number;
 }
 
-export interface TomorrowIoInterval {
-  startTime: string;
+export interface TomorrowIoHourlyEntry {
+  time: string;
   values: TomorrowIoValues;
 }
 
-export interface TomorrowIoTimeline {
-  timestep: string;
-  startTime: string;
-  endTime: string;
-  intervals: TomorrowIoInterval[];
-}
-
 export interface TomorrowIoResponse {
-  data: {
-    timelines: TomorrowIoTimeline[];
+  timelines: {
+    hourly: TomorrowIoHourlyEntry[];
+    daily?: Array<{ time: string; values: Record<string, number> }>;
+    minutely?: Array<{ time: string; values: Record<string, number> }>;
   };
+  location: { lat: number; lon: number };
 }
 
 // ============================================================================

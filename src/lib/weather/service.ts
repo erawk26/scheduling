@@ -7,7 +7,7 @@
 
 import {
   type TomorrowIoResponse,
-  type TomorrowIoValues,
+  type TomorrowIoHourlyEntry,
   type WeatherForecast,
   WEATHER_CODES,
   isOutdoorSuitable,
@@ -31,12 +31,12 @@ interface DailyAggregation {
  * Aggregate hourly intervals into daily forecasts
  */
 function aggregateDaily(
-  intervals: Array<{ startTime: string; values: TomorrowIoValues }>
+  entries: TomorrowIoHourlyEntry[]
 ): DailyAggregation[] {
   const byDate = new Map<string, DailyAggregation>();
 
-  for (const interval of intervals) {
-    const date = interval.startTime.slice(0, 10); // YYYY-MM-DD
+  for (const interval of entries) {
+    const date = interval.time.slice(0, 10); // YYYY-MM-DD
     const v = interval.values;
 
     if (!byDate.has(date)) {
@@ -170,16 +170,14 @@ export async function fetchWeatherForecast(
 
   const data = (await response.json()) as TomorrowIoResponse;
 
-  const hourlyTimeline = data.data?.timelines?.find(
-    (t) => t.timestep === '1h'
-  );
+  const hourlyEntries = data.timelines?.hourly;
 
-  if (!hourlyTimeline?.intervals?.length) {
+  if (!hourlyEntries?.length) {
     console.error('Tomorrow.io API: No hourly data in response');
     return null;
   }
 
-  const dailyAggregations = aggregateDaily(hourlyTimeline.intervals);
+  const dailyAggregations = aggregateDaily(hourlyEntries);
   const forecasts = dailyAggregations.slice(0, 5).map(buildForecast);
 
   return forecasts;
