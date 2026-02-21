@@ -86,8 +86,6 @@ export function initializeDatabase(dbPath: string = "./sqlite.db"): void {
   `)
 
   sqlite.close()
-
-  console.log("✅ Better Auth database tables initialized")
 }
 
 /**

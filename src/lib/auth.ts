@@ -3,6 +3,10 @@
  *
  * Authentication setup following tech_requirements_guide.md (lines 385-446)
  * Uses Better Auth with Drizzle adapter and SQLite
+ *
+ * Environment variables (auto-read by Better Auth):
+ * - BETTER_AUTH_SECRET - Encryption secret (min 32 chars)
+ * - BETTER_AUTH_URL - Base URL (e.g., http://localhost:3000)
  */
 
 import { betterAuth } from "better-auth"
@@ -13,40 +17,42 @@ import * as schema from "./db/schema"
 import { initializeDatabase, isDatabaseInitialized } from "./db/init"
 
 /**
- * User profile creation callback
- * Creates initial profile in business tables after signup
- */
-async function createUserProfile(userId: string): Promise<void> {
-  // TODO: Implement profile creation in sync with database worker
-  // This will be handled by the database/sync implementation
-  console.log(`Creating profile for user: ${userId}`)
-}
-
-/**
  * Better Auth instance configuration
  *
  * Features:
- * - Email/password authentication with verification
- * - Google OAuth
- * - Apple OAuth
+ * - Email/password authentication
+ * - Google OAuth (when configured)
+ * - Apple OAuth (when configured)
  * - 7-day sessions with cookie caching
  * - Custom user fields (businessName, phone)
- */
-/**
- * Initialize SQLite database connection
- * Creates tables automatically on first run
  */
 function initializeAuth() {
   const dbPath = "./sqlite.db"
 
   try {
     if (!isDatabaseInitialized(dbPath)) {
-      console.log("Initializing Better Auth database...")
       initializeDatabase(dbPath)
     }
 
     const sqlite = new Database(dbPath)
     const db = drizzle(sqlite, { schema })
+
+    // Only include social providers when env vars are configured
+    const socialProviders: Record<string, { clientId: string; clientSecret: string }> = {}
+
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      socialProviders.google = {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      }
+    }
+
+    if (process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET) {
+      socialProviders.apple = {
+        clientId: process.env.APPLE_CLIENT_ID,
+        clientSecret: process.env.APPLE_CLIENT_SECRET,
+      }
+    }
 
     return betterAuth({
       database: drizzleAdapter(db, {
@@ -58,60 +64,44 @@ function initializeAuth() {
         enabled: true,
         requireEmailVerification: false,
         minPasswordLength: 8,
-        maxPasswordLength: 128
+        maxPasswordLength: 128,
       },
 
-      socialProviders: {
-        google: {
-          clientId: process.env.GOOGLE_CLIENT_ID!,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        },
-        apple: {
-          clientId: process.env.APPLE_CLIENT_ID!,
-          clientSecret: process.env.APPLE_CLIENT_SECRET!,
-        }
-      },
+      socialProviders,
 
       session: {
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 24 hours
         cookieCache: {
           enabled: true,
-          maxAge: 60 * 5 // 5 minutes
-        }
-      },
-
-      jwt: {
-        expiresIn: 60 * 60 * 24 * 7, // 7 days
+          maxAge: 60 * 5, // 5 minutes
+        },
       },
 
       user: {
         additionalFields: {
           businessName: {
             type: "string",
-            required: false
+            required: false,
           },
           phone: {
             type: "string",
-            required: false
-          }
-        }
+            required: false,
+          },
+        },
       },
 
-      callbacks: {
-        signIn: {
-          after: async (user: { id: string }) => {
-            // Create user profile in business tables
-            await createUserProfile(user.id)
-          }
-        }
+      databaseHooks: {
+        user: {
+          create: {
+            after: async (user) => {
+              // TODO: Create initial profile in business tables after signup
+              // This will be handled by the database/sync implementation
+              void user
+            },
+          },
+        },
       },
-
-      // Base URL for auth endpoints
-      baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-
-      // Secret for signing tokens
-      secret: process.env.BETTER_AUTH_SECRET!,
     })
   } catch (error) {
     console.error("Failed to initialize Better Auth:", error)
@@ -120,6 +110,3 @@ function initializeAuth() {
 }
 
 export const auth = initializeAuth()
-
-// Export auth instance
-// Auth methods are accessed via the auth.api object

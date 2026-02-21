@@ -1,8 +1,8 @@
 /**
  * Authentication Provider
  *
- * React context provider for authentication state and actions
- * Provides sign-in, sign-up, and sign-out functionality
+ * React context provider for authentication state and actions.
+ * Uses Better Auth's typed client for sign-in, sign-up, and sign-out.
  */
 
 "use client"
@@ -11,6 +11,7 @@ import React, { createContext, useContext, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSession, clearCachedSession } from "@/hooks/use-session"
+import { authClient } from "@/lib/auth-client"
 import type {
   AuthSession,
   SignInCredentials,
@@ -39,79 +40,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  /**
-   * Sign in with email and password
-   */
   const signIn = useCallback(async (credentials: SignInCredentials) => {
-    try {
-      const response = await fetch("/api/auth/sign-in/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-        credentials: "include",
-      })
+    const { error } = await authClient.signIn.email({
+      email: credentials.email,
+      password: credentials.password,
+    })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Sign in failed")
-      }
-
-      // Invalidate session cache to refetch
-      await queryClient.invalidateQueries({ queryKey: ["auth-session"] })
-
-      router.push("/dashboard")
-    } catch (error) {
-      console.error("Sign in error:", error)
-      throw error
+    if (error) {
+      throw new Error(error.message || "Sign in failed")
     }
+
+    await queryClient.invalidateQueries({ queryKey: ["auth-session"] })
+    router.push("/dashboard")
   }, [queryClient, router])
 
-  /**
-   * Sign up new user
-   */
   const signUp = useCallback(async (credentials: SignUpCredentials) => {
-    try {
-      const response = await fetch("/api/auth/sign-up/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-        credentials: "include",
-      })
+    const { error } = await authClient.signUp.email({
+      email: credentials.email,
+      password: credentials.password,
+      name: credentials.name || credentials.email,
+    })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Sign up failed")
-      }
-
-      // Invalidate session cache to refetch
-      await queryClient.invalidateQueries({ queryKey: ["auth-session"] })
-
-      router.push("/dashboard")
-    } catch (error) {
-      console.error("Sign up error:", error)
-      throw error
+    if (error) {
+      throw new Error(error.message || "Sign up failed")
     }
+
+    await queryClient.invalidateQueries({ queryKey: ["auth-session"] })
+    router.push("/dashboard")
   }, [queryClient, router])
 
-  /**
-   * Sign out current user
-   */
   const signOut = useCallback(async () => {
-    try {
-      await fetch("/api/auth/sign-out", {
-        method: "POST",
-        credentials: "include",
-      })
+    await authClient.signOut()
 
-      // Clear session cache (both React Query and localStorage)
-      queryClient.setQueryData(["auth-session"], null)
-      clearCachedSession()
+    queryClient.setQueryData(["auth-session"], null)
+    clearCachedSession()
 
-      router.push("/sign-in")
-    } catch (error) {
-      console.error("Sign out error:", error)
-      throw error
-    }
+    router.push("/sign-in")
   }, [queryClient, router])
 
   const value: AuthContextValue = {
@@ -130,17 +94,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  * Hook to access authentication context
  *
  * @throws Error if used outside AuthProvider
- *
- * @example
- * ```typescript
- * const { session, signIn, signOut } = useAuth()
- *
- * if (!session) {
- *   return <button onClick={() => signIn(credentials)}>Sign In</button>
- * }
- *
- * return <button onClick={signOut}>Sign Out</button>
- * ```
  */
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext)
