@@ -60,3 +60,7 @@ devcontainer*
 # Playwright/QA screenshots (not in public/)
 qa-*.png
 page-*.png
+
+*.db
+*.sql*
+*.sqlite
