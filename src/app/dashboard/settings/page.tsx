@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/providers/auth-provider'
 import { useDatabase, useSyncStatus } from '@/providers/database-provider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,6 +34,7 @@ export default function SettingsPage() {
   const { session, signOut } = useAuth()
   const { db, isReady } = useDatabase()
   const syncStatus = useSyncStatus()
+  const queryClient = useQueryClient()
 
   // Business settings form state
   const [businessName, setBusinessName] = useState('')
@@ -50,8 +52,8 @@ export default function SettingsPage() {
   const cleanupMockData = useCleanupMockData()
   const [seedMessage, setSeedMessage] = useState('')
 
-  // Get userId from session or use fallback
-  const userId = session?.user?.id || 'local-user'
+  // All hooks use 'local-user' until full auth sync is wired up
+  const userId = 'local-user'
 
   // Load user data on mount
   useEffect(() => {
@@ -143,6 +145,7 @@ export default function SettingsPage() {
           .execute()
       }
 
+      queryClient.invalidateQueries({ queryKey: ['business-location'] })
       setSaveMessage('Settings saved successfully!')
       setTimeout(() => setSaveMessage(''), 3000)
     } catch (error) {
