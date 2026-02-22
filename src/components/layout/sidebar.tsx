@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard } from 'lucide-react'
+import { useNetworkStatus } from '@/hooks/use-network-status'
+import { useSyncStatus } from '@/providers/database-provider'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -16,6 +18,13 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { isOnline } = useNetworkStatus()
+  const syncStatus = useSyncStatus()
+  const pendingCount = syncStatus?.pending_items ?? 0
+
+  const statusLabel = isOnline
+    ? pendingCount > 0 ? `Syncing (${pendingCount})` : 'Online'
+    : pendingCount > 0 ? `Offline (${pendingCount} pending)` : 'Offline'
 
   return (
     <aside className="hidden md:flex md:flex-shrink-0">
@@ -52,6 +61,12 @@ export function Sidebar() {
               )
             })}
           </nav>
+          <div className="flex-shrink-0 border-t border-gray-200 px-3 py-3">
+            <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500">
+              <span className={cn('h-2 w-2 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-amber-500')} />
+              {statusLabel}
+            </div>
+          </div>
         </div>
       </div>
     </aside>

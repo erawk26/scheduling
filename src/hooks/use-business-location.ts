@@ -9,11 +9,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useDatabase } from '@/providers/database-provider';
-
-const TEMP_USER_ID = 'local-user';
+import { useUserId } from '@/hooks/use-user-id';
 
 export function useBusinessLocation() {
   const { db, isReady } = useDatabase();
+  const userId = useUserId();
 
   return useQuery({
     queryKey: ['business-location'],
@@ -23,7 +23,7 @@ export function useBusinessLocation() {
       const user = await db
         .selectFrom('users')
         .select(['business_latitude', 'business_longitude'])
-        .where('id', '=', TEMP_USER_ID)
+        .where('id', '=', userId)
         .executeTakeFirst();
 
       return {

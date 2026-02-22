@@ -5,8 +5,6 @@ import type { Database } from '@/lib/database/types';
 
 export const MOCK_DATA_MARKER = 'mock-data';
 
-const TEMP_USER_ID = 'local-user';
-
 function isoNow(): string {
   return format(new Date(), "yyyy-MM-dd'T'HH:mm:ss");
 }
@@ -20,9 +18,9 @@ function appointmentTime(daysFromNow: number, hour: number, minute = 0): Date {
   return setSeconds(setMinutes(setHours(d, hour), minute), 0);
 }
 
-export async function seedMockData(db: Kysely<Database>): Promise<void> {
+export async function seedMockData(db: Kysely<Database>, userId: string): Promise<void> {
   // Clean existing data first to make seeding idempotent
-  await cleanupMockData(db);
+  await cleanupMockData(db, userId);
 
   const now = isoNow();
 
@@ -38,7 +36,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
   await db.insertInto('services').values([
     {
       id: serviceIds.fullGroom,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       name: 'Full Grooming',
       description: MOCK_DATA_MARKER,
       duration_minutes: 90,
@@ -55,7 +53,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: serviceIds.bathBrush,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       name: 'Bath & Brush',
       description: MOCK_DATA_MARKER,
       duration_minutes: 60,
@@ -72,7 +70,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: serviceIds.nailTrim,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       name: 'Nail Trim',
       description: MOCK_DATA_MARKER,
       duration_minutes: 30,
@@ -89,7 +87,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: serviceIds.puppyFirstGroom,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       name: 'Puppy First Groom',
       description: MOCK_DATA_MARKER,
       duration_minutes: 45,
@@ -106,7 +104,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: serviceIds.deshedding,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       name: 'De-shedding Treatment',
       description: MOCK_DATA_MARKER,
       duration_minutes: 75,
@@ -136,7 +134,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
   await db.insertInto('clients').values([
     {
       id: clientIds.sarah,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       first_name: 'Sarah',
       last_name: 'Johnson',
       email: 'sarah@email.com',
@@ -155,7 +153,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: clientIds.mike,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       first_name: 'Mike',
       last_name: 'Chen',
       email: 'mike.chen@email.com',
@@ -174,7 +172,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: clientIds.emily,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       first_name: 'Emily',
       last_name: 'Rodriguez',
       email: 'emily.r@email.com',
@@ -193,7 +191,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: clientIds.james,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       first_name: 'James',
       last_name: 'Wilson',
       email: 'james.w@email.com',
@@ -212,7 +210,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: clientIds.lisa,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       first_name: 'Lisa',
       last_name: 'Park',
       email: 'lisa.park@email.com',
@@ -231,7 +229,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
     },
     {
       id: clientIds.david,
-      user_id: TEMP_USER_ID,
+      user_id: userId,
       first_name: 'David',
       last_name: 'Thompson',
       email: 'david.t@email.com',
@@ -506,7 +504,7 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
       const end = new Date(a.start.getTime() + a.durationMinutes * 60 * 1000);
       return {
         id: uuidv4(),
-        user_id: TEMP_USER_ID,
+        user_id: userId,
         client_id: a.clientId,
         pet_id: a.petId,
         service_id: a.serviceId,
@@ -532,13 +530,13 @@ export async function seedMockData(db: Kysely<Database>): Promise<void> {
   ).execute();
 }
 
-export async function cleanupMockData(db: Kysely<Database>): Promise<void> {
-  await db.deleteFrom('appointments').where('user_id', '=', TEMP_USER_ID).execute();
+export async function cleanupMockData(db: Kysely<Database>, userId: string): Promise<void> {
+  await db.deleteFrom('appointments').where('user_id', '=', userId).execute();
   await db.deleteFrom('pets')
     .where('client_id', 'in',
-      db.selectFrom('clients').select('id').where('user_id', '=', TEMP_USER_ID)
+      db.selectFrom('clients').select('id').where('user_id', '=', userId)
     )
     .execute();
-  await db.deleteFrom('clients').where('user_id', '=', TEMP_USER_ID).execute();
-  await db.deleteFrom('services').where('user_id', '=', TEMP_USER_ID).execute();
+  await db.deleteFrom('clients').where('user_id', '=', userId).execute();
+  await db.deleteFrom('services').where('user_id', '=', userId).execute();
 }

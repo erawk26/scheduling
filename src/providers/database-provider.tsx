@@ -129,6 +129,25 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [syncEngine, isReady]);
 
+  // Trigger immediate sync when coming back online
+  useEffect(() => {
+    if (!syncEngine || !isReady) return;
+
+    const handleOnline = () => {
+      console.log('[DatabaseProvider] Back online, triggering immediate sync');
+      syncEngine.processSyncQueue().then(async (result) => {
+        console.log(`[DatabaseProvider] Online sync: ${result.synced_count} synced, ${result.failed_count} failed`);
+        const status = await syncEngine.getSyncStatus();
+        setSyncStatus(status);
+      }).catch((err) => {
+        console.error('[DatabaseProvider] Online sync failed:', err);
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [syncEngine, isReady]);
+
   const refreshSyncStatus = async () => {
     if (!syncEngine) return;
 

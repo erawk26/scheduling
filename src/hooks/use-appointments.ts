@@ -9,13 +9,11 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useDatabase } from '@/providers/database-provider';
+import { useUserId } from '@/hooks/use-user-id';
 import { v4 as uuidv4 } from 'uuid';
 import { startOfDay, endOfDay } from 'date-fns';
 import type { Appointment } from '@/lib/database/types';
 import type { AppointmentFormData } from '@/lib/validations';
-
-// TODO: Replace with actual auth session user ID
-const TEMP_USER_ID = 'local-user';
 
 interface UseAppointmentsOptions {
   startDate?: string;
@@ -36,6 +34,7 @@ type AppointmentStatus =
  */
 export function useAppointments(options?: UseAppointmentsOptions) {
   const { db, isReady } = useDatabase();
+  const userId = useUserId();
 
   return useQuery({
     queryKey: ['appointments', options],
@@ -45,7 +44,7 @@ export function useAppointments(options?: UseAppointmentsOptions) {
       let query = db
         .selectFrom('appointments')
         .selectAll()
-        .where('user_id', '=', TEMP_USER_ID)
+        .where('user_id', '=', userId)
         .where('deleted_at', 'is', null);
 
       // Apply date filters
@@ -93,8 +92,9 @@ export function useTodayAppointments() {
  * Create a new appointment
  */
 export function useCreateAppointment() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (data: AppointmentFormData): Promise<Appointment> => {
@@ -107,7 +107,7 @@ export function useCreateAppointment() {
         .insertInto('appointments')
         .values({
           id,
-          user_id: TEMP_USER_ID,
+          user_id: userId,
           client_id: data.client_id,
           pet_id: data.pet_id ?? null,
           service_id: data.service_id,
@@ -138,6 +138,8 @@ export function useCreateAppointment() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('appointments', 'CREATE', id, appointment);
+
       return appointment;
     },
     onSuccess: () => {
@@ -150,7 +152,7 @@ export function useCreateAppointment() {
  * Update an existing appointment
  */
 export function useUpdateAppointment() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -183,6 +185,8 @@ export function useUpdateAppointment() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('appointments', 'UPDATE', id, appointment);
+
       return appointment;
     },
     onSuccess: () => {
@@ -195,7 +199,7 @@ export function useUpdateAppointment() {
  * Update appointment status only (convenience mutation)
  */
 export function useUpdateAppointmentStatus() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -228,6 +232,8 @@ export function useUpdateAppointmentStatus() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('appointments', 'UPDATE', id, appointment);
+
       return appointment;
     },
     onSuccess: () => {
@@ -240,7 +246,7 @@ export function useUpdateAppointmentStatus() {
  * Soft delete an appointment
  */
 export function useDeleteAppointment() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -259,6 +265,8 @@ export function useDeleteAppointment() {
         })
         .where('id', '=', id)
         .execute();
+
+      syncEngine?.queueMutation('appointments', 'DELETE', id, { id, deleted_at: now });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });

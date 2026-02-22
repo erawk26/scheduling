@@ -8,18 +8,17 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDatabase } from '@/providers/database-provider';
+import { useUserId } from '@/hooks/use-user-id';
 import { v4 as uuidv4 } from 'uuid';
 import type { Service } from '@/lib/database/types';
 import type { ServiceFormData } from '@/lib/validations';
-
-// TODO: Replace with actual auth session user ID
-const TEMP_USER_ID = 'local-user';
 
 /**
  * Query all services for current user
  */
 export function useServices() {
   const { db, isReady } = useDatabase();
+  const userId = useUserId();
 
   return useQuery({
     queryKey: ['services'],
@@ -29,7 +28,7 @@ export function useServices() {
       const services = await db
         .selectFrom('services')
         .selectAll()
-        .where('user_id', '=', TEMP_USER_ID)
+        .where('user_id', '=', userId)
         .where('deleted_at', 'is', null)
         .orderBy('name', 'asc')
         .execute();
@@ -44,8 +43,9 @@ export function useServices() {
  * Create a new service
  */
 export function useCreateService() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (data: ServiceFormData): Promise<Service> => {
@@ -58,7 +58,7 @@ export function useCreateService() {
         .insertInto('services')
         .values({
           id,
-          user_id: TEMP_USER_ID,
+          user_id: userId,
           name: data.name,
           description: data.description ?? null,
           duration_minutes: data.duration_minutes,
@@ -82,6 +82,8 @@ export function useCreateService() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('services', 'CREATE', id, service);
+
       return service;
     },
     onSuccess: () => {
@@ -94,7 +96,7 @@ export function useCreateService() {
  * Update an existing service
  */
 export function useUpdateService() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -127,6 +129,8 @@ export function useUpdateService() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('services', 'UPDATE', id, service);
+
       return service;
     },
     onSuccess: () => {
@@ -139,7 +143,7 @@ export function useUpdateService() {
  * Soft delete a service
  */
 export function useDeleteService() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -158,6 +162,8 @@ export function useDeleteService() {
         })
         .where('id', '=', id)
         .execute();
+
+      syncEngine?.queueMutation('services', 'DELETE', id, { id, deleted_at: now });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });

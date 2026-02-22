@@ -103,6 +103,19 @@ export const verification = sqliteTable("verification", {
 })
 
 /**
+ * JWKS table
+ * Stores JSON Web Key Sets for JWT plugin
+ */
+export const jwks = sqliteTable("jwks", {
+  id: text("id").primaryKey(),
+  publicKey: text("publicKey").notNull(),
+  privateKey: text("privateKey").notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(cast(unixepoch() as integer))`)
+    .notNull(),
+})
+
+/**
  * Export all tables for Drizzle adapter
  */
 export const schema = {
@@ -110,4 +123,5 @@ export const schema = {
   session,
   account,
   verification,
+  jwks,
 }

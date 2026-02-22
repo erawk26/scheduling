@@ -77,6 +77,16 @@ export function initializeDatabase(dbPath: string = "./sqlite.db"): void {
     )
   `)
 
+  // Create jwks table (for JWT plugin)
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS jwks (
+      id TEXT PRIMARY KEY,
+      publicKey TEXT NOT NULL,
+      privateKey TEXT NOT NULL,
+      createdAt INTEGER NOT NULL
+    )
+  `)
+
   // Create indexes for better performance
   sqlite.exec(`
     CREATE INDEX IF NOT EXISTS idx_session_userId ON session(userId);

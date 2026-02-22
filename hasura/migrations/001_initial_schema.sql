@@ -56,6 +56,8 @@ CREATE TABLE users (
   phone TEXT,
   timezone TEXT DEFAULT 'America/New_York',
   service_area_miles INTEGER DEFAULT 25,
+  business_latitude DECIMAL(10,8),
+  business_longitude DECIMAL(11,8),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   version INTEGER DEFAULT 1,

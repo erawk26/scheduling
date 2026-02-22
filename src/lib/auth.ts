@@ -10,6 +10,7 @@
  */
 
 import { betterAuth } from "better-auth"
+import { jwt, magicLink } from "better-auth/plugins"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
@@ -102,6 +103,32 @@ function initializeAuth() {
           },
         },
       },
+
+      plugins: [
+        jwt({
+          jwt: {
+            issuer: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+            audience: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+            expirationTime: "1h",
+            definePayload: (user) => ({
+              sub: user.id,
+              email: user.email,
+              "https://hasura.io/jwt/claims": {
+                "x-hasura-default-role": "user",
+                "x-hasura-allowed-roles": ["user"],
+                "x-hasura-user-id": user.id,
+              },
+            }),
+          },
+        }),
+        magicLink({
+          sendMagicLink: async ({ email, url }) => {
+            // TODO: Integrate with Resend or other email service
+            // For development, log the magic link to console
+            console.log(`[MagicLink] Send to ${email}: ${url}`);
+          },
+        }),
+      ],
     })
   } catch (error) {
     console.error("Failed to initialize Better Auth:", error)

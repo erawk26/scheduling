@@ -1,5 +1,6 @@
 # GraphQL Permissions for User Role
 # Row-level security enforced via user_id filtering
+# Expanded column access for sync engine upserts
 
 - table:
     schema: public
@@ -43,11 +44,31 @@
           - phone
           - timezone
           - service_area_miles
+          - business_latitude
+          - business_longitude
           - created_at
           - updated_at
           - version
           - synced_at
         filter:
+          id:
+            _eq: X-Hasura-User-Id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - business_name
+          - phone
+          - timezone
+          - service_area_miles
+          - business_latitude
+          - business_longitude
+          - created_at
+          - updated_at
+          - version
+          - synced_at
+        check:
           id:
             _eq: X-Hasura-User-Id
   update_permissions:
@@ -58,6 +79,11 @@
           - phone
           - timezone
           - service_area_miles
+          - business_latitude
+          - business_longitude
+          - updated_at
+          - version
+          - synced_at
         filter:
           id:
             _eq: X-Hasura-User-Id
@@ -88,15 +114,27 @@
           - synced_at
           - deleted_at
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
+    - role: client
+      permission:
+        columns:
+          - id
+          - first_name
+          - last_name
+          - email
+          - phone
+          - address
+          - notes
+        filter:
+          email:
+            _eq: X-Hasura-User-Email
   insert_permissions:
     - role: user
       permission:
         columns:
+          - id
+          - user_id
           - first_name
           - last_name
           - email
@@ -105,6 +143,11 @@
           - latitude
           - longitude
           - notes
+          - created_at
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         check:
           user_id:
             _eq: X-Hasura-User-Id
@@ -120,12 +163,13 @@
           - latitude
           - longitude
           - notes
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
         check:
           user_id:
             _eq: X-Hasura-User-Id
@@ -133,11 +177,8 @@
     - role: user
       permission:
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
 
 - table:
     schema: public
@@ -162,16 +203,13 @@
           - synced_at
           - deleted_at
         filter:
-          _and:
-            - client:
-                user_id:
-                  _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
-  insert_permissions:
-    - role: user
+          client:
+            user_id:
+              _eq: X-Hasura-User-Id
+    - role: client
       permission:
         columns:
+          - id
           - client_id
           - name
           - species
@@ -181,6 +219,32 @@
           - weight_lbs
           - behavior_notes
           - medical_notes
+        filter:
+          _and:
+            - client:
+                email:
+                  _eq: X-Hasura-User-Email
+            - deleted_at:
+                _is_null: true
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - client_id
+          - name
+          - species
+          - breed
+          - size
+          - age_years
+          - weight_lbs
+          - behavior_notes
+          - medical_notes
+          - created_at
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         check:
           client:
             user_id:
@@ -197,13 +261,14 @@
           - weight_lbs
           - behavior_notes
           - medical_notes
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         filter:
-          _and:
-            - client:
-                user_id:
-                  _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          client:
+            user_id:
+              _eq: X-Hasura-User-Id
         check:
           client:
             user_id:
@@ -212,12 +277,9 @@
     - role: user
       permission:
         filter:
-          _and:
-            - client:
-                user_id:
-                  _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          client:
+            user_id:
+              _eq: X-Hasura-User-Id
 
 - table:
     schema: public
@@ -240,21 +302,36 @@
           - synced_at
           - deleted_at
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
+    - role: client
+      permission:
+        columns:
+          - id
+          - name
+          - description
+          - duration_minutes
+          - location_type
+        filter:
+          deleted_at:
+            _is_null: true
   insert_permissions:
     - role: user
       permission:
         columns:
+          - id
+          - user_id
           - name
           - description
           - duration_minutes
           - price_cents
           - weather_dependent
           - location_type
+          - created_at
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         check:
           user_id:
             _eq: X-Hasura-User-Id
@@ -268,12 +345,13 @@
           - price_cents
           - weather_dependent
           - location_type
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
         check:
           user_id:
             _eq: X-Hasura-User-Id
@@ -281,11 +359,8 @@
     - role: user
       permission:
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
 
 - table:
     schema: public
@@ -315,15 +390,35 @@
           - synced_at
           - deleted_at
         filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+    - role: client
+      permission:
+        columns:
+          - id
+          - client_id
+          - pet_id
+          - service_id
+          - start_time
+          - end_time
+          - status
+          - location_type
+          - address
+          - notes
+          - weather_alert
+        filter:
           _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
+            - client:
+                email:
+                  _eq: X-Hasura-User-Email
             - deleted_at:
                 _is_null: true
   insert_permissions:
     - role: user
       permission:
         columns:
+          - id
+          - user_id
           - client_id
           - pet_id
           - service_id
@@ -337,6 +432,11 @@
           - notes
           - internal_notes
           - weather_alert
+          - created_at
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         check:
           user_id:
             _eq: X-Hasura-User-Id
@@ -357,24 +457,38 @@
           - notes
           - internal_notes
           - weather_alert
+          - updated_at
+          - version
+          - synced_at
+          - deleted_at
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
         check:
           user_id:
             _eq: X-Hasura-User-Id
+    - role: client
+      permission:
+        columns:
+          - status
+        filter:
+          _and:
+            - client:
+                email:
+                  _eq: X-Hasura-User-Email
+            - deleted_at:
+                _is_null: true
+        check:
+          status:
+            _in:
+              - confirmed
+              - cancelled
   delete_permissions:
     - role: user
       permission:
         filter:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          user_id:
+            _eq: X-Hasura-User-Id
 
 - table:
     schema: public

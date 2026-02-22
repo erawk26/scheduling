@@ -8,18 +8,17 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDatabase } from '@/providers/database-provider';
+import { useUserId } from '@/hooks/use-user-id';
 import { v4 as uuidv4 } from 'uuid';
 import type { Client } from '@/lib/database/types';
 import type { ClientFormData } from '@/lib/validations';
-
-// TODO: Replace with actual auth session user ID
-const TEMP_USER_ID = 'local-user';
 
 /**
  * Query all clients for current user with optional search
  */
 export function useClients(search?: string) {
   const { db, isReady } = useDatabase();
+  const userId = useUserId();
 
   return useQuery({
     queryKey: ['clients', search],
@@ -29,7 +28,7 @@ export function useClients(search?: string) {
       let query = db
         .selectFrom('clients')
         .selectAll()
-        .where('user_id', '=', TEMP_USER_ID)
+        .where('user_id', '=', userId)
         .where('deleted_at', 'is', null);
 
       // Add search filter if provided
@@ -82,8 +81,9 @@ export function useClient(id: string) {
  * Create a new client
  */
 export function useCreateClient() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (data: ClientFormData): Promise<Client> => {
@@ -96,7 +96,7 @@ export function useCreateClient() {
         .insertInto('clients')
         .values({
           id,
-          user_id: TEMP_USER_ID,
+          user_id: userId,
           first_name: data.first_name,
           last_name: data.last_name,
           email: data.email ?? null,
@@ -122,6 +122,8 @@ export function useCreateClient() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('clients', 'CREATE', id, client);
+
       return client;
     },
     onSuccess: () => {
@@ -134,7 +136,7 @@ export function useCreateClient() {
  * Update an existing client
  */
 export function useUpdateClient() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -167,6 +169,8 @@ export function useUpdateClient() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('clients', 'UPDATE', id, client);
+
       return client;
     },
     onSuccess: (data) => {
@@ -180,7 +184,7 @@ export function useUpdateClient() {
  * Soft delete a client
  */
 export function useDeleteClient() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -226,6 +230,8 @@ export function useDeleteClient() {
         })
         .where('id', '=', id)
         .execute();
+
+      syncEngine?.queueMutation('clients', 'DELETE', id, { id, deleted_at: now });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

@@ -35,7 +35,7 @@ services:
       HASURA_GRAPHQL_DEV_MODE: "true"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: "startup, http-log, webhook-log, websocket-log, query-log"
       HASURA_GRAPHQL_ADMIN_SECRET: hasura_dev_secret_2024
-      HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"your-256-bit-secret-key-change-in-production-min-32-chars"}'
+      HASURA_GRAPHQL_JWT_SECRET: '{"jwk_url":"http://host.docker.internal:3000/api/auth/jwks","issuer":"http://localhost:3000"}'
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
       HASURA_GRAPHQL_CORS_DOMAIN: "*"
     healthcheck:

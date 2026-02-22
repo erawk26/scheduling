@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useUserId } from '@/hooks/use-user-id'
 import { useAuth } from '@/providers/auth-provider'
 import { useDatabase, useSyncStatus } from '@/providers/database-provider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,7 +33,7 @@ const US_TIMEZONES = [
 
 export default function SettingsPage() {
   const { session, signOut } = useAuth()
-  const { db, isReady } = useDatabase()
+  const { db, syncEngine, isReady } = useDatabase()
   const syncStatus = useSyncStatus()
   const queryClient = useQueryClient()
 
@@ -52,8 +53,7 @@ export default function SettingsPage() {
   const cleanupMockData = useCleanupMockData()
   const [seedMessage, setSeedMessage] = useState('')
 
-  // All hooks use 'local-user' until full auth sync is wired up
-  const userId = 'local-user'
+  const userId = useUserId()
 
   // Load user data on mount
   useEffect(() => {
@@ -146,6 +146,18 @@ export default function SettingsPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['business-location'] })
+
+      // Queue for background sync
+      syncEngine?.queueMutation('users', existingUser ? 'UPDATE' : 'CREATE', userId, {
+        id: userId,
+        business_name: businessName,
+        phone,
+        timezone,
+        service_area_miles: serviceAreaMiles,
+        business_latitude: isNaN(parsedLat as number) ? null : parsedLat,
+        business_longitude: isNaN(parsedLon as number) ? null : parsedLon,
+      })
+
       setSaveMessage('Settings saved successfully!')
       setTimeout(() => setSaveMessage(''), 3000)
     } catch (error) {
