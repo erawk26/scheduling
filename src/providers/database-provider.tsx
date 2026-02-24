@@ -9,6 +9,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Kysely } from 'kysely';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   getSQLiteManager,
   SyncEngine,
@@ -57,6 +58,7 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const queryClient = useQueryClient();
 
   // Initialize database on mount
   useEffect(() => {
@@ -147,6 +149,36 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [syncEngine, isReady]);
+
+  // Incremental pull: on startup, every 5 minutes, and on window focus
+  useEffect(() => {
+    if (!syncEngine || !isReady) return;
+
+    const runPull = () => {
+      if (!navigator.onLine) return;
+      syncEngine.pullIncrementalChanges().then(({ pulled }) => {
+        if (pulled > 0) {
+          queryClient.invalidateQueries();
+        }
+      }).catch((err) => {
+        console.error('[DatabaseProvider] Incremental pull failed:', err);
+      });
+    };
+
+    // Run once on startup
+    runPull();
+
+    // Run every 5 minutes
+    const interval = setInterval(runPull, 5 * 60 * 1000);
+
+    // Run on window focus
+    window.addEventListener('focus', runPull);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', runPull);
+    };
+  }, [syncEngine, isReady, queryClient]);
 
   const refreshSyncStatus = async () => {
     if (!syncEngine) return;

@@ -23,6 +23,34 @@ interface InitialPullState {
 }
 
 /**
+ * Creates a default local user row for new users who have no server data yet,
+ * or when the server pull fails. Uses onConflict doNothing so it's safe to call
+ * multiple times.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ensureLocalUser(db: any, userId: string): Promise<void> {
+  await db
+    .insertInto('users')
+    .values({
+      id: userId,
+      business_name: null,
+      phone: null,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York',
+      service_area_miles: 25,
+      business_latitude: null,
+      business_longitude: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      version: 1,
+      synced_at: null,
+      needs_sync: 1,
+      sync_operation: 'INSERT',
+    } as any)
+    .onConflict((oc: any) => oc.column('id').doNothing())
+    .execute();
+}
+
+/**
  * Hook that checks if local data exists for the authenticated user.
  * If not, pulls all data from Hasura and populates local SQLite.
  */
@@ -170,6 +198,10 @@ export function useInitialDataPull(): InitialPullState {
             })
             .onConflict((oc) => oc.column('id').doNothing())
             .execute();
+        } else {
+          // New user with no server data yet - create default local profile
+          setState(prev => ({ ...prev, progress: 'Setting up profile...' }));
+          await ensureLocalUser(db!, userId);
         }
 
         // Insert clients
@@ -315,6 +347,14 @@ export function useInitialDataPull(): InitialPullState {
         console.log(`[InitialDataPull] Completed: ${totalRecords} records imported`);
       } catch (err) {
         console.error('[InitialDataPull] Failed:', err);
+
+        // Even if pull fails, ensure user has a local profile so app is usable
+        try {
+          await ensureLocalUser(db!, userId);
+        } catch {
+          // Ignore - best effort
+        }
+
         setState({
           isPulling: false,
           progress: '',

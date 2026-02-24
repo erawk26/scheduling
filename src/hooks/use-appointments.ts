@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { startOfDay, endOfDay } from 'date-fns';
 import type { Appointment } from '@/lib/database/types';
 import type { AppointmentFormData } from '@/lib/validations';
+import { geocodeAddress } from '@/lib/graphhopper/geocode';
 
 interface UseAppointmentsOptions {
   startDate?: string;
@@ -140,6 +141,22 @@ export function useCreateAppointment() {
 
       syncEngine?.queueMutation('appointments', 'CREATE', id, appointment);
 
+      // Fire-and-forget geocoding - does not block the mutation
+      if (data.address) {
+        geocodeAddress(data.address).then((geo) => {
+          if (!geo) return;
+          db.updateTable('appointments')
+            .set({
+              latitude: geo.lat,
+              longitude: geo.lon,
+              updated_at: new Date().toISOString().slice(0, 19),
+            })
+            .where('id', '=', id)
+            .execute()
+            .catch(() => undefined);
+        }).catch(() => undefined);
+      }
+
       return appointment;
     },
     onSuccess: () => {
@@ -186,6 +203,22 @@ export function useUpdateAppointment() {
         .executeTakeFirstOrThrow();
 
       syncEngine?.queueMutation('appointments', 'UPDATE', id, appointment);
+
+      // Fire-and-forget geocoding when address changes - does not block the mutation
+      if (data.address) {
+        geocodeAddress(data.address).then((geo) => {
+          if (!geo) return;
+          db.updateTable('appointments')
+            .set({
+              latitude: geo.lat,
+              longitude: geo.lon,
+              updated_at: new Date().toISOString().slice(0, 19),
+            })
+            .where('id', '=', id)
+            .execute()
+            .catch(() => undefined);
+        }).catch(() => undefined);
+      }
 
       return appointment;
     },

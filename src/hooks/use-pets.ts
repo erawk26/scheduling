@@ -41,7 +41,7 @@ export function usePets(clientId: string) {
  * Create a new pet
  */
 export function useCreatePet() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -83,6 +83,8 @@ export function useCreatePet() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('pets', 'CREATE', id, pet);
+
       return pet;
     },
     onSuccess: (data) => {
@@ -95,7 +97,7 @@ export function useCreatePet() {
  * Update an existing pet
  */
 export function useUpdatePet() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -128,6 +130,8 @@ export function useUpdatePet() {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
 
+      syncEngine?.queueMutation('pets', 'UPDATE', id, pet);
+
       return pet;
     },
     onSuccess: (data) => {
@@ -140,7 +144,7 @@ export function useUpdatePet() {
  * Soft delete a pet
  */
 export function useDeletePet() {
-  const { db } = useDatabase();
+  const { db, syncEngine } = useDatabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -166,6 +170,8 @@ export function useDeletePet() {
         })
         .where('id', '=', id)
         .execute();
+
+      syncEngine?.queueMutation('pets', 'DELETE', id, { id, deleted_at: now });
 
       return pet.client_id;
     },

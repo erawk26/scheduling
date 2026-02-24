@@ -35,7 +35,7 @@ services:
       HASURA_GRAPHQL_DEV_MODE: "true"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: "startup, http-log, webhook-log, websocket-log, query-log"
       HASURA_GRAPHQL_ADMIN_SECRET: hasura_dev_secret_2024
-      HASURA_GRAPHQL_JWT_SECRET: '{"jwk_url":"http://host.docker.internal:3000/api/auth/jwks","issuer":"http://localhost:3000"}'
+      HASURA_GRAPHQL_JWT_SECRET: '{"type":"RS256","key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtzgomOmeRYKFh7BCznoG\nxC02UowGbjqVTLx1ybqTH/jEpZqYbqjPl24hA3NuLi3EZfoHlrirK/LTTYNGukd7\nC6Si4aOB7rwOa3NWwcuFbqtcRpAvGCnF5QXI30bibu0c4M0N8KyhVbf1QtzLmSR/\nlvUoqbEcHlXeTVv95DUxLnvBgAMsMwuxgeJi7qiFokyA4QnpunjXWsIFTZAg2dkK\n/t0+3ePqOzFxeN+sthhQoawS/r5eruKb/g0Si0TOBlXX0u1VV7VqdhcbEDssCfkl\n1RSuz9fnrkioaZ4TK2Y7A4jiQlPKd9kk63ERAkn3MUYw/9bsbh+kpGnmzJp9Ubh+\nIwIDAQAB\n-----END PUBLIC KEY-----","claims_namespace":"https://hasura.io/jwt/claims","issuer":"http://localhost:3000"}'
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
       HASURA_GRAPHQL_CORS_DOMAIN: "*"
     healthcheck:

@@ -14,7 +14,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import type { Kysely } from 'kysely';
-import type { Database, SyncStatus, SyncResult, NewSyncQueueItem } from './types';
+import type { Database, SyncStatus, SyncResult, NewSyncQueueItem, AppointmentsTable } from './types';
 import { getAuthenticatedClient } from '@/lib/graphql/client';
 import {
   UPSERT_USER, USER_UPDATE_COLUMNS,
@@ -23,6 +23,10 @@ import {
   UPSERT_SERVICE, SOFT_DELETE_SERVICE, SERVICE_UPDATE_COLUMNS,
   UPSERT_APPOINTMENT, SOFT_DELETE_APPOINTMENT, APPOINTMENT_UPDATE_COLUMNS,
 } from '@/lib/graphql/mutations';
+import {
+  PULL_INCREMENTAL_DATA,
+  type PullIncrementalDataResponse,
+} from '@/lib/graphql/queries';
 import type { GraphQLClient } from 'graphql-request';
 
 /**
@@ -180,6 +184,168 @@ export class SyncEngine {
   }
 
   /**
+   * Sweep all business tables for records with needs_sync=1 that have no
+   * corresponding sync_queue entry. Creates queue entries for orphaned records.
+   */
+  async sweepNeedsSyncRecords(): Promise<number> {
+    const tables: SyncTable[] = ['users', 'clients', 'pets', 'services', 'appointments'];
+    let queued = 0;
+
+    for (const table of tables) {
+      const records = await this.kysely
+        .selectFrom(table)
+        .selectAll()
+        .where('needs_sync' as any, '=', 1)
+        .execute();
+
+      for (const record of records) {
+        const existing = await this.kysely
+          .selectFrom('sync_queue')
+          .select('id')
+          .where('table_name', '=', table)
+          .where('record_id', '=', (record as any).id)
+          .executeTakeFirst();
+
+        if (!existing) {
+          const op = (record as any).sync_operation || 'UPDATE';
+          await this.queueMutation(table, op, (record as any).id, record as any);
+          queued++;
+        }
+      }
+    }
+
+    if (queued > 0) {
+      console.log(`[SyncEngine] Sweep queued ${queued} orphaned records`);
+    }
+    return queued;
+  }
+
+  /**
+   * Pull incremental changes from server into local SQLite.
+   * Uses the earliest MAX(synced_at) across tables as the watermark.
+   * Server-wins for all pulled records (last-write-wins, server is authoritative).
+   */
+  async pullIncrementalChanges(): Promise<{ pulled: number }> {
+    const graphqlClient = await getAuthenticatedClient();
+    if (!graphqlClient) return { pulled: 0 };
+
+    const watermark = await this.getSyncWatermark();
+    const data = await graphqlClient.request<PullIncrementalDataResponse>(
+      PULL_INCREMENTAL_DATA,
+      { since: watermark }
+    );
+
+    const now = new Date().toISOString();
+    let pulled = 0;
+
+    pulled += await this.upsertPulledUsers(data.users, now);
+    pulled += await this.upsertPulledClients(data.clients, now);
+    pulled += await this.upsertPulledPets(data.pets, now);
+    pulled += await this.upsertPulledServices(data.services, now);
+    pulled += await this.upsertPulledAppointments(data.appointments, now);
+
+    if (pulled > 0) {
+      console.log(`[SyncEngine] Pulled ${pulled} incremental records`);
+    }
+
+    return { pulled };
+  }
+
+  /** Find the earliest MAX(synced_at) watermark across all synced tables. */
+  private async getSyncWatermark(): Promise<string> {
+    const epoch = '1970-01-01T00:00:00.000Z';
+    const tables: SyncTable[] = ['users', 'clients', 'pets', 'services', 'appointments'];
+    const maxValues: string[] = [];
+
+    for (const table of tables) {
+      const row = await this.kysely
+        .selectFrom(table)
+        .select((eb) => eb.fn.max('synced_at' as any).as('max_synced_at'))
+        .executeTakeFirst();
+      const val = (row as any)?.max_synced_at;
+      if (val) maxValues.push(val as string);
+    }
+
+    if (maxValues.length === 0) return epoch;
+    // Use the earliest of the maxes so no table is left behind
+    return maxValues.sort()[0]!;
+  }
+
+  private async upsertPulledUsers(
+    records: PullIncrementalDataResponse['users'],
+    now: string
+  ): Promise<number> {
+    for (const r of records) {
+      await this.kysely
+        .insertInto('users')
+        .values({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now })
+        .onConflict((oc) => oc.column('id').doUpdateSet({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now }))
+        .execute();
+    }
+    return records.length;
+  }
+
+  private async upsertPulledClients(
+    records: PullIncrementalDataResponse['clients'],
+    now: string
+  ): Promise<number> {
+    for (const r of records) {
+      await this.kysely
+        .insertInto('clients')
+        .values({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now })
+        .onConflict((oc) => oc.column('id').doUpdateSet({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now }))
+        .execute();
+    }
+    return records.length;
+  }
+
+  private async upsertPulledPets(
+    records: PullIncrementalDataResponse['pets'],
+    now: string
+  ): Promise<number> {
+    for (const r of records) {
+      await this.kysely
+        .insertInto('pets')
+        .values({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now })
+        .onConflict((oc) => oc.column('id').doUpdateSet({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now }))
+        .execute();
+    }
+    return records.length;
+  }
+
+  private async upsertPulledServices(
+    records: PullIncrementalDataResponse['services'],
+    now: string
+  ): Promise<number> {
+    for (const r of records) {
+      const weatherDependent = r.weather_dependent ? 1 : 0;
+      await this.kysely
+        .insertInto('services')
+        .values({ ...r, weather_dependent: weatherDependent, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now })
+        .onConflict((oc) => oc.column('id').doUpdateSet({ ...r, weather_dependent: weatherDependent, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now }))
+        .execute();
+    }
+    return records.length;
+  }
+
+  private async upsertPulledAppointments(
+    records: PullIncrementalDataResponse['appointments'],
+    now: string
+  ): Promise<number> {
+    for (const r of records) {
+      const weatherAlert = r.weather_alert ? 1 : 0;
+      const status = r.status as AppointmentsTable['status'];
+      const row = { ...r, status, weather_alert: weatherAlert, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now };
+      await this.kysely
+        .insertInto('appointments')
+        .values(row)
+        .onConflict((oc) => oc.column('id').doUpdateSet(row))
+        .execute();
+    }
+    return records.length;
+  }
+
+  /**
    * Process sync queue (background operation)
    * Implements exponential backoff on failures
    */
@@ -194,6 +360,13 @@ export class SyncEngine {
     }
 
     this.isSyncing = true;
+
+    // Catch-up: sweep for records flagged but never queued
+    try {
+      await this.sweepNeedsSyncRecords();
+    } catch (err) {
+      console.error('[SyncEngine] Sweep failed:', err);
+    }
 
     // Get authenticated GraphQL client
     const graphqlClient = await getAuthenticatedClient();

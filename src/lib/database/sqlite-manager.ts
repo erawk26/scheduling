@@ -43,9 +43,14 @@ export class SQLiteManager {
         printErr: console.error,
       });
 
-      // Create in-memory database for maximum performance
-      // Note: For persistence across sessions, use 'file:ke-agenda.db'
-      this.db = new this.sqlite3.oo1.DB(':memory:', 'c');
+      // Use OPFS for persistent storage; fall back to in-memory if unavailable
+      const hasOpfs = typeof this.sqlite3?.oo1?.OpfsDb === 'function';
+      if (hasOpfs) {
+        this.db = new this.sqlite3.oo1.OpfsDb('ke-agenda.db');
+      } else {
+        console.warn('[SQLite] OPFS not available, using in-memory database. Data will not persist across refreshes.');
+        this.db = new this.sqlite3.oo1.DB(':memory:', 'c');
+      }
 
       // Run migrations to create schema
       await runMigrations(this.db);

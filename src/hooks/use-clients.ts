@@ -12,6 +12,7 @@ import { useUserId } from '@/hooks/use-user-id';
 import { v4 as uuidv4 } from 'uuid';
 import type { Client } from '@/lib/database/types';
 import type { ClientFormData } from '@/lib/validations';
+import { geocodeAddress } from '@/lib/graphhopper/geocode';
 
 /**
  * Query all clients for current user with optional search
@@ -124,6 +125,22 @@ export function useCreateClient() {
 
       syncEngine?.queueMutation('clients', 'CREATE', id, client);
 
+      // Fire-and-forget geocoding - does not block the mutation
+      if (data.address) {
+        geocodeAddress(data.address).then((geo) => {
+          if (!geo) return;
+          db.updateTable('clients')
+            .set({
+              latitude: geo.lat,
+              longitude: geo.lon,
+              updated_at: new Date().toISOString().slice(0, 19),
+            })
+            .where('id', '=', id)
+            .execute()
+            .catch(() => undefined);
+        }).catch(() => undefined);
+      }
+
       return client;
     },
     onSuccess: () => {
@@ -170,6 +187,22 @@ export function useUpdateClient() {
         .executeTakeFirstOrThrow();
 
       syncEngine?.queueMutation('clients', 'UPDATE', id, client);
+
+      // Fire-and-forget geocoding when address changes - does not block the mutation
+      if (data.address) {
+        geocodeAddress(data.address).then((geo) => {
+          if (!geo) return;
+          db.updateTable('clients')
+            .set({
+              latitude: geo.lat,
+              longitude: geo.lon,
+              updated_at: new Date().toISOString().slice(0, 19),
+            })
+            .where('id', '=', id)
+            .execute()
+            .catch(() => undefined);
+        }).catch(() => undefined);
+      }
 
       return client;
     },

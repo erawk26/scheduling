@@ -13,13 +13,6 @@ out/
 build/
 dist/
 
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
 # Debug
 npm-debug.log*
 yarn-debug.log*
@@ -47,20 +40,29 @@ next-env.d.ts
 .vscode/
 *.iml
 
-# OMC
-**/.omc
-
 # Project specific
 .claude*
+.agents*
 .hive*
-.playwright*
+**/.omc
 .github
 devcontainer*
+skills-lock.json
+skills/*
 
 # Playwright/QA screenshots (not in public/)
+.playwright*
 qa-*.png
 page-*.png
 
+# Databases
 *.db
 *.sql*
 *.sqlite
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

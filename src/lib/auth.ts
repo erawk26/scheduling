@@ -96,9 +96,29 @@ function initializeAuth() {
         user: {
           create: {
             after: async (user) => {
-              // TODO: Create initial profile in business tables after signup
-              // This will be handled by the database/sync implementation
-              void user
+              try {
+                const businessDb = new Database(dbPath)
+                try {
+                  const now = new Date().toISOString().replace("Z", "")
+                  businessDb.prepare(`
+                    INSERT OR IGNORE INTO users (
+                      id, business_name, phone, timezone,
+                      service_area_miles, business_latitude, business_longitude,
+                      created_at, updated_at, version, synced_at,
+                      needs_sync, sync_operation
+                    ) VALUES (
+                      ?, NULL, NULL, 'America/New_York',
+                      25, NULL, NULL,
+                      ?, ?, 1, NULL,
+                      1, 'INSERT'
+                    )
+                  `).run(user.id, now, now)
+                } finally {
+                  businessDb.close()
+                }
+              } catch (err) {
+                console.error("[Auth] Failed to create user profile:", err)
+              }
             },
           },
         },
@@ -106,6 +126,11 @@ function initializeAuth() {
 
       plugins: [
         jwt({
+          jwks: {
+            keyPairConfig: {
+              alg: "RS256",
+            },
+          },
           jwt: {
             issuer: process.env.BETTER_AUTH_URL || "http://localhost:3000",
             audience: process.env.BETTER_AUTH_URL || "http://localhost:3000",

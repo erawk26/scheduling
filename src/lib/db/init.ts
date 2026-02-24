@@ -3,15 +3,35 @@
  *
  * Creates Better Auth tables in SQLite on first run.
  * This ensures the database schema exists before any auth operations.
+ *
+ * Failsafe: handles corrupt/empty DB files by deleting and recreating.
  */
 
 import Database from "better-sqlite3"
+import { existsSync, unlinkSync } from "fs"
+
+const REQUIRED_TABLES = ["user", "session", "account", "verification", "jwks", "users"]
 
 /**
  * Initialize database and create tables
  * Safe to call multiple times (uses IF NOT EXISTS)
+ * Handles corrupt files by deleting and starting fresh
  */
 export function initializeDatabase(dbPath: string = "./sqlite.db"): void {
+  // If file exists but is corrupt, delete it so better-sqlite3 creates a fresh one
+  if (existsSync(dbPath)) {
+    try {
+      const test = new Database(dbPath)
+      test.pragma("integrity_check")
+      test.close()
+    } catch {
+      unlinkSync(dbPath)
+      // Also clean up WAL/SHM files if they exist
+      try { unlinkSync(dbPath + "-wal") } catch { /* ignore */ }
+      try { unlinkSync(dbPath + "-shm") } catch { /* ignore */ }
+    }
+  }
+
   const sqlite = new Database(dbPath)
 
   // Create user table
@@ -87,6 +107,25 @@ export function initializeDatabase(dbPath: string = "./sqlite.db"): void {
     )
   `)
 
+  // Create business users table (needed by auth hook on signup)
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      business_name TEXT,
+      phone TEXT,
+      timezone TEXT DEFAULT 'America/New_York',
+      service_area_miles INTEGER DEFAULT 25,
+      business_latitude REAL,
+      business_longitude REAL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      version INTEGER DEFAULT 1,
+      synced_at TEXT,
+      needs_sync INTEGER DEFAULT 1,
+      sync_operation TEXT DEFAULT 'INSERT'
+    )
+  `)
+
   // Create indexes for better performance
   sqlite.exec(`
     CREATE INDEX IF NOT EXISTS idx_session_userId ON session(userId);
@@ -99,16 +138,21 @@ export function initializeDatabase(dbPath: string = "./sqlite.db"): void {
 }
 
 /**
- * Check if database is initialized
+ * Check if database has all required tables
+ * Returns false if file is missing, corrupt, or any table is absent
  */
 export function isDatabaseInitialized(dbPath: string = "./sqlite.db"): boolean {
+  if (!existsSync(dbPath)) return false
+
   try {
     const sqlite = new Database(dbPath)
-    const result = sqlite.prepare(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='user'"
-    ).get()
+    const rows = sqlite.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table'"
+    ).all() as { name: string }[]
     sqlite.close()
-    return !!result
+
+    const existing = new Set(rows.map((r) => r.name))
+    return REQUIRED_TABLES.every((t) => existing.has(t))
   } catch {
     return false
   }

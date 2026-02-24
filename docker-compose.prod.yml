@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ke-agenda-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: keagenda
+      POSTGRES_USER: ${DATABASE_USER:-keagenda}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keagenda"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hasura:
+    image: hasura/graphql-engine:v2.36.0
+    container_name: ke-agenda-hasura
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgresql://${DATABASE_USER:-keagenda}:${DATABASE_PASSWORD}@postgres:5432/keagenda
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "false"
+      HASURA_GRAPHQL_DEV_MODE: "false"
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET:?HASURA_ADMIN_SECRET is required}
+      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET:?JWT secret is required}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
+      HASURA_GRAPHQL_CORS_DOMAIN: ${CORS_DOMAIN:-*}
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: "startup, http-log, query-log"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_HASURA_URL: ${NEXT_PUBLIC_HASURA_URL:-http://hasura:8080/v1/graphql}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?APP URL is required}
+    container_name: ke-agenda-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      hasura:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}
+      BETTER_AUTH_URL: ${NEXT_PUBLIC_APP_URL}
+      BETTER_AUTH_DATABASE_URL: postgresql://${DATABASE_USER:-keagenda}:${DATABASE_PASSWORD}@postgres:5432/keagenda
+      NEXT_PUBLIC_HASURA_URL: ${NEXT_PUBLIC_HASURA_URL:-http://localhost:8080/v1/graphql}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      TOMORROW_IO_API_KEY: ${TOMORROW_IO_API_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: ke-agenda-network

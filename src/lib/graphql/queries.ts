@@ -101,6 +101,104 @@ export const PULL_ALL_USER_DATA = gql`
 `;
 
 /**
+ * Pull only records updated since the given watermark.
+ * Used for incremental sync after initial data load.
+ */
+export const PULL_INCREMENTAL_DATA = gql`
+  query PullIncrementalData($since: timestamptz!) {
+    users(where: { updated_at: { _gt: $since } }) {
+      id
+      business_name
+      phone
+      timezone
+      service_area_miles
+      business_latitude
+      business_longitude
+      created_at
+      updated_at
+      version
+      synced_at
+    }
+    clients(where: { updated_at: { _gt: $since } }) {
+      id
+      user_id
+      first_name
+      last_name
+      email
+      phone
+      address
+      latitude
+      longitude
+      notes
+      created_at
+      updated_at
+      version
+      synced_at
+      deleted_at
+    }
+    pets(where: { updated_at: { _gt: $since } }) {
+      id
+      client_id
+      name
+      species
+      breed
+      size
+      age_years
+      weight_lbs
+      behavior_notes
+      medical_notes
+      created_at
+      updated_at
+      version
+      synced_at
+      deleted_at
+    }
+    services(where: { updated_at: { _gt: $since } }) {
+      id
+      user_id
+      name
+      description
+      duration_minutes
+      price_cents
+      weather_dependent
+      location_type
+      created_at
+      updated_at
+      version
+      synced_at
+      deleted_at
+    }
+    appointments(where: { updated_at: { _gt: $since } }) {
+      id
+      user_id
+      client_id
+      pet_id
+      service_id
+      start_time
+      end_time
+      status
+      location_type
+      address
+      latitude
+      longitude
+      notes
+      internal_notes
+      weather_alert
+      created_at
+      updated_at
+      version
+      synced_at
+      deleted_at
+    }
+  }
+`;
+
+/**
+ * Response type for incremental data pull (same shape as full pull)
+ */
+export type PullIncrementalDataResponse = PullAllUserDataResponse;
+
+/**
  * Response type for the initial data pull
  */
 export interface PullAllUserDataResponse {

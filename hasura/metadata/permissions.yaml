@@ -38,52 +38,21 @@
   select_permissions:
     - role: user
       permission:
-        columns:
-          - id
-          - business_name
-          - phone
-          - timezone
-          - service_area_miles
-          - business_latitude
-          - business_longitude
-          - created_at
-          - updated_at
-          - version
-          - synced_at
+        columns: [id, business_name, phone, timezone, service_area_miles, business_latitude, business_longitude, created_at, updated_at, version, synced_at]
         filter:
           id:
             _eq: X-Hasura-User-Id
   insert_permissions:
     - role: user
       permission:
-        columns:
-          - id
-          - business_name
-          - phone
-          - timezone
-          - service_area_miles
-          - business_latitude
-          - business_longitude
-          - created_at
-          - updated_at
-          - version
-          - synced_at
+        columns: [id, business_name, phone, timezone, service_area_miles, business_latitude, business_longitude, created_at, updated_at, version, synced_at]
         check:
           id:
             _eq: X-Hasura-User-Id
   update_permissions:
     - role: user
       permission:
-        columns:
-          - business_name
-          - phone
-          - timezone
-          - service_area_miles
-          - business_latitude
-          - business_longitude
-          - updated_at
-          - version
-          - synced_at
+        columns: [business_name, phone, timezone, service_area_miles, business_latitude, business_longitude, updated_at, version, synced_at]
         filter:
           id:
             _eq: X-Hasura-User-Id

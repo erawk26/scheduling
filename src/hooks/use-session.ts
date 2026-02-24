@@ -62,8 +62,11 @@ async function fetchSession(): Promise<AuthSession | null> {
     })
 
     if (!response.ok) {
-      // Server responded but session is invalid - don't use cache
-      return null
+      // Only clear cache on auth failures (401/403), not server errors
+      if (response.status === 401 || response.status === 403) {
+        clearCachedSession()
+      }
+      return getCachedSession()
     }
 
     const data = await response.json()

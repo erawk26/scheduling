@@ -44,19 +44,22 @@ Before touching ANY code, read these documents in order:
 - Appointments CRUD with scheduling (date/time picker, service/client selection, auto-duration)
 - Settings page (profile, notifications, business hours)
 - TanStack Query hooks for all entities
+- Weather integration (Tomorrow.io API) - 5-day forecast, outdoor suitability, appointment alerts
+- Route optimization (GraphHopper VRP) - real road-distance optimization with Haversine offline fallback
+- Route optimization UI - Leaflet/OpenStreetMap map, numbered stops, polyline routes, credit tracking
+- Geocoding integration - auto address-to-coordinates on client/appointment save
+- Local-first infrastructure - OPFS persistence, sync queue, incremental pull, service worker
+- Production deployment config - Dockerfile, docker-compose, env validation
 
 ### In Progress
 - Calendar interface (visual calendar view)
-- Weather integration (Tomorrow.io API)
-- Route optimization (Google Maps)
 - PostgreSQL + Hasura sync engine
 - PWA setup
 
 ### Not Started
-- Offline sync queue with conflict resolution
+- Schedule intelligence (weekly route suggestions based on recurring appointments)
 - Push notifications
-- Route optimization UI
-- Production deployment
+- Client portal
 
 ---
 
@@ -73,6 +76,9 @@ MUST USE:
 - date-fns (NOT moment)
 - pnpm (package manager)
 - shadcn/ui + Tailwind CSS v4
+- GraphHopper API (route optimization + geocoding)
+- Leaflet + react-leaflet (map visualization, OSM tiles)
+- Tomorrow.io API (weather forecasts)
 
 NEVER USE:
 - Supabase anything
@@ -80,6 +86,7 @@ NEVER USE:
 - Prisma ORM / Apollo Client
 - Redux / MobX
 - Moment.js / Lodash
+- Google Maps API (use GraphHopper instead)
 ```
 
 ---
@@ -115,6 +122,9 @@ ke-agenda-v2/
 │   ├── lib/
 │   │   ├── auth.ts           # Better Auth config
 │   │   ├── database/         # SQLite WASM + Kysely schema & operations
+│   │   ├── graphhopper/      # GraphHopper API client, geocoding, VRP optimization
+│   │   ├── routes/           # Local Haversine optimizer (offline fallback)
+│   │   ├── weather/          # Tomorrow.io weather types & service
 │   │   └── validations/      # Zod schemas for all forms
 │   ├── providers/            # Auth, Database, Query providers
 │   └── types/                # TypeScript types
@@ -188,6 +198,15 @@ fix: Handle sync conflicts with last-write-wins
 - `TEMP_USER_ID = 'local-user'` is used across all CRUD hooks until full auth sync is implemented
 - Auth session available via `useAuth()` from `@/providers/auth-provider`
 
+### Route Optimization (GraphHopper)
+- **API key**: Server-side only via `GRAPHHOPPER_API_KEY` env var, never exposed to client
+- **Geocoding**: Auto-fires on client/appointment create/update (fire-and-forget, non-blocking)
+- **VRP optimization**: Called via `/api/routes/optimize` API route, falls back to local Haversine if offline or API fails
+- **Rate limiting**: 1 req/sec queue, in-memory LRU cache (geocode permanent, VRP 1hr TTL)
+- **Credit tracking**: 500 credits/day free tier, warning at 80%, hard-stop at 95%, auto-fallback to local
+- **Map**: Leaflet + OpenStreetMap, dynamically imported with `ssr: false`, polyline from VRP or straight-line fallback
+- **Key files**: `src/lib/graphhopper/` (client, types, rate-limiter, cache, credit-tracker, geocode, optimize)
+
 ---
 
 ## Design System
@@ -243,9 +262,12 @@ Is it in tech_requirements_guide.md?
 - [Hasura](https://hasura.io/docs) - GraphQL engine
 - [SQLite WASM](https://sqlite.org/wasm) - Local database
 - [TanStack Query](https://tanstack.com/query) - Data fetching
+- [GraphHopper](https://docs.graphhopper.com/) - Route optimization & geocoding
+- [Leaflet](https://leafletjs.com/) - Map visualization
+- [Tomorrow.io](https://docs.tomorrow.io/) - Weather forecasts
 
 ---
 
 **Project Version**: 3.0.0
 **Last Updated**: February 2026
-**Status**: Foundation phase - CRUD complete, sync and advanced features in progress
+**Status**: Feature-rich phase - CRUD, weather, routes, geocoding complete. Sync and calendar in progress.

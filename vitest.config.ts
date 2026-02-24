@@ -31,6 +31,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@sqlite.org/sqlite-wasm': path.resolve(__dirname, './src/test/sqlite-wasm-mock.ts'),
     },
   },
 })
