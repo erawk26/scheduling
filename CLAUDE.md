@@ -35,33 +35,34 @@ Before touching ANY code, read these documents in order:
 - Database schema designed (SQLite WASM + Kysely)
 - Project plan created
 - Next.js 15 project initialized
-- Better Auth integration (sign-in, sign-up, sign-out)
+- Better Auth integration (sign-in, sign-up, sign-out, email verification)
 - SQLite WASM setup with Kysely query builder
 - Base UI components (shadcn/ui)
 - Dashboard with live stats (appointments, clients, services, revenue)
 - Services CRUD (create, edit, delete with validation)
 - Clients CRUD with pet management (nested pets per client)
 - Appointments CRUD with scheduling (date/time picker, service/client selection, auto-duration)
+- Calendar view - Day/Week/Month views with time grid, appointment pills, weather icons, keyboard accessibility
 - Settings page (profile, notifications, business hours)
 - TanStack Query hooks for all entities
-- Weather integration (Tomorrow.io API) - 5-day forecast, outdoor suitability, appointment alerts
+- Weather integration (Tomorrow.io API) - 5-day forecast, current conditions, outdoor suitability, appointment alerts
 - Route optimization (GraphHopper VRP) - real road-distance optimization with Haversine offline fallback
 - Route optimization UI - Leaflet/OpenStreetMap map, numbered stops, polyline routes, credit tracking
 - Geocoding integration - auto address-to-coordinates on client/appointment save
-- Local-first infrastructure - OPFS persistence, sync queue, incremental pull, service worker
-- Production deployment config - Dockerfile, docker-compose, env validation
-
 - Schedule Intelligence - route efficiency analysis, recurring appointment detection, weekly schedule suggestions
 - Client scheduling flexibility (unknown/flexible/fixed) with UI badges and edit form
+- Client portal (basic) - client sign-in, view upcoming appointments, cancel appointments
+- PWA setup - service worker (app shell + WASM + static caching), manifest, offline fallback page, background sync
+- Local-first infrastructure - OPFS persistence, sync queue, incremental pull
+- Middleware - cookie-based auth route protection for dashboard
+- Mobile sidebar - responsive navigation with sheet component
+- Production deployment config - Dockerfile, docker-compose, env validation
 
 ### In Progress
-- Calendar interface (visual calendar view)
-- PostgreSQL + Hasura sync engine
-- PWA setup
+- PostgreSQL + Hasura sync engine (GraphQL client, mutations, queries exist; backend wiring incomplete)
 
 ### Not Started
 - Push notifications
-- Client portal
 
 ---
 
@@ -109,28 +110,43 @@ NEVER USE:
 ke-agenda-v2/
 ├── src/
 │   ├── app/                  # Next.js 15 App Router
-│   │   ├── (auth)/           # Sign-in, sign-up pages
-│   │   └── dashboard/        # Main app pages
-│   │       ├── appointments/
-│   │       ├── clients/      # Includes [id]/ detail page
-│   │       ├── services/
-│   │       ├── settings/
-│   │       ├── routes/
-│   │       ├── schedule-intelligence/  # Smart Schedule dashboard
-│   │       └── weather/
+│   │   ├── (auth)/           # Sign-in, sign-up, verify-email
+│   │   ├── api/              # Server-side API routes
+│   │   │   ├── auth/         # Better Auth catch-all
+│   │   │   ├── credits/      # GraphHopper credit check
+│   │   │   ├── geocode/      # Address-to-coords proxy
+│   │   │   ├── portal/       # Client portal endpoints
+│   │   │   ├── routes/       # VRP optimization proxy
+│   │   │   ├── schedule/     # Schedule suggestion engine
+│   │   │   └── weather/      # Tomorrow.io forecast proxy
+│   │   ├── dashboard/        # Main app pages
+│   │   │   ├── appointments/
+│   │   │   ├── clients/      # Includes [id]/ detail page
+│   │   │   ├── services/
+│   │   │   ├── settings/
+│   │   │   ├── routes/
+│   │   │   ├── schedule-intelligence/  # Smart Schedule dashboard
+│   │   │   └── weather/
+│   │   ├── offline/          # Offline fallback page
+│   │   └── portal/           # Client-facing portal (sign-in, appointments)
 │   ├── components/
-│   │   ├── layout/           # Header, Sidebar
+│   │   ├── appointments/     # Calendar view, weather badge
+│   │   ├── layout/           # Header, Sidebar, Mobile sidebar
+│   │   ├── routes/           # Route map (Leaflet)
 │   │   ├── schedule-intelligence/  # Efficiency & suggestion cards
 │   │   └── ui/               # shadcn/ui primitives
 │   ├── hooks/                # TanStack Query hooks (use-clients, use-services, etc.)
 │   ├── lib/
-│   │   ├── auth.ts           # Better Auth config
+│   │   ├── auth.ts           # Better Auth server config
+│   │   ├── auth-client.ts    # Better Auth client
 │   │   ├── database/         # SQLite WASM + Kysely schema & operations
 │   │   ├── graphhopper/      # GraphHopper API client, geocoding, VRP optimization
+│   │   ├── graphql/          # Hasura GraphQL client, queries & mutations
 │   │   ├── routes/           # Local Haversine optimizer (offline fallback)
 │   │   ├── schedule-intelligence/  # Analyzer, recurrence, suggester
 │   │   ├── weather/          # Tomorrow.io weather types & service
 │   │   └── validations/      # Zod schemas for all forms
+│   ├── middleware.ts          # Auth route protection (cookie check)
 │   ├── providers/            # Auth, Database, Query providers
 │   └── types/                # TypeScript types
 ├── docs/
@@ -138,7 +154,11 @@ ke-agenda-v2/
 │   ├── tech_requirements_guide.md
 │   ├── HIVE_PROJECT_PLAN.md
 │   └── design/               # Design system docs
-└── public/                   # Static assets
+├── public/
+│   ├── sw.js                 # Service worker (app shell, WASM, offline)
+│   └── manifest.json         # PWA manifest
+├── Dockerfile                # Production container
+└── docker-compose.prod.yml   # Production orchestration
 ```
 
 ---
@@ -211,6 +231,30 @@ fix: Handle sync conflicts with last-write-wins
 - **Credit tracking**: 500 credits/day free tier, warning at 80%, hard-stop at 95%, auto-fallback to local
 - **Map**: Leaflet + OpenStreetMap, dynamically imported with `ssr: false`, polyline from VRP or straight-line fallback
 - **Key files**: `src/lib/graphhopper/` (client, types, rate-limiter, cache, credit-tracker, geocode, optimize)
+
+### Weather Integration (Tomorrow.io)
+- **API key**: Server-side only via `TOMORROW_IO_API_KEY` env var, proxied through `/api/weather/forecast`
+- **Forecasts**: 5-day daily forecasts aggregated from hourly timeline (high/low/avg temps, precip, wind)
+- **Outdoor suitability**: `precip_probability < 40 && wind_speed < 20 && temp >= 32 && temp <= 95`
+- **Weather codes**: 1000=Clear through 8000=Thunderstorm, mapped to condition labels and lucide icons
+- **Caching**: 30-min stale time in TanStack Query, `Cache-Control: s-maxage=1800` on API route
+- **Weather badges**: Amber alerts on weather-dependent appointments, calendar day cells get weather icons
+- **Location fallback chain**: Client coordinates -> business location -> browser geolocation
+- **Key files**: `src/lib/weather/` (types, service), `src/hooks/use-weather.ts`, `src/components/appointments/weather-badge.tsx`
+
+### Calendar View
+- **Views**: Day, Week, Month with keyboard navigation (arrow keys, Escape)
+- **Time grid**: Day/Week views show 6am-9pm hourly grid with appointment pills positioned by time
+- **Month grid**: Standard calendar grid with appointment dots and day selection
+- **Weather icons**: Day cells show weather alert icons when forecast is bad for outdoor services
+- **Navigation**: Previous/Next/Today buttons, view mode tabs
+- **Key files**: `src/components/appointments/calendar-view.tsx`, used in `src/app/dashboard/appointments/page.tsx`
+
+### Client Portal
+- **Separate auth**: Uses `portal-auth-client.ts` (not the main Better Auth client)
+- **Routes**: `/portal/sign-in`, `/portal/appointments` - client-facing, read-only with cancel
+- **API**: `/api/portal/appointments` (list), `/api/portal/appointments/[id]/status` (cancel)
+- **Key files**: `src/app/portal/`, `src/lib/portal-auth-client.ts`
 
 ### Schedule Intelligence
 - **Analyzer**: Compares actual route distance (scheduled order) vs optimal (nearest-neighbor) per day
@@ -285,4 +329,4 @@ Is it in tech_requirements_guide.md?
 
 **Project Version**: 3.0.0
 **Last Updated**: February 2026
-**Status**: Feature-rich phase - CRUD, weather, routes, geocoding complete. Sync and calendar in progress.
+**Status**: Feature-rich phase - CRUD, calendar, weather, routes, schedule intelligence, client portal, PWA complete. Hasura sync in progress.
