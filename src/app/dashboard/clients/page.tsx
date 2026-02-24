@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Search, Mail, Phone, MapPin } from 'lucide-react';
 
 export default function ClientsPage() {
@@ -209,9 +210,17 @@ export default function ClientsPage() {
               onClick={() => handleCardClick(client.id)}
             >
               <CardHeader>
-                <CardTitle className="text-lg">
-                  {client.first_name} {client.last_name}
-                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">
+                    {client.first_name} {client.last_name}
+                  </CardTitle>
+                  {client.scheduling_flexibility === 'flexible' && (
+                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">Flexible</Badge>
+                  )}
+                  {client.scheduling_flexibility === 'fixed' && (
+                    <Badge variant="outline" className="text-gray-500 text-xs">Fixed</Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {client.email && (

@@ -221,6 +221,7 @@ export function useInitialDataPull(): InitialPullState {
                 latitude: c.latitude,
                 longitude: c.longitude,
                 notes: c.notes,
+                scheduling_flexibility: 'unknown' as const,
                 created_at: c.created_at,
                 updated_at: c.updated_at,
                 version: c.version,

@@ -106,6 +106,7 @@ export function useCreateClient() {
           latitude: null,
           longitude: null,
           notes: data.notes ?? null,
+          scheduling_flexibility: data.scheduling_flexibility ?? 'unknown',
           created_at: now,
           updated_at: now,
           version: 1,

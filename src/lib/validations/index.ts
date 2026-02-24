@@ -79,6 +79,10 @@ export const clientSchema = z.object({
     .max(2000, 'Notes must be 2000 characters or less')
     .nullable()
     .optional(),
+  scheduling_flexibility: z
+    .enum(['unknown', 'flexible', 'fixed'])
+    .default('unknown')
+    .optional(),
 });
 
 export type ClientFormData = z.infer<typeof clientSchema>;

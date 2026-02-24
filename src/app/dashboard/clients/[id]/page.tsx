@@ -71,6 +71,7 @@ export default function ClientDetailPage() {
         phone: client.phone || '',
         address: client.address || '',
         notes: client.notes || '',
+        scheduling_flexibility: client.scheduling_flexibility || 'unknown',
       });
       setIsEditDialogOpen(true);
     }
@@ -183,9 +184,17 @@ export default function ClientDetailPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl">
-                {client.first_name} {client.last_name}
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-2xl">
+                  {client.first_name} {client.last_name}
+                </CardTitle>
+                {client.scheduling_flexibility === 'flexible' && (
+                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Flexible</Badge>
+                )}
+                {client.scheduling_flexibility === 'fixed' && (
+                  <Badge variant="outline" className="text-gray-500">Fixed</Badge>
+                )}
+              </div>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleEditClient}>
@@ -614,6 +623,25 @@ export default function ClientDetailPage() {
                   {clientForm.formState.errors.notes.message}
                 </p>
               )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_flexibility">Scheduling Flexibility</Label>
+              <Select
+                value={clientForm.watch('scheduling_flexibility') || 'unknown'}
+                onValueChange={(value) => clientForm.setValue('scheduling_flexibility', value as 'unknown' | 'flexible' | 'fixed')}
+              >
+                <SelectTrigger id="edit_flexibility">
+                  <SelectValue placeholder="Select flexibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unknown">Unknown</SelectItem>
+                  <SelectItem value="flexible">Flexible</SelectItem>
+                  <SelectItem value="fixed">Fixed</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Flexible clients can be suggested for schedule optimization
+              </p>
             </div>
             <div className="flex justify-end gap-3">
               <Button

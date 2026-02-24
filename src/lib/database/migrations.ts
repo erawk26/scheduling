@@ -174,6 +174,7 @@ export const SQLITE_MIGRATIONS = [
 const ALTER_MIGRATIONS = [
   `ALTER TABLE users ADD COLUMN business_latitude REAL`,
   `ALTER TABLE users ADD COLUMN business_longitude REAL`,
+  `ALTER TABLE clients ADD COLUMN scheduling_flexibility TEXT DEFAULT 'unknown'`,
 ];
 
 /**

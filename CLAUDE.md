@@ -51,13 +51,15 @@ Before touching ANY code, read these documents in order:
 - Local-first infrastructure - OPFS persistence, sync queue, incremental pull, service worker
 - Production deployment config - Dockerfile, docker-compose, env validation
 
+- Schedule Intelligence - route efficiency analysis, recurring appointment detection, weekly schedule suggestions
+- Client scheduling flexibility (unknown/flexible/fixed) with UI badges and edit form
+
 ### In Progress
 - Calendar interface (visual calendar view)
 - PostgreSQL + Hasura sync engine
 - PWA setup
 
 ### Not Started
-- Schedule intelligence (weekly route suggestions based on recurring appointments)
 - Push notifications
 - Client portal
 
@@ -114,9 +116,11 @@ ke-agenda-v2/
 │   │       ├── services/
 │   │       ├── settings/
 │   │       ├── routes/
+│   │       ├── schedule-intelligence/  # Smart Schedule dashboard
 │   │       └── weather/
 │   ├── components/
 │   │   ├── layout/           # Header, Sidebar
+│   │   ├── schedule-intelligence/  # Efficiency & suggestion cards
 │   │   └── ui/               # shadcn/ui primitives
 │   ├── hooks/                # TanStack Query hooks (use-clients, use-services, etc.)
 │   ├── lib/
@@ -124,6 +128,7 @@ ke-agenda-v2/
 │   │   ├── database/         # SQLite WASM + Kysely schema & operations
 │   │   ├── graphhopper/      # GraphHopper API client, geocoding, VRP optimization
 │   │   ├── routes/           # Local Haversine optimizer (offline fallback)
+│   │   ├── schedule-intelligence/  # Analyzer, recurrence, suggester
 │   │   ├── weather/          # Tomorrow.io weather types & service
 │   │   └── validations/      # Zod schemas for all forms
 │   ├── providers/            # Auth, Database, Query providers
@@ -206,6 +211,16 @@ fix: Handle sync conflicts with last-write-wins
 - **Credit tracking**: 500 credits/day free tier, warning at 80%, hard-stop at 95%, auto-fallback to local
 - **Map**: Leaflet + OpenStreetMap, dynamically imported with `ssr: false`, polyline from VRP or straight-line fallback
 - **Key files**: `src/lib/graphhopper/` (client, types, rate-limiter, cache, credit-tracker, geocode, optimize)
+
+### Schedule Intelligence
+- **Analyzer**: Compares actual route distance (scheduled order) vs optimal (nearest-neighbor) per day
+- **Efficiency score**: `(optimal / actual) * 100`, capped at 100%. Average speed assumed: 40 km/h for time estimates
+- **Recurrence detection**: Groups by `clientId::serviceId`, requires 3+ occurrences in 4 weeks on similar day
+- **Suggestions**: Reorders flexible/unknown appointments via optimizer, chains time slots with 15min travel buffer
+- **Client flexibility**: `scheduling_flexibility` column on clients table ('unknown' | 'flexible' | 'fixed')
+- **UI**: `/dashboard/schedule-intelligence` with "Last Week" analysis tab and "Next Week" suggestions tab
+- **Apply flow**: One-click apply per suggestion or batch "Apply All", with undo (restores original times)
+- **Key files**: `src/lib/schedule-intelligence/` (analyzer, recurrence, suggester, types)
 
 ---
 

@@ -290,10 +290,11 @@ export class SyncEngine {
     now: string
   ): Promise<number> {
     for (const r of records) {
+      const row = { ...r, scheduling_flexibility: 'unknown' as const, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now };
       await this.kysely
         .insertInto('clients')
-        .values({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now })
-        .onConflict((oc) => oc.column('id').doUpdateSet({ ...r, needs_sync: 0, sync_operation: null, synced_at: r.synced_at ?? now }))
+        .values(row)
+        .onConflict((oc) => oc.column('id').doUpdateSet(row))
         .execute();
     }
     return records.length;

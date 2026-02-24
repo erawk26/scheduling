@@ -39,6 +39,7 @@ export interface ClientsTable {
   latitude: number | null;
   longitude: number | null;
   notes: string | null;
+  scheduling_flexibility: 'unknown' | 'flexible' | 'fixed';
   created_at: string;
   updated_at: string;
   version: number;
