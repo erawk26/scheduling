@@ -37,6 +37,7 @@ export const PULL_ALL_USER_DATA = gql`
       latitude
       longitude
       notes
+      scheduling_flexibility
       created_at
       updated_at
       version
@@ -130,6 +131,7 @@ export const PULL_INCREMENTAL_DATA = gql`
       latitude
       longitude
       notes
+      scheduling_flexibility
       created_at
       updated_at
       version
@@ -226,6 +228,7 @@ export interface PullAllUserDataResponse {
     latitude: number | null;
     longitude: number | null;
     notes: string | null;
+    scheduling_flexibility: string | null;
     created_at: string;
     updated_at: string;
     version: number;

@@ -75,6 +75,7 @@ CREATE TABLE clients (
   latitude DECIMAL(10,8),
   longitude DECIMAL(11,8),
   notes TEXT,
+  scheduling_flexibility TEXT DEFAULT 'unknown',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   version INTEGER DEFAULT 1,

@@ -49,6 +49,7 @@ next-env.d.ts
 devcontainer*
 skills-lock.json
 skills/*
+AGENTS.md
 
 # Playwright/QA screenshots (not in public/)
 .playwright*

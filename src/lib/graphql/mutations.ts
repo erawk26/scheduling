@@ -69,6 +69,7 @@ export const CLIENT_UPDATE_COLUMNS = [
   'latitude',
   'longitude',
   'notes',
+  'scheduling_flexibility',
   'updated_at',
   'version',
   'synced_at',
