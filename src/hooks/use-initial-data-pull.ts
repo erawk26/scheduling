@@ -43,8 +43,8 @@ async function ensureLocalUser(db: any, userId: string): Promise<void> {
       updated_at: new Date().toISOString(),
       version: 1,
       synced_at: null,
-      needs_sync: 1,
-      sync_operation: 'INSERT',
+      needs_sync: 0,
+      sync_operation: null,
     } as any)
     .onConflict((oc: any) => oc.column('id').doNothing())
     .execute();

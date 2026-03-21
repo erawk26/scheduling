@@ -438,39 +438,57 @@ export class SyncEngine {
           const errorMsg =
             error instanceof Error ? error.message : 'Unknown error';
 
-          // Check if this is a conflict error (constraint violation)
-          const isConflict = errorMsg.includes('constraint') ||
-            errorMsg.includes('conflict') ||
-            errorMsg.includes('unique');
+          // Check if this is an actual uniqueness conflict (not a permission check failure)
+          const isConflict = errorMsg.includes('unique') ||
+            errorMsg.includes('duplicate key') ||
+            errorMsg.includes('uniqueness violation');
 
           if (isConflict) {
-            // Attempt conflict resolution
-            const itemData = JSON.parse(item.data);
-            const resolution = await this.resolveConflict(
-              item.table_name as SyncTable,
-              item.record_id,
-              itemData,
-              errorMsg
-            );
+            const attempts = item.attempts + 1;
 
-            console.log(
-              `[SyncEngine] Conflict resolved: ${resolution} for ${item.table_name}:${item.record_id}`
-            );
+            // Cap conflict retries to prevent infinite loops
+            if (attempts >= 3) {
+              const backoffMs = Math.min(1000 * Math.pow(2, attempts), 3600000);
+              await this.kysely
+                .updateTable('sync_queue')
+                .set({
+                  attempts,
+                  last_error: `Conflict unresolved after ${attempts} attempts: ${errorMsg}`,
+                  retry_after: now + backoffMs,
+                })
+                .where('id', '=', item.id)
+                .execute();
 
-            // For local_wins, the upsert with on_conflict will handle it on retry
-            // Reset retry_after to retry immediately
-            await this.kysely
-              .updateTable('sync_queue')
-              .set({
-                attempts: item.attempts + 1,
-                last_error: `Conflict resolved: ${resolution}`,
-                retry_after: null, // Retry immediately
-              })
-              .where('id', '=', item.id)
-              .execute();
+              console.warn(
+                `[SyncEngine] Conflict retry cap reached for ${item.table_name}:${item.record_id}, backing off`
+              );
+            } else {
+              // Attempt conflict resolution
+              const itemData = JSON.parse(item.data);
+              const resolution = await this.resolveConflict(
+                item.table_name as SyncTable,
+                item.record_id,
+                itemData,
+                errorMsg
+              );
+
+              console.log(
+                `[SyncEngine] Conflict resolved: ${resolution} for ${item.table_name}:${item.record_id}`
+              );
+
+              await this.kysely
+                .updateTable('sync_queue')
+                .set({
+                  attempts,
+                  last_error: `Conflict resolved: ${resolution}`,
+                  retry_after: null,
+                })
+                .where('id', '=', item.id)
+                .execute();
+            }
 
             failed++;
-            errors.push({ id: item.id, error: `Conflict: ${resolution}` });
+            errors.push({ id: item.id, error: `Conflict (attempt ${attempts})` });
           } else {
             failed++;
             errors.push({ id: item.id, error: errorMsg });

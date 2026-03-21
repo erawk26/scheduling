@@ -619,13 +619,16 @@ function AppointmentForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
         <div>
-          <Label htmlFor="client_id">Client *</Label>
+          <Label htmlFor="client_id">Client{!appointment && ' *'}</Label>
           <Select
             value={selectedClientId}
+            disabled={!!appointment}
             onValueChange={(value) => {
               setSelectedClientId(value);
               setValue('client_id', value);
               setValue('pet_id', undefined);
+              const newClient = clients.find((c) => c.id === value);
+              setValue('address', newClient?.address || '');
             }}
           >
             <SelectTrigger id="client_id">
