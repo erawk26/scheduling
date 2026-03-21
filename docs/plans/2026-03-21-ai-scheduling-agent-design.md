@@ -22,14 +22,37 @@ The agent contacts clients to confirm availability via "pick a slot" booking lin
 
 - **OpenRouter** — LLM reasoning layer. Powers all agent conversation, schedule building logic, and client communication drafting. Model-agnostic, supports tiered plans (cheaper models for free tier, stronger models for paid).
 
-- **OpenViking** — Agent context database, running in **embedded mode on-device**. Manages the agent's memory, skills, and resources in a virtual filesystem:
-  - `viking://user/memories/` — Learned preferences, weekly notes
-  - `viking://user/profile/` — Structured onboarding form data
-  - `viking://resources/calendar/` — Appointment and schedule data
-  - `viking://resources/clients/` — Client records, flexibility, contact preferences
-  - `viking://agent/skills/` — "Build schedule," "Contact clients," etc.
+- **OfflineKit** — Storage and sync layer. Replaces SQLite WASM + Kysely + PostgreSQL + Hasura with a unified, type-driven offline-first SDK. All data lives in IndexedDB locally and syncs to Cloudflare Workers (R2 + KV) via Last-Write-Wins protocol. Collections include:
+  - Business data: `clients`, `appointments`, `services`, `pets`
+  - Agent data: `agentNotes` (weekly accumulated notes), `agentProfile` (onboarding form sections), `agentMemories` (learned patterns)
+  - Auth built-in (replaces Better Auth)
+  - React hooks for UI bindings (`useCollection`, `useAuth`, `useSync`)
 
-- **Existing app infrastructure (forked from KE Agenda)** — SQLite WASM + Kysely local-first database, weather API, route optimization, calendar views, Better Auth, shadcn/ui + Tailwind.
+- **OpenViking** — Agent context intelligence, running in **embedded mode on-device**. Semantic index over OfflineKit data — NOT the source of truth, but the smart retrieval layer. Provides:
+  - Semantic search: "What do I know that's relevant to building Monday's schedule?"
+  - Tiered context loading (L0/L1/L2) — only burn tokens on what matters
+  - Self-iteration — automatically extracts long-term memories from conversations
+  - Virtual filesystem for agent organization:
+    - `viking://user/memories/` — Learned preferences, weekly notes
+    - `viking://user/profile/` — Structured onboarding form data
+    - `viking://resources/calendar/` — Appointment and schedule data
+    - `viking://resources/clients/` — Client records, flexibility, contact preferences
+    - `viking://agent/skills/` — "Build schedule," "Contact clients," etc.
+
+### Data Architecture
+
+```
+OfflineKit (source of truth, sync + storage)
+    ↕ syncs across devices via Cloudflare Workers
+    ↕ hydrates on each device
+OpenViking (semantic index, on-device, read-only)
+    ↕ provides relevant context to
+OpenRouter (LLM reasoning)
+```
+
+- **OfflineKit** owns all data. Multi-device sync is automatic (tab focus, network reconnect, 30s interval).
+- **OpenViking** is a local semantic index rebuilt from OfflineKit data on each device. It decides *which* context is relevant for a given agent task, avoiding expensive full-context LLM prompts.
+- When OfflineKit syncs new data (e.g., a note added on the phone), OpenViking re-indexes locally on each device.
 
 ### Chat Interface
 
@@ -44,7 +67,7 @@ Agent sends emails with "pick a slot" booking links. Client clicks through to a 
 ```
 User (chat) → Messaging Platform → Agent Backend → OpenRouter (reasoning)
                                                   → OpenViking (context, on-device)
-                                                  → App DB (read/write)
+                                                  → OfflineKit (read/write, syncs to cloud)
                                                   → Weather/Routes APIs
 ```
 
@@ -217,9 +240,12 @@ Model selection and pricing are later decisions. OpenRouter's model-agnostic API
 
 ## 9. PII & Data Privacy
 
-### On-Device (No Transmission)
-- **OpenViking (embedded)** — All agent memory, preferences, client context stays on-device
-- **SQLite WASM** — All client records, appointments, coordinates stay local
+### On-Device Only
+- **OpenViking (embedded)** — Semantic index of agent context. Never leaves the device.
+
+### Synced via OfflineKit (Cloudflare R2 + KV)
+- **All business data** — Clients, appointments, services, pets, agent notes, agent profile, agent memories sync across devices via Cloudflare Workers. This is PII in the cloud but under user control.
+  - **Mitigation:** OfflineKit uses Cloudflare infrastructure (not a shared multi-tenant DB). Each user's data is isolated. Encryption at rest via Cloudflare's default encryption. Consider adding client-side encryption for sensitive fields (addresses, phone numbers) as a future enhancement.
 
 ### Third-Party Transit
 - **OpenRouter** — Client data passes through LLM calls for reasoning. This is the primary PII concern.
@@ -229,6 +255,7 @@ Model selection and pricing are later decisions. OpenRouter's model-agnostic API
 
 ### Future Considerations
 - OpenRouter data retention policies should be reviewed per model provider
+- Client-side encryption for sensitive OfflineKit fields before sync
 - Consider offering a "privacy mode" where users can opt into heavier PII anonymization at the cost of slightly less personalized agent responses
 - Research whether on-device LLM inference becomes viable for the reasoning layer (would eliminate OpenRouter transit entirely)
 
@@ -236,18 +263,22 @@ Model selection and pricing are later decisions. OpenRouter's model-agnostic API
 
 ## 10. What Carries Over from KE Agenda
 
-### Inherited
-- SQLite WASM + Kysely (local-first database)
-- Client, appointment, service, pet data models
+### Inherited (concepts, not code)
+- Client, appointment, service, pet data models (reimplemented as OfflineKit collections)
 - Weather integration (Tomorrow.io)
 - Route optimization (GraphHopper + Haversine fallback)
 - Calendar/map views for schedule review
-- Better Auth for user authentication
 - shadcn/ui + Tailwind CSS for UI
-- PWA infrastructure
+
+### Replaced
+- SQLite WASM + Kysely → OfflineKit (IndexedDB + Cloudflare sync)
+- PostgreSQL + Hasura → OfflineKit Cloudflare Workers (auto-generated)
+- Better Auth → OfflineKit built-in auth
+- Manual sync queue → OfflineKit LWW sync engine
 
 ### New
-- OpenViking integration (agent context/memory, embedded)
+- OfflineKit integration (storage, sync, auth — single SDK)
+- OpenViking integration (semantic context index, embedded on-device)
 - OpenRouter integration (LLM reasoning)
 - Messaging bridge (iMessage/WhatsApp/Telegram)
 - "Pick a slot" booking page (public, no auth)
