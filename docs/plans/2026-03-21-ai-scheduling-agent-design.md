@@ -28,7 +28,7 @@ The agent contacts clients to confirm availability via "pick a slot" booking lin
   - Auth built-in (replaces Better Auth)
   - React hooks for UI bindings (`useCollection`, `useAuth`, `useSync`)
 
-- **OpenViking** — Agent context intelligence, running in **embedded mode on-device**. Semantic index over OfflineKit data — NOT the source of truth, but the smart retrieval layer. Provides:
+- **OpenViking** — Agent context intelligence, running as **embedded Python process or local HTTP server (port 1933)**. Install via `pip install openviking` or Docker. Next.js communicates via HTTP API. Semantic index over OfflineKit data — NOT the source of truth, but the smart retrieval layer. Provides:
   - Semantic search: "What do I know that's relevant to building Monday's schedule?"
   - Tiered context loading (L0/L1/L2) — only burn tokens on what matters
   - Self-iteration — automatically extracts long-term memories from conversations
