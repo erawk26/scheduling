@@ -17,7 +17,7 @@
 1. **Agent is the product, UI is the review layer.** Every feature decision should ask: "Does the agent drive this, or does the user manually operate it?" Default to agent-driven.
 2. **OfflineKit is the single source of truth.** No second storage layer. Context retrieval queries OfflineKit directly. Data flows one direction.
 3. **Incremental value delivery.** Each phase produces a usable (if incomplete) product. No "6 weeks of infrastructure before anything works."
-4. **Preserve what works, replace what's obsolete.** Weather, route optimization, calendar/map views carry over conceptually. SQLite/Kysely/Hasura/Better Auth are fully replaced by OfflineKit.
+4. **Preserve what works, replace what's obsolete.** Weather, route optimization, calendar/map views carry over conceptually. SQLite/Kysely/Hasura are fully replaced by OfflineKit for data storage/sync. **Better Auth is preserved** via mpb-localkit's `BetterAuthAdapter` (`type: "better-auth"`) — OfflineKit handles data, Better Auth handles authentication. They coexist.
 5. **Context provider is swappable, OpenViking is primary.** The agent's context assembly layer uses a `ContextProvider` interface. Ships with `OpenVikingContextProvider` (semantic retrieval, tiered L0/L1/L2 loading, self-iterating memory via embedded Python/HTTP server). `StructuredContextProvider` (OfflineKit queries) exists as a lightweight fallback.
 
 ### Decision Drivers (Top 3)
@@ -86,7 +86,7 @@ Sequence: External messaging bridge -> Agent core -> OfflineKit migration -> Cli
 | `use-schedule-suggestions.ts` | DB + TanStack Query | **REMOVE** | Logic absorbed into agent `build-schedule` skill. Dashboard page removed in Phase 1. Includes `useApplySuggestion`, `useApplyAllSuggestions`, `useUndoSuggestion`. |
 | `use-mock-data.ts` | DB + TanStack Query | **REMOVE** | Development utility. Not needed in agent fork. |
 | `use-initial-data-pull.ts` | DB + TanStack Query + GraphQL/Hasura | **REMOVE** | Hasura sync replaced by OfflineKit sync. Greenfield = no data migration. |
-| `use-session.ts` | TanStack Query + Better Auth API | **REMOVE** | Better Auth replaced by OfflineKit auth. Replace with `useAuth()` from OfflineKit provider. |
+| `use-session.ts` | TanStack Query + Better Auth API | **REMOVE** | Replaced by `useAuth()` from auth provider backed by mpb-localkit's BetterAuthAdapter. |
 | `use-user-id.ts` | Auth provider | **MIGRATE** | Rewrite to use OfflineKit `useAuth()` hook. Thin wrapper: `app.auth.currentUser?.id ?? null`. |
 | `use-weather.ts` | TanStack Query (API call only) | **KEEP** | Fetches from `/api/weather/forecast`. No DB dependency. TanStack Query provides API response caching (30min stale). Keep as-is. |
 | `use-network-status.ts` | Browser APIs only | **KEEP** | Pure browser `navigator.onLine` listener. No DB dependency. Keep as-is. |
@@ -117,7 +117,7 @@ The current `UsersTable` contains: `business_name`, `phone`, `timezone`, `servic
 - `src/lib/database/` (SQLite WASM + Kysely) -> OfflineKit collections
 - `src/providers/database-provider.tsx` -> OfflineKit React provider
 - `src/providers/auth-provider.tsx` -> OfflineKit auth hooks
-- `src/lib/auth.ts` + `src/lib/auth-client.ts` (Better Auth) -> OfflineKit auth
+- `src/lib/auth.ts` + `src/lib/auth-client.ts` (Better Auth) -> Keep and adapt. Better Auth server stays, mpb-localkit uses `BetterAuthAdapter` to connect to it.
 - `src/lib/graphql/` (Hasura) -> removed entirely (OfflineKit syncs to Cloudflare)
 - `src/lib/database/sync-engine.ts` -> OfflineKit sync engine
 - DB-dependent TanStack Query hooks -> OfflineKit `useCollection` hooks
@@ -154,7 +154,7 @@ The current `UsersTable` contains: `business_name`, `phone`, `timezone`, `servic
 ### Must Have
 
 - All data in OfflineKit collections (no SQLite WASM, no Kysely, no Hasura)
-- OfflineKit auth (no Better Auth)
+- Better Auth via mpb-localkit's BetterAuthAdapter (`type: "better-auth"`, `bearer()` plugin required)
 - Agent reasoning via OpenRouter (model-agnostic)
 - OpenViking for agent context (embedded mode or local HTTP server)
 - Works offline (OfflineKit handles this)
@@ -166,7 +166,8 @@ The current `UsersTable` contains: `business_name`, `phone`, `timezone`, `servic
 
 ### Must NOT Have
 
-- SQLite WASM, Kysely, PostgreSQL, Hasura, Better Auth (all replaced)
+- SQLite WASM, Kysely, PostgreSQL, Hasura (all replaced by OfflineKit for data)
+- Custom auth implementations (Better Auth stays, accessed via mpb-localkit BetterAuthAdapter)
 - Apollo Client, Prisma, Supabase, Clerk, Firebase
 - Any semantic search SDK other than OpenViking without explicit approval
 - Direct LLM calls without context assembly (always use OpenViking for context)
@@ -197,13 +198,15 @@ The current `UsersTable` contains: `business_name`, `phone`, `timezone`, `servic
 
 ### Task 1.2: Auth Migration
 
-- Remove Better Auth (`src/lib/auth.ts`, `src/lib/auth-client.ts`, `src/providers/auth-provider.tsx`, `src/app/api/auth/`)
-- Implement OfflineKit auth (`app.auth.signIn`, `signUp`, `signOut`, `currentUser`)
-- Create new `src/providers/offlinekit-provider.tsx` exposing app instance + auth via context
-- Update sign-in/sign-up pages to use OfflineKit auth
-- Update middleware for cookie/session handling with OfflineKit
-- Rewrite `use-user-id.ts` to use OfflineKit `useAuth()` instead of Better Auth
-- **Acceptance:** User can sign up, sign in, sign out. Session persists offline. Protected routes work. `useUserId()` returns the OfflineKit user ID.
+- Keep Better Auth (`src/lib/auth.ts`, `src/lib/auth-client.ts`, `src/app/api/auth/[...auth]/route.ts`)
+- Configure mpb-localkit with `auth: { type: 'better-auth', baseURL: '...' }` to use BetterAuthAdapter
+- Better Auth server needs `bearer()` plugin for mpb-localkit token-based auth
+- Update `src/providers/auth-provider.tsx` to use `app.auth` from mpb-localkit (which delegates to Better Auth)
+- Create `src/providers/offlinekit-provider.tsx` exposing app instance via context
+- Update sign-in/sign-up pages to use auth provider (which uses mpb-localkit -> Better Auth)
+- Middleware checks Better Auth session cookie for route protection
+- Rewrite `use-user-id.ts` to use `app.auth.currentUser()` from mpb-localkit's BetterAuthAdapter
+- **Acceptance:** User can sign up, sign in, sign out via Better Auth. Session persists offline via cached token. Protected routes work. `useUserId()` returns the Better Auth user ID.
 
 ### Task 1.3: CRUD Hook Migration
 
@@ -220,7 +223,7 @@ Replace DB-dependent hooks per the disposition table above:
 
 **REMOVE (5 hooks):**
 - `use-initial-data-pull.ts` (OfflineKit sync replaces Hasura pull; greenfield = no migration)
-- `use-session.ts` (Better Auth replaced by OfflineKit auth via provider)
+- `use-session.ts` (replaced by `app.auth` from mpb-localkit's BetterAuthAdapter via auth provider)
 - `use-mock-data.ts` (development utility, not needed)
 - `use-schedule-analysis.ts` (logic absorbed into agent report skill)
 - `use-schedule-suggestions.ts` (logic absorbed into agent build-schedule skill)
