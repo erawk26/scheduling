@@ -1,10 +1,6 @@
 import { z } from 'zod';
 import { collection } from 'mpb-localkit';
 
-// Zod v4 type bridge — offlinekit#11 still open. collection() expects Zod v3 ZodObject.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const col = (schema: z.ZodObject<any>) => collection(schema as any);
-
 // Base schema for all OfflineKit documents
 const BaseDoc = z.object({
   id: z.string().uuid(),
@@ -113,15 +109,15 @@ export const AgentConversationSchema = BaseDoc.extend({
 
 // Wrap schemas with collection() for proper OfflineKit CollectionDescriptor typing
 export const collections = {
-  clients: col(ClientSchema),
-  pets: col(PetSchema),
-  services: col(ServiceSchema),
-  appointments: col(AppointmentSchema),
-  businessProfile: col(BusinessProfileSchema),
-  agentNotes: col(AgentNoteSchema),
-  agentProfile: col(AgentProfileSchema),
-  agentMemories: col(AgentMemorySchema),
-  agentConversations: col(AgentConversationSchema),
+  clients: collection(ClientSchema),
+  pets: collection(PetSchema),
+  services: collection(ServiceSchema),
+  appointments: collection(AppointmentSchema),
+  businessProfile: collection(BusinessProfileSchema),
+  agentNotes: collection(AgentNoteSchema),
+  agentProfile: collection(AgentProfileSchema),
+  agentMemories: collection(AgentMemorySchema),
+  agentConversations: collection(AgentConversationSchema),
 };
 
 export type Client = z.infer<typeof ClientSchema>;
