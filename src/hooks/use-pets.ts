@@ -30,7 +30,7 @@ export function useCreatePet() {
       const now = new Date().toISOString();
       const created = await app.pets.create({
         id: crypto.randomUUID(),
-        user_id: 'local-user',
+        user_id: '00000000-0000-0000-0000-000000000000',
         client_id: data.client_id,
         name: data.name,
         species: data.species,

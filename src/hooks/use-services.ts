@@ -28,7 +28,7 @@ export function useCreateService() {
       const now = new Date().toISOString();
       const created = await app.services.create({
         id: crypto.randomUUID(),
-        user_id: 'local-user',
+        user_id: '00000000-0000-0000-0000-000000000000',
         name: data.name,
         description: data.description ?? null,
         duration_minutes: data.duration_minutes,

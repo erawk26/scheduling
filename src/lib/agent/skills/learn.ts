@@ -79,7 +79,7 @@ async function applyProfileUpdates(updates: ProfileUpdate[]): Promise<void> {
     } else {
       await app.agentProfile.create({
         id: crypto.randomUUID(),
-        user_id: 'local-user',
+        user_id: '00000000-0000-0000-0000-000000000000',
         section_id: update.section_id as Parameters<typeof app.agentProfile.create>[0]['section_id'],
         content: update.content,
         created_at: now,

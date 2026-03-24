@@ -45,7 +45,7 @@ export function useChat() {
     // Persist user message
     await app.agentConversations.create({
       id: userMsgId,
-      user_id: 'local-user',
+      user_id: '00000000-0000-0000-0000-000000000000',
       channel: CHANNEL,
       message_id: userMsgId,
       role: 'user',
@@ -97,7 +97,7 @@ export function useChat() {
     const agentNow = new Date().toISOString();
     await app.agentConversations.create({
       id: agentMsgId,
-      user_id: 'local-user',
+      user_id: '00000000-0000-0000-0000-000000000000',
       channel: CHANNEL,
       message_id: agentMsgId,
       role: 'agent',

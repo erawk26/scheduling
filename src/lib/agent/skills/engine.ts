@@ -11,7 +11,7 @@ import type { AgentResponse } from '@/lib/agent/types';
 import { routeMessage } from './router';
 
 const CHANNEL = 'default';
-const USER_ID = 'local-user';
+const USER_ID = '00000000-0000-0000-0000-000000000000';
 
 const contextProvider = new StructuredContextProvider();
 

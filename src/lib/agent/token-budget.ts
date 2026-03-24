@@ -70,7 +70,7 @@ export async function logUsage(
   const now = new Date().toISOString();
   await app.agentMemories.create({
     id: crypto.randomUUID(),
-    user_id: 'local-user',
+    user_id: '00000000-0000-0000-0000-000000000000',
     type: 'usage-log',
     payload: {
       tokens,

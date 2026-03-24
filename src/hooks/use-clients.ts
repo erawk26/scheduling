@@ -47,7 +47,7 @@ export function useCreateClient() {
       const now = new Date().toISOString();
       const created = await app.clients.create({
         id: crypto.randomUUID(),
-        user_id: 'local-user',
+        user_id: '00000000-0000-0000-0000-000000000000',
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email ?? null,

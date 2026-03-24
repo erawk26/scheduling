@@ -63,7 +63,7 @@ export async function extractNote(
 
   await app.agentNotes.create({
     id: crypto.randomUUID(),
-    user_id: 'local-user',
+    user_id: '00000000-0000-0000-0000-000000000000',
     summary,
     content: `User: ${userMessage}\n\nAgent: ${agentResponse}`,
     tags,

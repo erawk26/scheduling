@@ -52,7 +52,7 @@ export function useCreateAppointment() {
       const now = new Date().toISOString();
       const created = await app.appointments.create({
         id: crypto.randomUUID(),
-        user_id: 'local-user',
+        user_id: '00000000-0000-0000-0000-000000000000',
         client_id: data.client_id,
         pet_id: data.pet_id ?? null,
         service_id: data.service_id,
