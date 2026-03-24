@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { collection } from 'mpb-localkit';
 
-// mpb-localkit expects Zod v3 ZodObject, project uses Zod v4 (required by better-auth 1.5.6).
-// Runtime API is identical — this cast bridges the type mismatch. Tracked: offlinekit#11
+// Zod v4 type bridge — offlinekit#11 still open. collection() expects Zod v3 ZodObject.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const col = (schema: z.ZodObject<any>) => collection(schema as any);
 
