@@ -5,9 +5,6 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Lightbulb, Bot } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/use-network-status'
-// TODO: useSync disabled — mpb-localkit/react incompatible with Turbopack dev (offlinekit#13)
-// import { useSync } from 'mpb-localkit/react'
-// import { app } from '@/lib/offlinekit'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },

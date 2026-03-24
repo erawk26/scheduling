@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/auth-provider'
-import { useSync } from 'mpb-localkit/react'
+// TODO: re-enable useSync when sync worker is deployed
+// import { useSync } from 'mpb-localkit/react'
 import { app } from '@/lib/offlinekit'
 import type { BusinessProfile } from '@/lib/offlinekit/schema'
 
@@ -34,7 +35,8 @@ const US_TIMEZONES = [
 
 export default function SettingsPage() {
   const { session, signOut } = useAuth()
-  const { status: syncStatus, lastSyncAt } = useSync(app)
+  const syncStatus: string = 'idle'
+  const lastSyncAt: Date | null = null
 
   const [businessName, setBusinessName] = useState('')
   const [phone, setPhone] = useState('')

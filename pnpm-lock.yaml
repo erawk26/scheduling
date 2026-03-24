@@ -87,8 +87,8 @@ importers:
         specifier: ^0.577.0
         version: 0.577.0(react@19.2.4)
       mpb-localkit:
-        specifier: ^1.4.17
-        version: 1.4.17(@tanstack/react-query@5.95.0(react@19.2.4))(better-auth@1.5.6(@opentelemetry/api@1.9.0)(better-sqlite3@12.8.0)(drizzle-kit@0.31.10)(drizzle-orm@0.45.1(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.8.0)(kysely@0.28.14))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6)
+        specifier: ^1.4.18
+        version: 1.4.18(@tanstack/react-query@5.95.0(react@19.2.4))(better-auth@1.5.6(@opentelemetry/api@1.9.0)(better-sqlite3@12.8.0)(drizzle-kit@0.31.10)(drizzle-orm@0.45.1(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.8.0)(kysely@0.28.14))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6)
       next:
         specifier: 16.2.1
         version: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -3318,8 +3318,8 @@ packages:
   mkdirp-classic@0.5.3:
     resolution: {integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==}
 
-  mpb-localkit@1.4.17:
-    resolution: {integrity: sha512-wR4JpMylj/yGKgFadX0QLzZTsZu8YvIQRRZGQHOPIRB78FZlb+fH8SnGhO0IUzjaMs6BTOB4YwN3Fp/DXFjQ0g==}
+  mpb-localkit@1.4.18:
+    resolution: {integrity: sha512-2JbSmS8j6KnVEr01hYcycqFgrVIZu1U6PzH3w80QDAChRWsOWzx4VGrtXGzNO+sOMPgBmRGf2hbgJRaiXiFt8g==}
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
@@ -7005,7 +7005,7 @@ snapshots:
 
   mkdirp-classic@0.5.3: {}
 
-  mpb-localkit@1.4.17(@tanstack/react-query@5.95.0(react@19.2.4))(better-auth@1.5.6(@opentelemetry/api@1.9.0)(better-sqlite3@12.8.0)(drizzle-kit@0.31.10)(drizzle-orm@0.45.1(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.8.0)(kysely@0.28.14))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6):
+  mpb-localkit@1.4.18(@tanstack/react-query@5.95.0(react@19.2.4))(better-auth@1.5.6(@opentelemetry/api@1.9.0)(better-sqlite3@12.8.0)(drizzle-kit@0.31.10)(drizzle-orm@0.45.1(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.8.0)(kysely@0.28.14))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6):
     dependencies:
       commander: 12.1.0
       idb: 8.0.3
