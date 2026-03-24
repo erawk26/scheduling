@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Lightbulb } from 'lucide-react'
+import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Lightbulb, Bot } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/use-network-status'
-import { useSync } from 'mpb-localkit/react'
-import { app } from '@/lib/offlinekit'
+// TODO: useSync disabled — mpb-localkit/react incompatible with Turbopack dev (offlinekit#13)
+// import { useSync } from 'mpb-localkit/react'
+// import { app } from '@/lib/offlinekit'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -15,18 +16,14 @@ const navigation = [
   { name: 'Services', href: '/dashboard/services', icon: Briefcase },
   { name: 'Weather', href: '/dashboard/weather', icon: CloudSun },
   { name: 'Smart Schedule', href: '/dashboard/schedule-intelligence', icon: Lightbulb },
+  { name: 'Chat', href: '/dashboard/chat', icon: Bot },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
   const { isOnline } = useNetworkStatus()
-  const { status: syncStatus } = useSync(app)
-
-  const isSyncing = syncStatus === 'syncing'
-  const statusLabel = isOnline
-    ? isSyncing ? 'Syncing...' : 'Online'
-    : 'Offline'
+  const statusLabel = isOnline ? 'Online' : 'Offline'
 
   return (
     <aside className="hidden md:flex md:flex-shrink-0">
