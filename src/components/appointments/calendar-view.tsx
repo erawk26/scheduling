@@ -27,7 +27,7 @@ import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import type { Appointment } from '@/lib/database/types';
+import type { Appointment } from '@/lib/offlinekit/schema';
 import type { WeatherForecast } from '@/lib/weather/types';
 import { WeatherDayIcon } from '@/components/appointments/weather-badge';
 
@@ -58,6 +58,8 @@ const WEEK_DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7am–8pm
 
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
+  draft: 'bg-purple-100 text-purple-800 border-purple-200',
+  pending: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
   confirmed: 'bg-green-100 text-green-800 border-green-200',
   in_progress: 'bg-yellow-100 text-yellow-800 border-yellow-200',

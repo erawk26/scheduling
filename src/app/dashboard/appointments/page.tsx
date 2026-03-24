@@ -65,9 +65,8 @@ import {
 import { useClients } from '@/hooks/use-clients';
 import { useServices } from '@/hooks/use-services';
 import { usePets } from '@/hooks/use-pets';
-import { useDatabase } from '@/providers/database-provider';
 import { appointmentSchema, type AppointmentFormData } from '@/lib/validations';
-import type { Appointment, Client, Service } from '@/lib/database/types';
+import type { Appointment, Client, Service } from '@/lib/offlinekit/schema';
 import { CalendarView } from '@/components/appointments/calendar-view';
 import { AppointmentWeatherBadge } from '@/components/appointments/weather-badge';
 import { useWeatherForecast } from '@/hooks/use-weather';
@@ -75,15 +74,10 @@ import { useUserLocation } from '@/hooks/use-user-location';
 import { useBusinessLocation } from '@/hooks/use-business-location';
 import type { WeatherForecast } from '@/lib/weather/types';
 
-type AppointmentStatus =
-  | 'scheduled'
-  | 'confirmed'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled'
-  | 'no_show';
 
-const statusColors: Record<AppointmentStatus, string> = {
+const statusColors: Record<Appointment['status'], string> = {
+  draft: 'bg-gray-200 text-gray-700',
+  pending: 'bg-purple-100 text-purple-800',
   scheduled: 'bg-blue-100 text-blue-800',
   confirmed: 'bg-green-100 text-green-800',
   in_progress: 'bg-yellow-100 text-yellow-800',
@@ -92,7 +86,9 @@ const statusColors: Record<AppointmentStatus, string> = {
   no_show: 'bg-orange-100 text-orange-800',
 };
 
-const statusLabels: Record<AppointmentStatus, string> = {
+const statusLabels: Record<Appointment['status'], string> = {
+  draft: 'Draft',
+  pending: 'Pending',
   scheduled: 'Scheduled',
   confirmed: 'Confirmed',
   in_progress: 'In Progress',
@@ -102,7 +98,6 @@ const statusLabels: Record<AppointmentStatus, string> = {
 };
 
 export default function AppointmentsPage() {
-  const { isReady } = useDatabase();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
@@ -171,7 +166,7 @@ export default function AppointmentsPage() {
     return new Map(services.map((s) => [s.id, s]));
   }, [services]);
 
-  if (!isReady) {
+  if (isLoadingAll && !allAppointments?.length) {
     return (
       <div className="space-y-8">
         <div>
@@ -373,7 +368,7 @@ function AppointmentCard({
   const updateStatus = useUpdateAppointmentStatus();
   const deleteAppointment = useDeleteAppointment();
 
-  const handleStatusChange = (status: AppointmentStatus) => {
+  const handleStatusChange = (status: Appointment['status']) => {
     updateStatus.mutate({ id: appointment.id, status });
   };
 
@@ -396,12 +391,12 @@ function AppointmentCard({
                 {statusLabels[appointment.status]}
               </Badge>
               <AppointmentWeatherBadge
-                clientLat={client?.latitude ?? appointment.latitude}
-                clientLon={client?.longitude ?? appointment.longitude}
+                clientLat={client?.latitude ?? appointment.latitude ?? null}
+                clientLon={client?.longitude ?? appointment.longitude ?? null}
                 fallbackLat={fallbackLat}
                 fallbackLon={fallbackLon}
                 appointmentDate={appointment.start_time}
-                isWeatherDependent={service?.weather_dependent === 1}
+                isWeatherDependent={!!service?.weather_dependent}
               />
             </div>
 
@@ -549,8 +544,8 @@ function AppointmentForm({
           pet_id: appointment.pet_id || undefined,
           start_time: appointment.start_time,
           end_time: appointment.end_time,
-          status: appointment.status,
-          location_type: appointment.location_type as any,
+          status: appointment.status as AppointmentFormData['status'],
+          location_type: appointment.location_type as AppointmentFormData['location_type'],
           address: appointment.address || undefined,
           notes: appointment.notes || undefined,
           internal_notes: appointment.internal_notes || undefined,

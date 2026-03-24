@@ -1,5 +1,4 @@
-const CACHE_NAME = 'ke-agenda-v1';
-const WASM_CACHE = 'ke-agenda-wasm-v1';
+const CACHE_NAME = 'ke-agenda-v2';
 const APP_SHELL = [
   '/',
   '/dashboard',
@@ -9,9 +8,10 @@ const APP_SHELL = [
   '/dashboard/routes',
   '/dashboard/weather',
   '/dashboard/settings',
+  '/dashboard/chat',
   '/offline',
 ];
-const STATIC_EXTENSIONS = /\.(js|css|png|jpg|jpeg|svg|ico|woff|woff2|wasm)$/;
+const STATIC_EXTENSIONS = /\.(js|css|png|jpg|jpeg|svg|ico|woff|woff2)$/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -25,7 +25,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME && key !== WASM_CACHE)
+          .filter((key) => key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       )
     )
@@ -39,24 +39,6 @@ self.addEventListener('fetch', (event) => {
 
   // API requests: network-only, let the app handle offline
   if (url.pathname.startsWith('/api/')) {
-    return;
-  }
-
-  // WASM assets: cache-first with dedicated cache for easy versioning
-  if (url.pathname.endsWith('.wasm')) {
-    event.respondWith(
-      caches.open(WASM_CACHE).then((cache) =>
-        cache.match(request).then((cached) => {
-          if (cached) return cached;
-          return fetch(request).then((response) => {
-            if (response.ok) {
-              cache.put(request, response.clone());
-            }
-            return response;
-          });
-        })
-      )
-    );
     return;
   }
 

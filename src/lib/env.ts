@@ -15,16 +15,13 @@ const requiredPublic = [
 ] as const;
 
 const optional = [
-  'NEXT_PUBLIC_HASURA_URL',
-  'HASURA_ADMIN_SECRET',
   'TOMORROW_IO_API_KEY',
   'GRAPHHOPPER_API_KEY',
-  'DATABASE_URL',
-  'BETTER_AUTH_DATABASE_URL',
+  'NEXT_PUBLIC_OFFLINEKIT_SYNC_ENDPOINT',
   'GOOGLE_CLIENT_ID',
   'GOOGLE_CLIENT_SECRET',
-  'GITHUB_CLIENT_ID',
-  'GITHUB_CLIENT_SECRET',
+  'APPLE_CLIENT_ID',
+  'APPLE_CLIENT_SECRET',
 ] as const;
 
 export function validateEnv(): void {
@@ -54,11 +51,9 @@ export function getEnv() {
     betterAuthSecret: process.env.BETTER_AUTH_SECRET!,
     betterAuthUrl: process.env.BETTER_AUTH_URL!,
     appUrl: process.env.NEXT_PUBLIC_APP_URL!,
-    hasuraUrl: process.env.NEXT_PUBLIC_HASURA_URL || 'http://localhost:8080/v1/graphql',
-    hasuraAdminSecret: process.env.HASURA_ADMIN_SECRET,
     tomorrowIoApiKey: process.env.TOMORROW_IO_API_KEY,
     graphhopperApiKey: process.env.GRAPHHOPPER_API_KEY,
-    databaseUrl: process.env.DATABASE_URL || process.env.BETTER_AUTH_DATABASE_URL,
+    syncEndpoint: process.env.NEXT_PUBLIC_OFFLINEKIT_SYNC_ENDPOINT,
     nodeEnv: process.env.NODE_ENV || 'development',
     isProduction: process.env.NODE_ENV === 'production',
   };

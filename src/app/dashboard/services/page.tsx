@@ -13,13 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useDatabase } from '@/providers/database-provider';
 import { useServices, useCreateService, useUpdateService, useDeleteService } from '@/hooks/use-services';
 import { serviceSchema, type ServiceFormData } from '@/lib/validations';
-import type { Service } from '@/lib/database/types';
+import type { Service } from '@/lib/offlinekit/schema';
 
 export default function ServicesPage() {
-  const { isReady } = useDatabase();
   const { data: services, isLoading } = useServices();
   const createService = useCreateService();
   const updateService = useUpdateService();
@@ -37,7 +35,7 @@ export default function ServicesPage() {
       description: '',
       duration_minutes: 60,
       price_cents: null,
-      weather_dependent: 0,
+      weather_dependent: false,
       location_type: 'client_location',
     },
   });
@@ -63,7 +61,7 @@ export default function ServicesPage() {
         description: '',
         duration_minutes: 60,
         price_cents: null,
-        weather_dependent: 0,
+        weather_dependent: false,
         location_type: 'client_location',
       });
       setPriceDisplay('');
@@ -115,7 +113,7 @@ export default function ServicesPage() {
     return labels[type] || type;
   };
 
-  if (!isReady || isLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-8">
         <div>
@@ -179,7 +177,7 @@ export default function ServicesPage() {
                       <CardDescription className="mt-1">{service.description}</CardDescription>
                     )}
                   </div>
-                  {service.weather_dependent === 1 && (
+                  {service.weather_dependent && (
                     <CloudRain className="h-4 w-4 text-blue-500 ml-2" />
                   )}
                 </div>
@@ -318,8 +316,8 @@ export default function ServicesPage() {
                 <Label htmlFor="weather" className="flex-1">Weather Dependent</Label>
                 <Switch
                   id="weather"
-                  checked={form.watch('weather_dependent') === 1}
-                  onCheckedChange={(checked) => form.setValue('weather_dependent', checked ? 1 : 0)}
+                  checked={form.watch('weather_dependent')}
+                  onCheckedChange={(checked) => form.setValue('weather_dependent', checked)}
                 />
               </div>
             </div>

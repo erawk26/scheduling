@@ -55,8 +55,9 @@ describe('Auth Configuration', () => {
 
   it('auth object has a handler property (Better Auth API handler)', async () => {
     const { auth } = await import('./auth');
-    expect(auth).toHaveProperty('handler');
-    expect(typeof auth.handler).toBe('function');
+    const authInstance = await auth;
+    expect(authInstance).toHaveProperty('handler');
+    expect(typeof authInstance.handler).toBe('function');
   });
 
   it('auth object exposes api for route handling', async () => {

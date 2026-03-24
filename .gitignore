@@ -67,3 +67,5 @@ page-*.png
 .env.development.local
 .env.test.local
 .env.production.local
+# Auth database (better-sqlite3)
+data/

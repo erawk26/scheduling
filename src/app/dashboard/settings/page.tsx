@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useUserId } from '@/hooks/use-user-id'
 import { useAuth } from '@/providers/auth-provider'
-import { useDatabase, useSyncStatus } from '@/providers/database-provider'
+import { useSync } from 'mpb-localkit/react'
+import { app } from '@/lib/offlinekit'
+import type { BusinessProfile } from '@/lib/offlinekit/schema'
+
+type WithMeta<T> = T & { _id: string; _deleted: boolean }
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -18,8 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { User, Building, Shield, LogOut, Database, Trash2, MapPin } from 'lucide-react'
-import { useSeedMockData, useCleanupMockData } from '@/hooks/use-mock-data'
+import { User, Building, Shield, LogOut, MapPin } from 'lucide-react'
 
 const US_TIMEZONES = [
   { value: 'America/New_York', label: 'Eastern Time (ET)' },
@@ -33,11 +34,8 @@ const US_TIMEZONES = [
 
 export default function SettingsPage() {
   const { session, signOut } = useAuth()
-  const { db, syncEngine, isReady } = useDatabase()
-  const syncStatus = useSyncStatus()
-  const queryClient = useQueryClient()
+  const { status: syncStatus, lastSyncAt } = useSync(app)
 
-  // Business settings form state
   const [businessName, setBusinessName] = useState('')
   const [phone, setPhone] = useState('')
   const [timezone, setTimezone] = useState('America/New_York')
@@ -49,114 +47,68 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
 
-  const seedMockData = useSeedMockData()
-  const cleanupMockData = useCleanupMockData()
-  const [seedMessage, setSeedMessage] = useState('')
-
-  const userId = useUserId()
-
-  // Load user data on mount
   useEffect(() => {
-    async function loadUserData() {
-      if (!db || !isReady) return
-
+    async function loadProfile() {
       try {
-        const result = await db
-          .selectFrom('users')
-          .selectAll()
-          .where('id', '=', userId)
-          .executeTakeFirst()
-
-        if (result) {
-          setBusinessName(result.business_name || '')
-          setPhone(result.phone || '')
-          setTimezone(result.timezone || 'America/New_York')
-          setServiceAreaMiles(result.service_area_miles || 25)
-          setBusinessLat(result.business_latitude != null ? String(result.business_latitude) : '')
-          setBusinessLon(result.business_longitude != null ? String(result.business_longitude) : '')
+        const profiles = await app.businessProfile.findMany() as WithMeta<BusinessProfile>[]
+        const profile = profiles.find((p) => !p._deleted)
+        if (profile) {
+          setBusinessName(profile.business_name || '')
+          setPhone(profile.phone || '')
+          setTimezone(profile.timezone || 'America/New_York')
+          setServiceAreaMiles(profile.service_area_miles || 25)
+          setBusinessLat(profile.business_latitude != null ? String(profile.business_latitude) : '')
+          setBusinessLon(profile.business_longitude != null ? String(profile.business_longitude) : '')
         }
       } catch (error) {
-        console.error('Failed to load user data:', error)
+        console.error('Failed to load business profile:', error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    loadUserData()
-  }, [db, isReady, userId])
+    loadProfile()
+  }, [])
 
-  // Save business settings
   const handleSaveBusinessSettings = async () => {
-    if (!db) {
-      setSaveMessage('Database not ready')
-      return
-    }
-
     setIsSaving(true)
     setSaveMessage('')
 
     try {
-      const now = new Date().toISOString()
-
-      // Check if user row exists
-      const existingUser = await db
-        .selectFrom('users')
-        .select('id')
-        .where('id', '=', userId)
-        .executeTakeFirst()
-
       const parsedLat = businessLat ? parseFloat(businessLat) : null
       const parsedLon = businessLon ? parseFloat(businessLon) : null
+      const now = new Date().toISOString()
 
-      if (existingUser) {
-        await db
-          .updateTable('users')
-          .set({
-            business_name: businessName,
-            phone: phone,
-            timezone: timezone,
-            service_area_miles: serviceAreaMiles,
-            business_latitude: isNaN(parsedLat as number) ? null : parsedLat,
-            business_longitude: isNaN(parsedLon as number) ? null : parsedLon,
-            updated_at: now,
-            needs_sync: 1,
-            sync_operation: 'UPDATE',
-          })
-          .where('id', '=', userId)
-          .execute()
-      } else {
-        await db
-          .insertInto('users')
-          .values({
-            id: userId,
-            business_name: businessName,
-            phone: phone,
-            timezone: timezone,
-            service_area_miles: serviceAreaMiles,
-            business_latitude: isNaN(parsedLat as number) ? null : parsedLat,
-            business_longitude: isNaN(parsedLon as number) ? null : parsedLon,
-            created_at: now,
-            updated_at: now,
-            version: 1,
-            needs_sync: 1,
-            sync_operation: 'INSERT',
-            synced_at: null,
-          })
-          .execute()
-      }
+      const profiles = await app.businessProfile.findMany() as WithMeta<BusinessProfile>[]
+      const existing = profiles.find((p) => !p._deleted)
 
-      queryClient.invalidateQueries({ queryKey: ['business-location'] })
-
-      // Queue for background sync
-      syncEngine?.queueMutation('users', existingUser ? 'UPDATE' : 'CREATE', userId, {
-        id: userId,
-        business_name: businessName,
-        phone,
+      const profileData = {
+        business_name: businessName || null,
+        phone: phone || null,
         timezone,
         service_area_miles: serviceAreaMiles,
-        business_latitude: isNaN(parsedLat as number) ? null : parsedLat,
-        business_longitude: isNaN(parsedLon as number) ? null : parsedLon,
-      })
+        business_latitude: parsedLat != null && !isNaN(parsedLat) ? parsedLat : null,
+        business_longitude: parsedLon != null && !isNaN(parsedLon) ? parsedLon : null,
+        updated_at: now,
+        needs_sync: 1 as const,
+        sync_operation: 'UPDATE' as const,
+      }
+
+      if (existing) {
+        await app.businessProfile.update(existing._id, profileData)
+      } else {
+        await app.businessProfile.create({
+          id: crypto.randomUUID(),
+          user_id: 'local-user',
+          ...profileData,
+          created_at: now,
+          version: 1,
+          synced_at: null,
+          deleted_at: null,
+          needs_sync: 1,
+          sync_operation: 'INSERT',
+        })
+      }
 
       setSaveMessage('Settings saved successfully!')
       setTimeout(() => setSaveMessage(''), 3000)
@@ -168,7 +120,6 @@ export default function SettingsPage() {
     }
   }
 
-  // Handle sign out
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -179,7 +130,6 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
         <p className="mt-2 text-gray-600">
@@ -187,7 +137,6 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* Settings Tabs */}
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">
@@ -202,10 +151,6 @@ export default function SettingsPage() {
             <Shield className="w-4 h-4 mr-2" />
             Account
           </TabsTrigger>
-          <TabsTrigger value="devtools">
-            <Database className="w-4 h-4 mr-2" />
-            Dev Tools
-          </TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -218,7 +163,6 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* User Avatar Placeholder */}
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-semibold">
                   {session?.user?.name?.charAt(0).toUpperCase() || session?.user?.email?.charAt(0).toUpperCase() || 'U'}
@@ -231,38 +175,19 @@ export default function SettingsPage() {
 
               <Separator />
 
-              {/* Read-only auth info */}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Name</Label>
-                  <Input
-                    value={session?.user?.name || 'Not set'}
-                    readOnly
-                    disabled
-                    className="bg-gray-50"
-                  />
+                  <Input value={session?.user?.name || 'Not set'} readOnly disabled className="bg-gray-50" />
                 </div>
-
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input
-                    value={session?.user?.email || 'Not authenticated'}
-                    readOnly
-                    disabled
-                    className="bg-gray-50"
-                  />
+                  <Input value={session?.user?.email || 'Not authenticated'} readOnly disabled className="bg-gray-50" />
                 </div>
-
                 <div className="space-y-2">
                   <Label>Email Verified</Label>
-                  <Input
-                    value={session?.user?.emailVerified ? 'Yes' : 'No'}
-                    readOnly
-                    disabled
-                    className="bg-gray-50"
-                  />
+                  <Input value={session?.user?.emailVerified ? 'Yes' : 'No'} readOnly disabled className="bg-gray-50" />
                 </div>
-
                 <div className="space-y-2">
                   <Label>Account Created</Label>
                   <Input
@@ -283,7 +208,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Business Settings</CardTitle>
               <CardDescription>
-                Configure your business information stored in local SQLite
+                Configure your business information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -348,7 +273,6 @@ export default function SettingsPage() {
 
                     <Separator />
 
-                    {/* Business Location */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
@@ -414,24 +338,12 @@ export default function SettingsPage() {
 
                   <Separator />
 
-                  {/* Save Button */}
                   <div className="space-y-2">
-                    <Button
-                      onClick={handleSaveBusinessSettings}
-                      disabled={isSaving}
-                      className="w-full"
-                    >
+                    <Button onClick={handleSaveBusinessSettings} disabled={isSaving} className="w-full">
                       {isSaving ? 'Saving...' : 'Save Business Settings'}
                     </Button>
-
                     {saveMessage && (
-                      <p
-                        className={`text-sm text-center ${
-                          saveMessage.includes('success')
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                        }`}
-                      >
+                      <p className={`text-sm text-center ${saveMessage.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
                         {saveMessage}
                       </p>
                     )}
@@ -444,25 +356,19 @@ export default function SettingsPage() {
 
         {/* Account Tab */}
         <TabsContent value="account" className="space-y-4">
-          {/* Sign Out Section */}
           <Card>
             <CardHeader>
               <CardTitle>Session Management</CardTitle>
               <CardDescription>Sign out of your account</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button
-                variant="outline"
-                onClick={handleSignOut}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={handleSignOut} className="w-full">
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>
             </CardContent>
           </Card>
 
-          {/* Sync Status */}
           <Card>
             <CardHeader>
               <CardTitle>Sync Status</CardTitle>
@@ -471,44 +377,20 @@ export default function SettingsPage() {
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Status</span>
-                <span className={`text-sm font-medium ${syncStatus?.is_syncing ? 'text-blue-600' : 'text-green-600'}`}>
-                  {syncStatus?.is_syncing ? 'Syncing...' : 'Ready'}
+                <span className={`text-sm font-medium ${syncStatus === 'syncing' ? 'text-blue-600' : 'text-green-600'}`}>
+                  {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'error' ? 'Error' : 'Ready'}
                 </span>
               </div>
-
               <Separator />
-
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Pending Items</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {syncStatus?.pending_items ?? 0}
-                </span>
-              </div>
-
-              <Separator />
-
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Last Sync</span>
                 <span className="text-sm font-medium text-gray-900">
-                  {syncStatus?.last_sync
-                    ? new Date(syncStatus.last_sync).toLocaleString()
-                    : 'Never'}
+                  {lastSyncAt ? new Date(lastSyncAt).toLocaleString() : 'Never'}
                 </span>
               </div>
-
-              {syncStatus?.last_error && (
-                <>
-                  <Separator />
-                  <div className="space-y-1">
-                    <span className="text-sm text-gray-600">Last Error</span>
-                    <p className="text-xs text-red-600">{syncStatus.last_error}</p>
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
 
-          {/* App Version */}
           <Card>
             <CardHeader>
               <CardTitle>Application Info</CardTitle>
@@ -520,97 +402,27 @@ export default function SettingsPage() {
                   <span className="text-sm text-gray-600">App Version</span>
                   <span className="text-sm font-medium text-gray-900">3.0.0</span>
                 </div>
-
                 <Separator />
-
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Build</span>
-                  <span className="text-sm font-medium text-gray-900">Foundation</span>
+                  <span className="text-sm font-medium text-gray-900">OfflineKit</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
           <Card className="border-red-200">
             <CardHeader>
               <CardTitle className="text-red-600">Danger Zone</CardTitle>
               <CardDescription>Irreversible and destructive actions</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button
-                variant="destructive"
-                disabled
-                className="w-full"
-              >
+              <Button variant="destructive" disabled className="w-full">
                 Delete Account
               </Button>
               <p className="text-xs text-gray-500 mt-2 text-center">
                 Account deletion is not yet implemented
               </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Dev Tools Tab */}
-        <TabsContent value="devtools" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Mock Data</CardTitle>
-              <CardDescription>
-                Seed or clean up test data for development
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Seed realistic test data including clients, pets, services, and appointments to test the application.
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  onClick={async () => {
-                    try {
-                      await seedMockData.mutateAsync()
-                      setSeedMessage('Mock data seeded successfully!')
-                      setTimeout(() => setSeedMessage(''), 3000)
-                    } catch (error) {
-                      setSeedMessage('Failed to seed data. Try cleaning up first.')
-                      setTimeout(() => setSeedMessage(''), 3000)
-                    }
-                  }}
-                  disabled={seedMockData.isPending}
-                  className="flex-1"
-                >
-                  <Database className="w-4 h-4 mr-2" />
-                  {seedMockData.isPending ? 'Seeding...' : 'Seed Mock Data'}
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={async () => {
-                    try {
-                      await cleanupMockData.mutateAsync()
-                      setSeedMessage('All data cleaned up!')
-                      setTimeout(() => setSeedMessage(''), 3000)
-                    } catch (error) {
-                      setSeedMessage('Failed to clean up data.')
-                      setTimeout(() => setSeedMessage(''), 3000)
-                    }
-                  }}
-                  disabled={cleanupMockData.isPending}
-                  className="flex-1"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {cleanupMockData.isPending ? 'Cleaning...' : 'Clean Mock Data'}
-                </Button>
-              </div>
-              {seedMessage && (
-                <p className={`text-sm text-center ${
-                  seedMessage.includes('success') || seedMessage.includes('cleaned')
-                    ? 'text-green-600'
-                    : 'text-red-600'
-                }`}>
-                  {seedMessage}
-                </p>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

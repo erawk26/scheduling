@@ -324,7 +324,7 @@ export default function RoutesPage() {
                   key={stop.appointment.id}
                   index={i + 1}
                   clientName={`${stop.client.first_name} ${stop.client.last_name}`}
-                  address={stop.appointment.address ?? stop.client.address}
+                  address={(stop.appointment.address ?? stop.client.address) ?? null}
                   startTime={stop.appointment.start_time}
                   serviceName={stop.service.name}
                   status={stop.appointment.status}

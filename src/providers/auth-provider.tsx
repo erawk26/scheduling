@@ -10,7 +10,6 @@
 import React, { createContext, useContext, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { useSession, clearCachedSession } from "@/hooks/use-session"
 import { authClient } from "@/lib/auth-client"
 import type {
   AuthSession,
@@ -36,7 +35,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
  * Wraps the application to provide authentication context
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, isLoading, error } = useSession()
+  const { data: session, isPending: isLoading, error } = authClient.useSession()
   const router = useRouter()
   const queryClient = useQueryClient()
 
@@ -73,13 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await authClient.signOut()
 
     queryClient.setQueryData(["auth-session"], null)
-    clearCachedSession()
-
     router.push("/sign-in")
   }, [queryClient, router])
 
   const value: AuthContextValue = {
-    session,
+    session: session as unknown as AuthSession | null,
     isLoading,
     error,
     signIn,

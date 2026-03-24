@@ -1,37 +1,20 @@
-/**
- * Business Location Hook
- *
- * Reads the trainer's business_latitude/business_longitude from the users table.
- * Used as fallback when a client has no coordinates set.
- */
-
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { useDatabase } from '@/providers/database-provider';
-import { useUserId } from '@/hooks/use-user-id';
+import { useMemo } from 'react';
+import { useCollection } from 'mpb-localkit/react';
+import { app } from '@/lib/offlinekit';
 
 export function useBusinessLocation() {
-  const { db, isReady } = useDatabase();
-  const userId = useUserId();
+  const { data, isLoading } = useCollection(app.businessProfile);
 
-  return useQuery({
-    queryKey: ['business-location'],
-    queryFn: async (): Promise<{ lat: number | null; lon: number | null }> => {
-      if (!db) throw new Error('Database not ready');
+  const location = useMemo(() => {
+    if (!data) return { lat: null, lon: null };
+    const profile = data.find((p) => !p._deleted);
+    return {
+      lat: profile?.business_latitude ?? null,
+      lon: profile?.business_longitude ?? null,
+    };
+  }, [data]);
 
-      const user = await db
-        .selectFrom('users')
-        .select(['business_latitude', 'business_longitude'])
-        .where('id', '=', userId)
-        .executeTakeFirst();
-
-      return {
-        lat: user?.business_latitude ?? null,
-        lon: user?.business_longitude ?? null,
-      };
-    },
-    enabled: isReady && !!db,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  return { data: location, isLoading };
 }

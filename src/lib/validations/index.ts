@@ -32,14 +32,14 @@ export const serviceSchema = z.object({
     .min(0, 'Price cannot be negative')
     .nullable()
     .optional(),
-  weather_dependent: z
-    .number()
-    .int()
-    .min(0)
-    .max(1)
-    .default(0),
-  location_type: z.enum(['client_location', 'business_location', 'mobile'], {
-    errorMap: () => ({ message: 'Invalid location type' }),
+  weather_dependent: z.boolean().default(false),
+  location_type: z.enum(['client_location', 'business_location', 'mobile']).superRefine((val, ctx) => {
+    if (!['client_location', 'business_location', 'mobile'].includes(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid location type',
+      });
+    }
   }),
 });
 
@@ -96,8 +96,13 @@ export const petSchema = z.object({
     .string()
     .min(1, 'Pet name is required')
     .max(100, 'Pet name must be 100 characters or less'),
-  species: z.enum(['dog', 'cat', 'bird', 'rabbit', 'other'], {
-    errorMap: () => ({ message: 'Invalid species' }),
+  species: z.enum(['dog', 'cat', 'bird', 'rabbit', 'other']).superRefine((val, ctx) => {
+    if (!['dog', 'cat', 'bird', 'rabbit', 'other'].includes(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid species',
+      });
+    }
   }),
   breed: z
     .string()
@@ -147,6 +152,8 @@ export const appointmentSchema = z
     end_time: z.string().min(1, 'End time is required'),
     status: z
       .enum([
+        'draft',
+        'pending',
         'scheduled',
         'confirmed',
         'in_progress',
@@ -155,8 +162,13 @@ export const appointmentSchema = z
         'no_show',
       ])
       .default('scheduled'),
-    location_type: z.enum(['client_location', 'business_location', 'mobile'], {
-      errorMap: () => ({ message: 'Invalid location type' }),
+    location_type: z.enum(['client_location', 'business_location', 'mobile']).superRefine((val, ctx) => {
+      if (!['client_location', 'business_location', 'mobile'].includes(val)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Invalid location type',
+        });
+      }
     }),
     address: z
       .string()

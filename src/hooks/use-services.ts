@@ -1,104 +1,55 @@
-/**
- * Services CRUD Hook - TanStack Query + SQLite (Kysely)
- *
- * Local-first operations with automatic sync queuing
- */
-
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDatabase } from '@/providers/database-provider';
-import { useUserId } from '@/hooks/use-user-id';
-import { v4 as uuidv4 } from 'uuid';
-import type { Service } from '@/lib/database/types';
+import { useMemo } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useCollection } from 'mpb-localkit/react';
+import { app } from '@/lib/offlinekit';
+import type { Service } from '@/lib/offlinekit/schema';
 import type { ServiceFormData } from '@/lib/validations';
 
-/**
- * Query all services for current user
- */
+type WithMeta<T> = T & { _id: string; _deleted: boolean };
+
 export function useServices() {
-  const { db, isReady } = useDatabase();
-  const userId = useUserId();
+  const { data, isLoading, error } = useCollection(app.services);
 
-  return useQuery({
-    queryKey: ['services'],
-    queryFn: async (): Promise<Service[]> => {
-      if (!db) throw new Error('Database not ready');
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    return data
+      .filter((s) => !s._deleted)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [data]);
 
-      const services = await db
-        .selectFrom('services')
-        .selectAll()
-        .where('user_id', '=', userId)
-        .where('deleted_at', 'is', null)
-        .orderBy('name', 'asc')
-        .execute();
-
-      return services;
-    },
-    enabled: isReady && !!db,
-  });
+  return { data: filtered, isLoading, error };
 }
 
-/**
- * Create a new service
- */
 export function useCreateService() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-  const userId = useUserId();
-
   return useMutation({
     mutationFn: async (data: ServiceFormData): Promise<Service> => {
-      if (!db) throw new Error('Database not ready');
-
-      const id = uuidv4();
       const now = new Date().toISOString();
+      const created = await app.services.create({
+        id: crypto.randomUUID(),
+        user_id: 'local-user',
+        name: data.name,
+        description: data.description ?? null,
+        duration_minutes: data.duration_minutes,
+        price_cents: data.price_cents ?? null,
+        weather_dependent: !!data.weather_dependent,
+        location_type: data.location_type,
+        created_at: now,
+        updated_at: now,
+        version: 1,
+        synced_at: null,
+        deleted_at: null,
+        needs_sync: 1,
+        sync_operation: 'INSERT',
+      });
 
-      await db
-        .insertInto('services')
-        .values({
-          id,
-          user_id: userId,
-          name: data.name,
-          description: data.description ?? null,
-          duration_minutes: data.duration_minutes,
-          price_cents: data.price_cents ?? null,
-          weather_dependent: data.weather_dependent,
-          location_type: data.location_type,
-          created_at: now,
-          updated_at: now,
-          version: 1,
-          needs_sync: 1,
-          sync_operation: 'INSERT',
-          synced_at: null,
-          deleted_at: null,
-        })
-        .execute();
-
-      // Return created service
-      const service = await db
-        .selectFrom('services')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('services', 'CREATE', id, service);
-
-      return service;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
+      return created as unknown as Service;
     },
   });
 }
 
-/**
- * Update an existing service
- */
 export function useUpdateService() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({
       id,
@@ -107,66 +58,29 @@ export function useUpdateService() {
       id: string;
       data: Partial<ServiceFormData>;
     }): Promise<Service> => {
-      if (!db) throw new Error('Database not ready');
+      const all = await app.services.findMany() as WithMeta<Service>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) throw new Error(`Service ${id} not found`);
 
-      const now = new Date().toISOString();
+      const updated = await app.services.update(doc._id, {
+        ...data,
+        updated_at: new Date().toISOString(),
+        needs_sync: 1,
+        sync_operation: 'UPDATE',
+      });
 
-      await db
-        .updateTable('services')
-        .set({
-          ...data,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'UPDATE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      // Return updated service
-      const service = await db
-        .selectFrom('services')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('services', 'UPDATE', id, service);
-
-      return service;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
+      return updated as unknown as Service;
     },
   });
 }
 
-/**
- * Soft delete a service
- */
 export function useDeleteService() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      if (!db) throw new Error('Database not ready');
-
-      const now = new Date().toISOString();
-
-      await db
-        .updateTable('services')
-        .set({
-          deleted_at: now,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'DELETE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      syncEngine?.queueMutation('services', 'DELETE', id, { id, deleted_at: now });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
+      const all = await app.services.findMany() as WithMeta<Service>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) return;
+      await app.services.delete(doc._id);
     },
   });
 }

@@ -126,7 +126,7 @@ export default function WeatherPage() {
 
   // Build a set of weather-dependent service IDs
   const weatherDependentServiceIds = new Set(
-    services?.filter((s) => s.weather_dependent === 1).map((s) => s.id) ?? []
+    services?.filter((s) => s.weather_dependent).map((s) => s.id) ?? []
   );
 
   // Find weather-dependent appointments on bad-weather days

@@ -20,14 +20,12 @@ import {
   Plus,
   Settings as SettingsIcon,
 } from 'lucide-react';
-import { useDatabase } from '@/providers/database-provider';
 import { useServices } from '@/hooks/use-services';
 import { useClients } from '@/hooks/use-clients';
 import { useTodayAppointments, useAppointments } from '@/hooks/use-appointments';
 
 export default function DashboardPage() {
-  const { isReady } = useDatabase();
-  const { data: services } = useServices();
+  const { data: services, isLoading } = useServices();
   const { data: clients } = useClients();
   const { data: todayAppointments } = useTodayAppointments();
   const { data: allAppointments } = useAppointments();
@@ -85,8 +83,8 @@ export default function DashboardPage() {
     },
   ];
 
-  // Show skeleton loading state until database is ready
-  if (!isReady) {
+  // Show skeleton loading state while data is loading
+  if (isLoading) {
     return (
       <div className="space-y-8">
         <div>

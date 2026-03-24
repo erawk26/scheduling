@@ -1,162 +1,92 @@
-/**
- * Clients CRUD Hook - TanStack Query + SQLite (Kysely)
- *
- * Local-first operations with automatic sync queuing
- */
-
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDatabase } from '@/providers/database-provider';
-import { useUserId } from '@/hooks/use-user-id';
-import { v4 as uuidv4 } from 'uuid';
-import type { Client } from '@/lib/database/types';
+import { useMemo } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useCollection } from 'mpb-localkit/react';
+import { app } from '@/lib/offlinekit';
+import type { Client } from '@/lib/offlinekit/schema';
 import type { ClientFormData } from '@/lib/validations';
+
+type WithMeta<T> = T & { _id: string; _deleted: boolean };
 import { geocodeAddress } from '@/lib/graphhopper/geocode';
 
-/**
- * Query all clients for current user with optional search
- */
 export function useClients(search?: string) {
-  const { db, isReady } = useDatabase();
-  const userId = useUserId();
+  const { data, isLoading, error } = useCollection(app.clients);
 
-  return useQuery({
-    queryKey: ['clients', search],
-    queryFn: async (): Promise<Client[]> => {
-      if (!db) throw new Error('Database not ready');
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    let result = data.filter((c) => !c._deleted);
+    if (search?.trim()) {
+      const s = search.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.first_name.toLowerCase().includes(s) ||
+          c.last_name.toLowerCase().includes(s)
+      );
+    }
+    return result.sort((a, b) =>
+      `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)
+    );
+  }, [data, search]);
 
-      let query = db
-        .selectFrom('clients')
-        .selectAll()
-        .where('user_id', '=', userId)
-        .where('deleted_at', 'is', null);
-
-      // Add search filter if provided
-      if (search && search.trim() !== '') {
-        const searchPattern = `%${search}%`;
-        query = query.where((eb) =>
-          eb.or([
-            eb('first_name', 'like', searchPattern),
-            eb('last_name', 'like', searchPattern),
-          ])
-        );
-      }
-
-      const clients = await query
-        .orderBy('last_name', 'asc')
-        .orderBy('first_name', 'asc')
-        .execute();
-
-      return clients;
-    },
-    enabled: isReady && !!db,
-  });
+  return { data: filtered, isLoading, error };
 }
 
-/**
- * Query a single client by ID
- */
 export function useClient(id: string) {
-  const { db, isReady } = useDatabase();
-
-  return useQuery({
-    queryKey: ['clients', id],
-    queryFn: async (): Promise<Client | null> => {
-      if (!db) throw new Error('Database not ready');
-
-      const client = await db
-        .selectFrom('clients')
-        .selectAll()
-        .where('id', '=', id)
-        .where('deleted_at', 'is', null)
-        .executeTakeFirst();
-
-      return client ?? null;
-    },
-    enabled: isReady && !!db && !!id,
-  });
+  const { data, isLoading } = useCollection(app.clients);
+  const client = useMemo(
+    () => data?.find((c) => c.id === id && !c._deleted) ?? null,
+    [data, id]
+  );
+  return { data: client as Client | null, isLoading };
 }
 
-/**
- * Create a new client
- */
 export function useCreateClient() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-  const userId = useUserId();
-
   return useMutation({
     mutationFn: async (data: ClientFormData): Promise<Client> => {
-      if (!db) throw new Error('Database not ready');
-
-      const id = uuidv4();
       const now = new Date().toISOString();
+      const created = await app.clients.create({
+        id: crypto.randomUUID(),
+        user_id: 'local-user',
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email ?? null,
+        phone: data.phone ?? null,
+        address: data.address ?? null,
+        latitude: null,
+        longitude: null,
+        notes: data.notes ?? null,
+        scheduling_flexibility: data.scheduling_flexibility ?? 'unknown',
+        created_at: now,
+        updated_at: now,
+        version: 1,
+        synced_at: null,
+        deleted_at: null,
+        needs_sync: 1,
+        sync_operation: 'INSERT',
+      });
 
-      await db
-        .insertInto('clients')
-        .values({
-          id,
-          user_id: userId,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          email: data.email ?? null,
-          phone: data.phone ?? null,
-          address: data.address ?? null,
-          latitude: null,
-          longitude: null,
-          notes: data.notes ?? null,
-          scheduling_flexibility: data.scheduling_flexibility ?? 'unknown',
-          created_at: now,
-          updated_at: now,
-          version: 1,
-          needs_sync: 1,
-          sync_operation: 'INSERT',
-          synced_at: null,
-          deleted_at: null,
-        })
-        .execute();
-
-      // Return created client
-      const client = await db
-        .selectFrom('clients')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('clients', 'CREATE', id, client);
-
-      // Fire-and-forget geocoding - does not block the mutation
       if (data.address) {
-        geocodeAddress(data.address).then((geo) => {
-          if (!geo) return;
-          db.updateTable('clients')
-            .set({
-              latitude: geo.lat,
-              longitude: geo.lon,
-              updated_at: new Date().toISOString().slice(0, 19),
-            })
-            .where('id', '=', id)
-            .execute()
-            .catch(() => undefined);
-        }).catch(() => undefined);
+        geocodeAddress(data.address)
+          .then(async (geo) => {
+            if (!geo) return;
+            await app.clients
+              .update(created._id, {
+                latitude: geo.lat,
+                longitude: geo.lon,
+                updated_at: new Date().toISOString(),
+              })
+              .catch(() => undefined);
+          })
+          .catch(() => undefined);
       }
 
-      return client;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      return created as unknown as Client;
     },
   });
 }
 
-/**
- * Update an existing client
- */
 export function useUpdateClient() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({
       id,
@@ -165,112 +95,59 @@ export function useUpdateClient() {
       id: string;
       data: Partial<ClientFormData>;
     }): Promise<Client> => {
-      if (!db) throw new Error('Database not ready');
+      const all = await app.clients.findMany() as WithMeta<Client>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) throw new Error(`Client ${id} not found`);
 
-      const now = new Date().toISOString();
+      const updated = await app.clients.update(doc._id, {
+        ...data,
+        updated_at: new Date().toISOString(),
+        needs_sync: 1,
+        sync_operation: 'UPDATE',
+      });
 
-      await db
-        .updateTable('clients')
-        .set({
-          ...data,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'UPDATE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      // Return updated client
-      const client = await db
-        .selectFrom('clients')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('clients', 'UPDATE', id, client);
-
-      // Fire-and-forget geocoding when address changes - does not block the mutation
       if (data.address) {
-        geocodeAddress(data.address).then((geo) => {
-          if (!geo) return;
-          db.updateTable('clients')
-            .set({
-              latitude: geo.lat,
-              longitude: geo.lon,
-              updated_at: new Date().toISOString().slice(0, 19),
-            })
-            .where('id', '=', id)
-            .execute()
-            .catch(() => undefined);
-        }).catch(() => undefined);
+        geocodeAddress(data.address)
+          .then(async (geo) => {
+            if (!geo) return;
+            await app.clients
+              .update(doc._id, {
+                latitude: geo.lat,
+                longitude: geo.lon,
+                updated_at: new Date().toISOString(),
+              })
+              .catch(() => undefined);
+          })
+          .catch(() => undefined);
       }
 
-      return client;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['clients', data.id] });
+      return updated as unknown as Client;
     },
   });
 }
 
-/**
- * Soft delete a client
- */
 export function useDeleteClient() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      if (!db) throw new Error('Database not ready');
+      const [allClients, allPets, allApts] = await Promise.all([
+        app.clients.findMany() as Promise<WithMeta<Client>[]>,
+        app.pets.findMany() as Promise<Array<{ _id: string; _deleted: boolean; client_id: string }>>,
+        app.appointments.findMany() as Promise<Array<{ _id: string; _deleted: boolean; client_id: string }>>,
+      ]);
 
-      const now = new Date().toISOString();
+      const doc = allClients.find((d) => d.id === id && !d._deleted);
+      if (!doc) return;
 
-      // Cascade soft-delete to pets belonging to this client
-      await db
-        .updateTable('pets')
-        .set({
-          deleted_at: now,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'DELETE',
-        })
-        .where('client_id', '=', id)
-        .where('deleted_at', 'is', null)
-        .execute();
+      await Promise.all([
+        ...allPets
+          .filter((p) => p.client_id === id && !p._deleted)
+          .map((p) => app.pets.delete(p._id)),
+        ...allApts
+          .filter((a) => a.client_id === id && !a._deleted)
+          .map((a) => app.appointments.delete(a._id)),
+      ]);
 
-      // Cascade soft-delete to appointments belonging to this client
-      await db
-        .updateTable('appointments')
-        .set({
-          deleted_at: now,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'DELETE',
-        })
-        .where('client_id', '=', id)
-        .where('deleted_at', 'is', null)
-        .execute();
-
-      // Soft-delete the client
-      await db
-        .updateTable('clients')
-        .set({
-          deleted_at: now,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'DELETE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      syncEngine?.queueMutation('clients', 'DELETE', id, { id, deleted_at: now });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await app.clients.delete(doc._id);
     },
   });
 }

@@ -1,19 +1,14 @@
-/**
- * Appointments CRUD Hook - TanStack Query + SQLite (Kysely)
- *
- * Local-first operations with automatic sync queuing
- */
-
 'use client';
 
 import { useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { useDatabase } from '@/providers/database-provider';
-import { useUserId } from '@/hooks/use-user-id';
-import { v4 as uuidv4 } from 'uuid';
+import { useMutation } from '@tanstack/react-query';
+import { useCollection } from 'mpb-localkit/react';
 import { startOfDay, endOfDay } from 'date-fns';
-import type { Appointment } from '@/lib/database/types';
+import { app } from '@/lib/offlinekit';
+import type { Appointment } from '@/lib/offlinekit/schema';
 import type { AppointmentFormData } from '@/lib/validations';
+
+type WithMeta<T> = T & { _id: string; _deleted: boolean };
 import { geocodeAddress } from '@/lib/graphhopper/geocode';
 
 interface UseAppointmentsOptions {
@@ -22,156 +17,85 @@ interface UseAppointmentsOptions {
   status?: string;
 }
 
-type AppointmentStatus =
-  | 'scheduled'
-  | 'confirmed'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled'
-  | 'no_show';
-
-/**
- * Query appointments with optional filters
- */
 export function useAppointments(options?: UseAppointmentsOptions) {
-  const { db, isReady } = useDatabase();
-  const userId = useUserId();
+  const { data, isLoading, error } = useCollection(app.appointments);
 
-  return useQuery({
-    queryKey: ['appointments', options],
-    queryFn: async (): Promise<Appointment[]> => {
-      if (!db) throw new Error('Database not ready');
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    let result = data.filter((a) => !a._deleted);
 
-      let query = db
-        .selectFrom('appointments')
-        .selectAll()
-        .where('user_id', '=', userId)
-        .where('deleted_at', 'is', null);
+    if (options?.startDate) {
+      result = result.filter((a) => a.start_time >= options.startDate!);
+    }
+    if (options?.endDate) {
+      result = result.filter((a) => a.start_time <= options.endDate!);
+    }
+    if (options?.status) {
+      result = result.filter((a) => a.status === options.status);
+    }
 
-      // Apply date filters
-      if (options?.startDate) {
-        query = query.where('start_time', '>=', options.startDate);
-      }
-      if (options?.endDate) {
-        query = query.where('start_time', '<=', options.endDate);
-      }
+    return result.sort((a, b) => a.start_time.localeCompare(b.start_time));
+  }, [data, options?.startDate, options?.endDate, options?.status]);
 
-      // Apply status filter
-      if (options?.status) {
-        query = query.where(
-          'status',
-          '=',
-          options.status as AppointmentStatus
-        );
-      }
-
-      const appointments = await query
-        .orderBy('start_time', 'asc')
-        .execute();
-
-      return appointments;
-    },
-    enabled: isReady && !!db,
-    placeholderData: keepPreviousData,
-  });
+  return { data: filtered, isLoading, error };
 }
 
-/**
- * Convenience hook for today's appointments
- */
 export function useTodayAppointments() {
   const start = useMemo(() => startOfDay(new Date()).toISOString(), []);
   const end = useMemo(() => endOfDay(new Date()).toISOString(), []);
-
-  return useAppointments({
-    startDate: start,
-    endDate: end,
-  });
+  return useAppointments({ startDate: start, endDate: end });
 }
 
-/**
- * Create a new appointment
- */
 export function useCreateAppointment() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-  const userId = useUserId();
-
   return useMutation({
     mutationFn: async (data: AppointmentFormData): Promise<Appointment> => {
-      if (!db) throw new Error('Database not ready');
-
-      const id = uuidv4();
       const now = new Date().toISOString();
+      const created = await app.appointments.create({
+        id: crypto.randomUUID(),
+        user_id: 'local-user',
+        client_id: data.client_id,
+        pet_id: data.pet_id ?? null,
+        service_id: data.service_id,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        status: data.status,
+        location_type: data.location_type,
+        address: data.address ?? null,
+        latitude: null,
+        longitude: null,
+        notes: data.notes ?? null,
+        internal_notes: data.internal_notes ?? null,
+        weather_alert: 0,
+        created_at: now,
+        updated_at: now,
+        version: 1,
+        synced_at: null,
+        deleted_at: null,
+        needs_sync: 1,
+        sync_operation: 'INSERT',
+      });
 
-      await db
-        .insertInto('appointments')
-        .values({
-          id,
-          user_id: userId,
-          client_id: data.client_id,
-          pet_id: data.pet_id ?? null,
-          service_id: data.service_id,
-          start_time: data.start_time,
-          end_time: data.end_time,
-          status: data.status,
-          location_type: data.location_type,
-          address: data.address ?? null,
-          latitude: null,
-          longitude: null,
-          notes: data.notes ?? null,
-          internal_notes: data.internal_notes ?? null,
-          weather_alert: 0,
-          created_at: now,
-          updated_at: now,
-          version: 1,
-          needs_sync: 1,
-          sync_operation: 'INSERT',
-          synced_at: null,
-          deleted_at: null,
-        })
-        .execute();
-
-      // Return created appointment
-      const appointment = await db
-        .selectFrom('appointments')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('appointments', 'CREATE', id, appointment);
-
-      // Fire-and-forget geocoding - does not block the mutation
       if (data.address) {
-        geocodeAddress(data.address).then((geo) => {
-          if (!geo) return;
-          db.updateTable('appointments')
-            .set({
-              latitude: geo.lat,
-              longitude: geo.lon,
-              updated_at: new Date().toISOString().slice(0, 19),
-            })
-            .where('id', '=', id)
-            .execute()
-            .catch(() => undefined);
-        }).catch(() => undefined);
+        geocodeAddress(data.address)
+          .then(async (geo) => {
+            if (!geo) return;
+            await app.appointments
+              .update(created._id, {
+                latitude: geo.lat,
+                longitude: geo.lon,
+                updated_at: new Date().toISOString(),
+              })
+              .catch(() => undefined);
+          })
+          .catch(() => undefined);
       }
 
-      return appointment;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      return created as unknown as Appointment;
     },
   });
 }
 
-/**
- * Update an existing appointment
- */
 export function useUpdateAppointment() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({
       id,
@@ -180,129 +104,69 @@ export function useUpdateAppointment() {
       id: string;
       data: Partial<AppointmentFormData>;
     }): Promise<Appointment> => {
-      if (!db) throw new Error('Database not ready');
+      const all = await app.appointments.findMany() as WithMeta<Appointment>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) throw new Error(`Appointment ${id} not found`);
 
-      const now = new Date().toISOString();
+      const updated = await app.appointments.update(doc._id, {
+        ...data,
+        updated_at: new Date().toISOString(),
+        needs_sync: 1,
+        sync_operation: 'UPDATE',
+      });
 
-      await db
-        .updateTable('appointments')
-        .set({
-          ...data,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'UPDATE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      // Return updated appointment
-      const appointment = await db
-        .selectFrom('appointments')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('appointments', 'UPDATE', id, appointment);
-
-      // Fire-and-forget geocoding when address changes - does not block the mutation
       if (data.address) {
-        geocodeAddress(data.address).then((geo) => {
-          if (!geo) return;
-          db.updateTable('appointments')
-            .set({
-              latitude: geo.lat,
-              longitude: geo.lon,
-              updated_at: new Date().toISOString().slice(0, 19),
-            })
-            .where('id', '=', id)
-            .execute()
-            .catch(() => undefined);
-        }).catch(() => undefined);
+        geocodeAddress(data.address)
+          .then(async (geo) => {
+            if (!geo) return;
+            await app.appointments
+              .update(doc._id, {
+                latitude: geo.lat,
+                longitude: geo.lon,
+                updated_at: new Date().toISOString(),
+              })
+              .catch(() => undefined);
+          })
+          .catch(() => undefined);
       }
 
-      return appointment;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      return updated as unknown as Appointment;
     },
   });
 }
 
-/**
- * Update appointment status only (convenience mutation)
- */
 export function useUpdateAppointmentStatus() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({
       id,
       status,
     }: {
       id: string;
-      status: AppointmentStatus;
+      status: Appointment['status'];
     }): Promise<Appointment> => {
-      if (!db) throw new Error('Database not ready');
+      const all = await app.appointments.findMany() as WithMeta<Appointment>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) throw new Error(`Appointment ${id} not found`);
 
-      const now = new Date().toISOString();
+      const updated = await app.appointments.update(doc._id, {
+        status,
+        updated_at: new Date().toISOString(),
+        needs_sync: 1,
+        sync_operation: 'UPDATE',
+      });
 
-      await db
-        .updateTable('appointments')
-        .set({
-          status,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'UPDATE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      // Return updated appointment
-      const appointment = await db
-        .selectFrom('appointments')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('appointments', 'UPDATE', id, appointment);
-
-      return appointment;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      return updated as unknown as Appointment;
     },
   });
 }
 
-/**
- * Soft delete an appointment
- */
 export function useDeleteAppointment() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      if (!db) throw new Error('Database not ready');
-
-      const now = new Date().toISOString();
-
-      await db
-        .updateTable('appointments')
-        .set({
-          deleted_at: now,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'DELETE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      syncEngine?.queueMutation('appointments', 'DELETE', id, { id, deleted_at: now });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      const all = await app.appointments.findMany() as WithMeta<Appointment>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) return;
+      await app.appointments.delete(doc._id);
     },
   });
 }

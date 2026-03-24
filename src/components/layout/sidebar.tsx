@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Lightbulb } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/use-network-status'
-import { useSyncStatus } from '@/providers/database-provider'
+import { useSync } from 'mpb-localkit/react'
+import { app } from '@/lib/offlinekit'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -20,12 +21,12 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname()
   const { isOnline } = useNetworkStatus()
-  const syncStatus = useSyncStatus()
-  const pendingCount = syncStatus?.pending_items ?? 0
+  const { status: syncStatus } = useSync(app)
 
+  const isSyncing = syncStatus === 'syncing'
   const statusLabel = isOnline
-    ? pendingCount > 0 ? `Syncing (${pendingCount})` : 'Online'
-    : pendingCount > 0 ? `Offline (${pendingCount} pending)` : 'Offline'
+    ? isSyncing ? 'Syncing...' : 'Online'
+    : 'Offline'
 
   return (
     <aside className="hidden md:flex md:flex-shrink-0">

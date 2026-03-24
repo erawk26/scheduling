@@ -1,105 +1,60 @@
-/**
- * Pets CRUD Hook - TanStack Query + SQLite (Kysely)
- *
- * Local-first operations with automatic sync queuing
- */
-
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDatabase } from '@/providers/database-provider';
-import { v4 as uuidv4 } from 'uuid';
-import type { Pet } from '@/lib/database/types';
+import { useMemo } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useCollection } from 'mpb-localkit/react';
+import { app } from '@/lib/offlinekit';
+import type { Pet } from '@/lib/offlinekit/schema';
 import type { PetFormData } from '@/lib/validations';
 
-/**
- * Query all pets for a specific client
- */
+type WithMeta<T> = T & { _id: string; _deleted: boolean };
+
 export function usePets(clientId: string) {
-  const { db, isReady } = useDatabase();
+  const { data, isLoading, error } = useCollection(app.pets);
 
-  return useQuery({
-    queryKey: ['pets', clientId],
-    queryFn: async (): Promise<Pet[]> => {
-      if (!db) throw new Error('Database not ready');
+  const filtered = useMemo(() => {
+    if (!data || !clientId) return [];
+    return data
+      .filter((p) => p.client_id === clientId && !p._deleted)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [data, clientId]);
 
-      const pets = await db
-        .selectFrom('pets')
-        .selectAll()
-        .where('client_id', '=', clientId)
-        .where('deleted_at', 'is', null)
-        .orderBy('name', 'asc')
-        .execute();
-
-      return pets;
-    },
-    enabled: isReady && !!db && !!clientId,
-  });
+  return { data: filtered, isLoading, error };
 }
 
-/**
- * Create a new pet
- */
 export function useCreatePet() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (
       data: PetFormData & { client_id: string }
     ): Promise<Pet> => {
-      if (!db) throw new Error('Database not ready');
-
-      const id = uuidv4();
       const now = new Date().toISOString();
+      const created = await app.pets.create({
+        id: crypto.randomUUID(),
+        user_id: 'local-user',
+        client_id: data.client_id,
+        name: data.name,
+        species: data.species,
+        breed: data.breed ?? null,
+        size: data.size ?? null,
+        age_years: data.age_years ?? null,
+        weight_lbs: data.weight_lbs ?? null,
+        behavior_notes: data.behavior_notes ?? null,
+        medical_notes: data.medical_notes ?? null,
+        created_at: now,
+        updated_at: now,
+        version: 1,
+        synced_at: null,
+        deleted_at: null,
+        needs_sync: 1,
+        sync_operation: 'INSERT',
+      });
 
-      await db
-        .insertInto('pets')
-        .values({
-          id,
-          client_id: data.client_id,
-          name: data.name,
-          species: data.species,
-          breed: data.breed ?? null,
-          size: data.size ?? null,
-          age_years: data.age_years ?? null,
-          weight_lbs: data.weight_lbs ?? null,
-          behavior_notes: data.behavior_notes ?? null,
-          medical_notes: data.medical_notes ?? null,
-          created_at: now,
-          updated_at: now,
-          version: 1,
-          needs_sync: 1,
-          sync_operation: 'INSERT',
-          synced_at: null,
-          deleted_at: null,
-        })
-        .execute();
-
-      // Return created pet
-      const pet = await db
-        .selectFrom('pets')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('pets', 'CREATE', id, pet);
-
-      return pet;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['pets', data.client_id] });
+      return created as unknown as Pet;
     },
   });
 }
 
-/**
- * Update an existing pet
- */
 export function useUpdatePet() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({
       id,
@@ -108,75 +63,30 @@ export function useUpdatePet() {
       id: string;
       data: Partial<PetFormData>;
     }): Promise<Pet> => {
-      if (!db) throw new Error('Database not ready');
+      const all = await app.pets.findMany() as WithMeta<Pet>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) throw new Error(`Pet ${id} not found`);
 
-      const now = new Date().toISOString();
+      const updated = await app.pets.update(doc._id, {
+        ...data,
+        updated_at: new Date().toISOString(),
+        needs_sync: 1,
+        sync_operation: 'UPDATE',
+      });
 
-      await db
-        .updateTable('pets')
-        .set({
-          ...data,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'UPDATE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      // Return updated pet
-      const pet = await db
-        .selectFrom('pets')
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      syncEngine?.queueMutation('pets', 'UPDATE', id, pet);
-
-      return pet;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['pets', data.client_id] });
+      return updated as unknown as Pet;
     },
   });
 }
 
-/**
- * Soft delete a pet
- */
 export function useDeletePet() {
-  const { db, syncEngine } = useDatabase();
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (id: string): Promise<string> => {
-      if (!db) throw new Error('Database not ready');
-
-      // Get client_id before deletion for cache invalidation
-      const pet = await db
-        .selectFrom('pets')
-        .select('client_id')
-        .where('id', '=', id)
-        .executeTakeFirstOrThrow();
-
-      const now = new Date().toISOString();
-
-      await db
-        .updateTable('pets')
-        .set({
-          deleted_at: now,
-          updated_at: now,
-          needs_sync: 1,
-          sync_operation: 'DELETE',
-        })
-        .where('id', '=', id)
-        .execute();
-
-      syncEngine?.queueMutation('pets', 'DELETE', id, { id, deleted_at: now });
-
-      return pet.client_id;
-    },
-    onSuccess: (clientId) => {
-      queryClient.invalidateQueries({ queryKey: ['pets', clientId] });
+      const all = await app.pets.findMany() as WithMeta<Pet>[];
+      const doc = all.find((d) => d.id === id && !d._deleted);
+      if (!doc) return '';
+      await app.pets.delete(doc._id);
+      return doc.client_id;
     },
   });
 }

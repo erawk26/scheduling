@@ -1,84 +1,72 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useDatabase } from '@/providers/database-provider';
+import { app } from '@/lib/offlinekit';
 import { geocodeAddress } from '@/lib/graphhopper/geocode';
+import type { Client, Appointment } from '@/lib/offlinekit/schema';
 
-/**
- * Hook that provides functions to geocode and update a record's coordinates.
- * Works for both clients and appointments tables.
- */
+type WithMeta<T> = T & { _id: string; _deleted: boolean };
+
 export function useGeocode() {
-  const { db } = useDatabase();
-
   const geocodeClient = useCallback(async (clientId: string, address: string) => {
-    if (!db || !address.trim()) return;
-
+    if (!address.trim()) return;
     const result = await geocodeAddress(address);
     if (!result) return;
 
-    await db.updateTable('clients')
-      .set({
-        latitude: result.lat,
-        longitude: result.lon,
-        updated_at: new Date().toISOString().slice(0, 19),
-      })
-      .where('id', '=', clientId)
-      .execute();
-  }, [db]);
+    const all = await app.clients.findMany() as WithMeta<Client>[];
+    const doc = all.find((d) => d.id === clientId && !d._deleted);
+    if (!doc) return;
+
+    await app.clients.update(doc._id, {
+      latitude: result.lat,
+      longitude: result.lon,
+      updated_at: new Date().toISOString(),
+    });
+  }, []);
 
   const geocodeAppointment = useCallback(async (appointmentId: string, address: string) => {
-    if (!db || !address.trim()) return;
-
+    if (!address.trim()) return;
     const result = await geocodeAddress(address);
     if (!result) return;
 
-    await db.updateTable('appointments')
-      .set({
-        latitude: result.lat,
-        longitude: result.lon,
-        updated_at: new Date().toISOString().slice(0, 19),
-      })
-      .where('id', '=', appointmentId)
-      .execute();
-  }, [db]);
+    const all = await app.appointments.findMany() as WithMeta<Appointment>[];
+    const doc = all.find((d) => d.id === appointmentId && !d._deleted);
+    if (!doc) return;
+
+    await app.appointments.update(doc._id, {
+      latitude: result.lat,
+      longitude: result.lon,
+      updated_at: new Date().toISOString(),
+    });
+  }, []);
 
   const batchGeocodeClients = useCallback(async () => {
-    if (!db) return { geocoded: 0, failed: 0 };
-
-    // Find clients with address but no coordinates
-    const clients = await db.selectFrom('clients')
-      .select(['id', 'address'])
-      .where('address', 'is not', null)
-      .where('latitude', 'is', null)
-      .where('deleted_at', 'is', null)
-      .execute();
+    const clients = await app.clients.findMany() as WithMeta<Client>[];
+    const needsGeocode = clients.filter(
+      (c) => !c._deleted && c.address && c.latitude == null
+    );
 
     let geocoded = 0;
     let failed = 0;
 
-    for (const client of clients) {
+    for (const client of needsGeocode) {
       if (!client.address) continue;
       const result = await geocodeAddress(client.address);
       if (result) {
-        await db.updateTable('clients')
-          .set({
-            latitude: result.lat,
-            longitude: result.lon,
-            updated_at: new Date().toISOString().slice(0, 19),
-          })
-          .where('id', '=', client.id)
-          .execute();
+        await app.clients.update(client._id, {
+          latitude: result.lat,
+          longitude: result.lon,
+          updated_at: new Date().toISOString(),
+        });
         geocoded++;
       } else {
         failed++;
       }
-      // Small delay between requests to respect rate limits
-      await new Promise(r => setTimeout(r, 1100));
+      await new Promise((r) => setTimeout(r, 1100));
     }
 
     return { geocoded, failed };
-  }, [db]);
+  }, []);
 
   return { geocodeClient, geocodeAppointment, batchGeocodeClients };
 }
