@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Lightbulb, Bot } from 'lucide-react'
+import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Lightbulb, Bot, UserCog } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/use-network-status'
 
 const navigation = [
@@ -14,6 +14,7 @@ const navigation = [
   { name: 'Weather', href: '/dashboard/weather', icon: CloudSun },
   { name: 'Smart Schedule', href: '/dashboard/schedule-intelligence', icon: Lightbulb },
   { name: 'Chat', href: '/dashboard/chat', icon: Bot },
+  { name: 'Agent Profile', href: '/dashboard/settings/profile', icon: UserCog },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -34,7 +35,9 @@ export function Sidebar() {
             {navigation.map((item) => {
               const isActive = item.href === '/dashboard'
                 ? pathname === '/dashboard'
-                : pathname.startsWith(item.href)
+                : item.href === '/dashboard/settings'
+                  ? pathname === '/dashboard/settings'
+                  : pathname.startsWith(item.href)
               return (
                 <Link
                   key={item.name}

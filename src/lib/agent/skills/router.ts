@@ -4,12 +4,13 @@
  */
 
 import type { Skill } from './types';
+import { buildScheduleSkill } from './build-schedule';
 import { checkInSkill } from './check-in';
 import { adjustSkill } from './adjust';
 import { learnSkill } from './learn';
 import { reportSkill } from './report';
 
-const ALL_SKILLS: Skill[] = [checkInSkill, adjustSkill, learnSkill, reportSkill];
+const ALL_SKILLS: Skill[] = [buildScheduleSkill, checkInSkill, adjustSkill, learnSkill, reportSkill];
 
 type SkillPattern = {
   skill: Skill;
@@ -17,6 +18,14 @@ type SkillPattern = {
 };
 
 const SKILL_PATTERNS: SkillPattern[] = [
+  {
+    skill: buildScheduleSkill,
+    patterns: [
+      /\b(build|create|make|generate)\s+(a\s+)?(schedule|plan|week)/i,
+      /\bplan\s+(my|the|this|next)\s+week/i,
+      /\bschedule\s+(builder|building)/i,
+    ],
+  },
   {
     skill: adjustSkill,
     patterns: [

@@ -58,7 +58,7 @@ const WEEK_DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7am–8pm
 
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
-  draft: 'bg-purple-100 text-purple-800 border-purple-200',
+  draft: 'bg-amber-50 text-amber-800 border-amber-300',
   pending: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
   confirmed: 'bg-green-100 text-green-800 border-green-200',
@@ -130,14 +130,16 @@ interface AppointmentPillProps {
 }
 
 function AppointmentPill({ appointment, clientsMap, onClick, className }: AppointmentPillProps) {
+  const isDraft = appointment.status === 'draft';
   return (
     <div
       role="button"
       tabIndex={0}
-      aria-label={`Appointment: ${getAppointmentLabel(appointment, clientsMap)}`}
+      aria-label={`Appointment: ${getAppointmentLabel(appointment, clientsMap)}${isDraft ? ' (Draft)' : ''}`}
       className={cn(
-        'text-xs px-1 py-0.5 rounded border truncate cursor-pointer select-none',
+        'text-xs px-1 py-0.5 rounded border cursor-pointer select-none flex items-center gap-0.5 overflow-hidden',
         'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500',
+        isDraft && 'border-dashed opacity-70',
         STATUS_COLORS[appointment.status],
         className
       )}
@@ -153,7 +155,8 @@ function AppointmentPill({ appointment, clientsMap, onClick, className }: Appoin
         }
       }}
     >
-      {getAppointmentLabel(appointment, clientsMap)}
+      {isDraft && <span className="shrink-0 font-bold text-[10px] uppercase">D</span>}
+      <span className="truncate">{getAppointmentLabel(appointment, clientsMap)}</span>
     </div>
   );
 }
@@ -363,15 +366,17 @@ function WeekView({ currentDate, appointments, clientsMap, onDateSelect, onAppoi
                   const clientName = client
                     ? `${client.first_name} ${client.last_name}`
                     : 'Unknown';
+                  const isDraft = apt.status === 'draft';
                   return (
                     <div
                       key={apt.id}
                       role="button"
                       tabIndex={0}
-                      aria-label={`Appointment with ${clientName}`}
+                      aria-label={`Appointment with ${clientName}${isDraft ? ' (Draft)' : ''}`}
                       className={cn(
                         'absolute left-0.5 right-0.5 rounded border px-1 py-0.5 overflow-hidden cursor-pointer',
                         'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500',
+                        isDraft && 'border-dashed opacity-70',
                         STATUS_COLORS[apt.status]
                       )}
                       style={{ top, height }}
@@ -387,6 +392,9 @@ function WeekView({ currentDate, appointments, clientsMap, onDateSelect, onAppoi
                         }
                       }}
                     >
+                      {isDraft && (
+                        <div className="text-[9px] font-bold uppercase leading-none mb-0.5 tracking-wide">Draft</div>
+                      )}
                       <div className="text-xs font-medium truncate">
                         {format(parseISO(apt.start_time), 'h:mma')}
                       </div>
@@ -479,16 +487,18 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
                 ? `${client.first_name} ${client.last_name}`
                 : 'Unknown Client';
               const serviceName = service?.name ?? 'Unknown Service';
+              const isDraft = apt.status === 'draft';
 
               return (
                 <div
                   key={apt.id}
                   role="button"
                   tabIndex={0}
-                  aria-label={`${clientName} — ${serviceName}`}
+                  aria-label={`${clientName} — ${serviceName}${isDraft ? ' (Draft)' : ''}`}
                   className={cn(
                     'absolute left-1 right-1 rounded border px-2 py-1 overflow-hidden cursor-pointer',
                     'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500',
+                    isDraft && 'border-dashed opacity-70',
                     STATUS_COLORS[apt.status]
                   )}
                   style={{ top, height }}
@@ -500,6 +510,11 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
                     }
                   }}
                 >
+                  {isDraft && (
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-wide border border-dashed border-amber-400 rounded px-1 leading-4 mb-0.5 bg-amber-100 text-amber-800">
+                      DRAFT
+                    </span>
+                  )}
                   <div className="flex items-center gap-1 text-xs font-semibold">
                     <Clock className="w-3 h-3 shrink-0" />
                     <span>

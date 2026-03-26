@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parseISO, addMinutes, startOfDay, endOfDay } from 'date-fns';
@@ -12,6 +13,9 @@ import {
   MapPin,
   MoreVertical,
   Loader2,
+  CheckCheck,
+  MessageSquare,
+  Filter,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -76,7 +80,7 @@ import type { WeatherForecast } from '@/lib/weather/types';
 
 
 const statusColors: Record<Appointment['status'], string> = {
-  draft: 'bg-gray-200 text-gray-700',
+  draft: 'bg-amber-100 text-amber-800',
   pending: 'bg-purple-100 text-purple-800',
   scheduled: 'bg-blue-100 text-blue-800',
   confirmed: 'bg-green-100 text-green-800',
@@ -98,9 +102,12 @@ const statusLabels: Record<Appointment['status'], string> = {
 };
 
 export default function AppointmentsPage() {
+  const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [showDraftsOnly, setShowDraftsOnly] = useState(false);
+  const [isConfirmingDrafts, setIsConfirmingDrafts] = useState(false);
 
   // Get today's date range (memoized to prevent re-render loops)
   const todayStart = useMemo(() => startOfDay(new Date()).toISOString(), []);
@@ -115,26 +122,64 @@ export default function AppointmentsPage() {
 
   const { data: allAppointments, isLoading: isLoadingAll } = useAppointments();
 
+  // Batch status updater (used for confirm all drafts)
+  const updateStatus = useUpdateAppointmentStatus();
+
+  // Draft appointments
+  const draftAppointments = useMemo(() => {
+    if (!allAppointments) return [];
+    return allAppointments.filter((apt) => apt.status === 'draft');
+  }, [allAppointments]);
+
+  // Appointments shown in calendar/list (filtered by showDraftsOnly)
+  const displayedAppointments = useMemo(() => {
+    if (!allAppointments) return [];
+    return showDraftsOnly ? draftAppointments : allAppointments;
+  }, [allAppointments, draftAppointments, showDraftsOnly]);
+
   // Filter appointments for each tab
   const upcomingAppointments = useMemo(() => {
-    if (!allAppointments) return [];
-    return allAppointments.filter(
-      (apt) =>
-        apt.start_time > now &&
-        (apt.status === 'scheduled' || apt.status === 'confirmed')
+    const base = showDraftsOnly ? draftAppointments : allAppointments ?? [];
+    const validStatuses = showDraftsOnly
+      ? (['draft'] as const)
+      : (['scheduled', 'confirmed'] as const);
+    return base.filter(
+      (apt) => apt.start_time > now && (validStatuses as readonly string[]).includes(apt.status)
     );
-  }, [allAppointments, now]);
+  }, [allAppointments, draftAppointments, now, showDraftsOnly]);
 
   const pastAppointments = useMemo(() => {
-    if (!allAppointments) return [];
-    return allAppointments.filter(
+    const base = showDraftsOnly ? draftAppointments : allAppointments ?? [];
+    if (showDraftsOnly) {
+      return base.filter((apt) => apt.start_time < now);
+    }
+    return base.filter(
       (apt) =>
         apt.start_time < now ||
         apt.status === 'completed' ||
         apt.status === 'cancelled' ||
         apt.status === 'no_show'
     );
-  }, [allAppointments, now]);
+  }, [allAppointments, draftAppointments, now, showDraftsOnly]);
+
+  const displayedTodayAppointments = useMemo(() => {
+    if (!todayAppointments) return [];
+    return showDraftsOnly
+      ? todayAppointments.filter((apt) => apt.status === 'draft')
+      : todayAppointments;
+  }, [todayAppointments, showDraftsOnly]);
+
+  const handleConfirmAllDrafts = async () => {
+    if (draftAppointments.length === 0) return;
+    setIsConfirmingDrafts(true);
+    try {
+      for (const apt of draftAppointments) {
+        await updateStatus.mutateAsync({ id: apt.id, status: 'confirmed' });
+      }
+    } finally {
+      setIsConfirmingDrafts(false);
+    }
+  };
 
   // Query clients and services for lookups
   const { data: clients } = useClients();
@@ -192,8 +237,45 @@ export default function AppointmentsPage() {
             Manage your upcoming and past appointments
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {draftAppointments.length > 0 && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleConfirmAllDrafts}
+                disabled={isConfirmingDrafts}
+                className="border-green-300 text-green-700 hover:bg-green-50"
+              >
+                {isConfirmingDrafts ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCheck className="mr-2 h-4 w-4" />
+                )}
+                Confirm All Drafts
+                <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-300">
+                  {draftAppointments.length}
+                </Badge>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/dashboard/chat')}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Ask Agent to Adjust
+              </Button>
+            </>
+          )}
+          <Button
+            variant={showDraftsOnly ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setShowDraftsOnly((v) => !v)}
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            {showDraftsOnly ? 'Show All' : 'Drafts Only'}
+          </Button>
+          <div className="flex items-center gap-1">
             <Button
               variant={viewMode === 'calendar' ? 'default' : 'outline'}
               size="sm"
@@ -237,7 +319,7 @@ export default function AppointmentsPage() {
 
       {viewMode === 'calendar' ? (
         <CalendarView
-          appointments={allAppointments || []}
+          appointments={displayedAppointments}
           clientsMap={clientsMap}
           servicesMap={servicesMap}
           forecastByDate={forecastByDate}
@@ -258,8 +340,8 @@ export default function AppointmentsPage() {
                 <Skeleton className="h-32 w-full" />
                 <Skeleton className="h-32 w-full" />
               </div>
-            ) : todayAppointments && todayAppointments.length > 0 ? (
-              todayAppointments.map((appointment) => (
+            ) : displayedTodayAppointments.length > 0 ? (
+              displayedTodayAppointments.map((appointment) => (
                 <AppointmentCard
                   key={appointment.id}
                   appointment={appointment}
