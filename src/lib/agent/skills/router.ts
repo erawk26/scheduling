@@ -9,8 +9,10 @@ import { checkInSkill } from './check-in';
 import { adjustSkill } from './adjust';
 import { learnSkill } from './learn';
 import { reportSkill } from './report';
+import { contactClientsSkill } from './contact-clients';
+import { respondIntegrationSkill } from './respond-integration';
 
-const ALL_SKILLS: Skill[] = [buildScheduleSkill, checkInSkill, adjustSkill, learnSkill, reportSkill];
+const ALL_SKILLS: Skill[] = [buildScheduleSkill, checkInSkill, adjustSkill, learnSkill, reportSkill, contactClientsSkill, respondIntegrationSkill];
 
 type SkillPattern = {
   skill: Skill;
@@ -18,6 +20,22 @@ type SkillPattern = {
 };
 
 const SKILL_PATTERNS: SkillPattern[] = [
+  {
+    skill: contactClientsSkill,
+    patterns: [
+      /\b(contact|reach\s*out|email|send|notify)\s+(to\s+)?(clients?|customers?)/i,
+      /\b(send|email)\s+(booking|schedule|appointment)\s+(links?|invit)/i,
+      /\bconfirm\s+(with|from)\s+(clients?|customers?)/i,
+    ],
+  },
+  {
+    skill: respondIntegrationSkill,
+    patterns: [
+      /\b(check|show|get)\s+(responses?|confirmations?|bookings?)\b/i,
+      /\bwho\s+(has|hasn't|confirmed|responded|declined)\b/i,
+      /\b(booking|response)\s+(status|progress|update)\b/i,
+    ],
+  },
   {
     skill: buildScheduleSkill,
     patterns: [
@@ -69,7 +87,7 @@ const SKILL_PATTERNS: SkillPattern[] = [
  * Route a user message to the most appropriate skill.
  * Returns null if no skill matches (general conversation).
  *
- * Priority order: adjust > report > learn > check-in (most specific first).
+ * Priority order: adjust > contact-clients > response-integration > report > build-schedule > learn > check-in (most specific first).
  */
 export function routeMessage(message: string): Skill | null {
   for (const { skill, patterns } of SKILL_PATTERNS) {

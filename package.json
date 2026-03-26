@@ -39,6 +39,7 @@
     "drizzle-orm": "^0.45.1",
     "graphql": "^16.13.1",
     "graphql-request": "^7.4.0",
+    "jose": "^6.2.2",
     "kysely": "^0.28.14",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",
@@ -48,6 +49,7 @@
     "react-dom": "19.2.4",
     "react-hook-form": "^7.72.0",
     "react-leaflet": "^5.0.0",
+    "resend": "^6.9.4",
     "tailwind-merge": "^3.5.0",
     "uuid": "^13.0.0",
     "zod": "^4.3.6"
