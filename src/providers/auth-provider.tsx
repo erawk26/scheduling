@@ -75,10 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/sign-in")
   }, [queryClient, router])
 
+  // If session fetch errored (e.g., 500 from stale cookie), clear the error
+  // and treat as unauthenticated rather than showing a broken state
+  const sessionError = error && !session ? null : error
+  const effectiveSession = error && !session ? null : (session as unknown as AuthSession | null)
+
   const value: AuthContextValue = {
-    session: session as unknown as AuthSession | null,
+    session: effectiveSession,
     isLoading,
-    error,
+    error: sessionError,
     signIn,
     signUp,
     signOut,
