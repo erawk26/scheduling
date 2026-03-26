@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Lightbulb, Bot, UserCog, CreditCard } from 'lucide-react'
+import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Bot, UserCog, CreditCard } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/use-network-status'
 
 const navigation = [
@@ -12,7 +12,6 @@ const navigation = [
   { name: 'Clients', href: '/dashboard/clients', icon: Users },
   { name: 'Services', href: '/dashboard/services', icon: Briefcase },
   { name: 'Weather', href: '/dashboard/weather', icon: CloudSun },
-  { name: 'Smart Schedule', href: '/dashboard/schedule-intelligence', icon: Lightbulb },
   { name: 'Chat', href: '/dashboard/chat', icon: Bot },
   { name: 'Agent Profile', href: '/dashboard/settings/profile', icon: UserCog },
   { name: 'Billing', href: '/dashboard/settings/billing', icon: CreditCard },
