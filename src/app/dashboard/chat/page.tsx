@@ -1,29 +1,50 @@
 'use client';
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { Bot, Send, User } from 'lucide-react';
+import { Bot, Send, User, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/hooks/use-chat';
+import { useNetworkStatus } from '@/hooks/use-network-status';
 import { format } from 'date-fns';
 
 export default function ChatPage() {
   const { messages, sendMessage, isProcessing, streamingContent } = useChat();
+  const { isOnline } = useNetworkStatus();
   const [input, setInput] = useState('');
+  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const wasOfflineRef = useRef(!isOnline);
 
   // Scroll to bottom when messages or streaming content changes
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingContent]);
 
+  // Process queued messages when connection is restored
+  useEffect(() => {
+    if (isOnline && wasOfflineRef.current && pendingMessages.length > 0) {
+      const queue = [...pendingMessages];
+      setPendingMessages([]);
+      queue.reduce(
+        (chain, msg) => chain.then(() => sendMessage(msg)),
+        Promise.resolve()
+      );
+    }
+    wasOfflineRef.current = !isOnline;
+  }, [isOnline, pendingMessages, sendMessage]);
+
   function handleSend() {
     const text = input.trim();
     if (!text || isProcessing) return;
     setInput('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    if (!isOnline) {
+      setPendingMessages((prev) => [...prev, text]);
+      return;
+    }
     sendMessage(text);
   }
 
@@ -45,6 +66,19 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)]">
+      {/* Offline banner */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200 text-amber-800 text-sm flex-shrink-0">
+          <WifiOff className="w-4 h-4 flex-shrink-0" />
+          <span>
+            You&rsquo;re offline — messages will be sent when you reconnect
+            {pendingMessages.length > 0 && (
+              <span className="ml-1 font-medium">({pendingMessages.length} queued)</span>
+            )}
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200 bg-white flex-shrink-0">
         <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10">

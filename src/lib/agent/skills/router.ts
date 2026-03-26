@@ -9,10 +9,11 @@ import { checkInSkill } from './check-in';
 import { adjustSkill } from './adjust';
 import { learnSkill } from './learn';
 import { reportSkill } from './report';
+import { digestSkill } from './digest';
 import { contactClientsSkill } from './contact-clients';
 import { respondIntegrationSkill } from './respond-integration';
 
-const ALL_SKILLS: Skill[] = [buildScheduleSkill, checkInSkill, adjustSkill, learnSkill, reportSkill, contactClientsSkill, respondIntegrationSkill];
+const ALL_SKILLS: Skill[] = [buildScheduleSkill, checkInSkill, adjustSkill, learnSkill, reportSkill, digestSkill, contactClientsSkill, respondIntegrationSkill];
 
 type SkillPattern = {
   skill: Skill;
@@ -52,6 +53,14 @@ const SKILL_PATTERNS: SkillPattern[] = [
       /\bcancel\s+\w+/i,              // "cancel Sarah", "cancel Mrs. Johnson"
       /\bmove\s+\w+/i,                // "move Sarah to Wednesday"
       /\breschedule\s+\w+/i,
+    ],
+  },
+  {
+    skill: digestSkill,
+    patterns: [
+      /\b(weekly\s+)?digest\b/i,
+      /\bweek(ly)?\s+digest\b/i,
+      /\bpatterns?\s+(this|last|past)\s+week\b/i,
     ],
   },
   {

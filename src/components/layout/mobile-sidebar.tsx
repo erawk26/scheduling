@@ -9,7 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard } from 'lucide-react'
+import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, CreditCard } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -17,6 +17,7 @@ const navigation = [
   { name: 'Clients', href: '/dashboard/clients', icon: Users },
   { name: 'Services', href: '/dashboard/services', icon: Briefcase },
   { name: 'Weather', href: '/dashboard/weather', icon: CloudSun },
+  { name: 'Billing', href: '/dashboard/settings/billing', icon: CreditCard },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 

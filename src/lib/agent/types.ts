@@ -20,6 +20,10 @@ export type OpenRouterOptions = {
   model?: string;
   maxTokens?: number;
   temperature?: number;
+  /** Pre-computed monthly token usage for budget enforcement */
+  tokensUsed?: number;
+  /** Tier monthly token cap; if tokensUsed >= this, request is blocked */
+  maxTokensPerMonth?: number;
 };
 
 // Context provided by the ContextProvider (built by worker-1)

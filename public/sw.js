@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ke-agenda-v2';
+const CACHE_NAME = 'ke-agenda-v3';
 const APP_SHELL = [
   '/',
   '/dashboard',
@@ -8,6 +8,9 @@ const APP_SHELL = [
   '/dashboard/routes',
   '/dashboard/weather',
   '/dashboard/settings',
+  '/dashboard/settings/messaging',
+  '/dashboard/settings/billing',
+  '/dashboard/settings/profile',
   '/dashboard/chat',
   '/offline',
 ];

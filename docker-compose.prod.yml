@@ -65,6 +65,17 @@ services:
       NEXT_PUBLIC_HASURA_URL: ${NEXT_PUBLIC_HASURA_URL:-http://localhost:8080/v1/graphql}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
       TOMORROW_IO_API_KEY: ${TOMORROW_IO_API_KEY:-}
+      GRAPHHOPPER_API_KEY: ${GRAPHHOPPER_API_KEY:-}
+      # Required: transactional email
+      RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY is required}
+      # Required: signed booking link tokens
+      BOOKING_JWT_SECRET: ${BOOKING_JWT_SECRET:?BOOKING_JWT_SECRET is required}
+      # Required: AI scheduling agent
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?OPENROUTER_API_KEY is required}
+      # Optional: Telegram bot notifications
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      # Optional: OAuth providers
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
