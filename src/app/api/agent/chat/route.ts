@@ -2,14 +2,24 @@
  * POST /api/agent/chat
  *
  * Receives a user message and streams the agent response.
- * Body: { message: string, conversationId?: string }
+ * Body: { message: string, conversationId?: string, context?: Record<string, unknown>, bootstrapPrompt?: string }
+ *
+ * Normal messages are routed through the skill engine (router + budget + logging).
+ * Bootstrap messages bypass the engine and stream directly.
  */
 
 import { NextRequest } from 'next/server';
 import { sendMessageStream } from '@/lib/agent/openrouter-client';
+import { processMessageStream } from '@/lib/agent/skills/engine-stream';
 import type { ChatMessage } from '@/lib/agent/types';
 
 export const runtime = 'nodejs';
+
+const STREAM_HEADERS = {
+  'Content-Type': 'text/event-stream',
+  'Cache-Control': 'no-cache',
+  Connection: 'keep-alive',
+} as const;
 
 export async function POST(request: NextRequest) {
   let body: { message?: string; conversationId?: string; context?: Record<string, unknown>; bootstrapPrompt?: string };
@@ -47,7 +57,7 @@ export async function POST(request: NextRequest) {
 
   const { context, bootstrapPrompt } = body;
 
-  // Bootstrap mode: use the bootstrap system prompt instead of normal context
+  // Bootstrap mode: use the bootstrap system prompt directly, skip skill engine
   if (bootstrapPrompt) {
     const messages: ChatMessage[] = [
       { role: 'system', content: bootstrapPrompt },
@@ -55,85 +65,10 @@ export async function POST(request: NextRequest) {
     ];
 
     const stream = sendMessageStream(messages);
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      },
-    });
+    return new Response(stream, { headers: STREAM_HEADERS });
   }
 
-  // Build system prompt with context from OfflineKit (sent by client)
-  let systemPrompt =
-    'You are a helpful scheduling assistant for a mobile service professional. Help them manage their appointments, clients, and schedule efficiently.';
-
-  if (context) {
-    const parts: string[] = [];
-
-    if (context.profile && Array.isArray((context.profile as { sections?: unknown[] }).sections)) {
-      const sections = (context.profile as { sections: Array<{ section_id: string; content: unknown }> }).sections;
-      if (sections.length > 0) {
-        parts.push('Business profile:');
-        for (const s of sections) {
-          parts.push(`  [${s.section_id}]: ${JSON.stringify(s.content)}`);
-        }
-      }
-    }
-
-    if (context.schedule) {
-      const sched = context.schedule as { appointments?: Array<{ start_time: string; clientName: string; serviceName: string; address?: string | null }> };
-      if (sched.appointments?.length) {
-        parts.push('\nUpcoming appointments:');
-        for (const a of sched.appointments) {
-          const addr = a.address ? ` @ ${a.address}` : '';
-          parts.push(`  - ${a.start_time}: ${a.clientName} — ${a.serviceName}${addr}`);
-        }
-      }
-    }
-
-    if (context.clients) {
-      const cl = context.clients as { clients?: Array<{ first_name: string; last_name: string; address?: string | null; scheduling_flexibility?: string; pets?: Array<{ name: string; species: string; breed?: string | null }> }> };
-      if (cl.clients?.length) {
-        parts.push('\nClients:');
-        for (const c of cl.clients) {
-          const addr = c.address ? ` (${c.address})` : '';
-          const flex = c.scheduling_flexibility ? ` [${c.scheduling_flexibility}]` : '';
-          const petNames = c.pets?.map((p) => `${p.name} the ${p.breed ?? p.species}`).join(', ');
-          const petStr = petNames ? ` — Pets: ${petNames}` : '';
-          parts.push(`  - ${c.first_name} ${c.last_name}${addr}${flex}${petStr}`);
-        }
-      }
-    }
-
-    if (context.notes) {
-      const n = context.notes as { notes?: Array<{ summary: string; date_ref?: string | null }> };
-      if (n.notes?.length) {
-        parts.push('\nNotes/memories:');
-        for (const note of n.notes) {
-          const date = note.date_ref ? ` (${note.date_ref})` : '';
-          parts.push(`  - ${note.summary}${date}`);
-        }
-      }
-    }
-
-    if (parts.length > 0) {
-      systemPrompt += '\n\n--- Current context ---\n' + parts.join('\n');
-    }
-  }
-
-  const messages: ChatMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: message },
-  ];
-
-  const stream = sendMessageStream(messages);
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-    },
-  });
+  // Normal mode: route through the skill engine (skill detection, budget, logging)
+  const stream = processMessageStream(message, context);
+  return new Response(stream, { headers: STREAM_HEADERS });
 }

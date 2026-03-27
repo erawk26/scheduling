@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -64,6 +65,25 @@ async function saveSection(
   }
 }
 
+async function clearSection(
+  _sectionId: SectionId,
+  existing: AgentProfileDoc | undefined
+) {
+  if (!existing) return
+  // Delete the section data from OfflineKit
+  await app.agentProfile.delete(existing._id)
+  // Also clear bootstrap completion so the agent will re-ask this section
+  const allProfiles = await app.agentProfile.findMany() as AgentProfileDoc[]
+  const bootstrapDoc = allProfiles.find(
+    (p) => !p._deleted && p.section_id === 'bootstrap'
+  )
+  if (bootstrapDoc) {
+    await app.agentProfile.update(bootstrapDoc._id, {
+      content: { ...bootstrapDoc.content, completed: false },
+    })
+  }
+}
+
 // ── Collapsible section wrapper ───────────────────────────────────────────────
 
 interface SectionWrapperProps {
@@ -107,9 +127,24 @@ interface SectionActionsProps {
   saving: boolean
   onClear: () => void
   message: string
+  sectionId?: SectionId
+  existing?: AgentProfileDoc
 }
 
-function SectionActions({ saving, onClear, message }: SectionActionsProps) {
+function SectionActions({ saving, onClear, message, sectionId, existing }: SectionActionsProps) {
+  const router = useRouter()
+  const [clearing, setClearing] = useState(false)
+
+  async function handleClearAndReask() {
+    onClear()
+    if (sectionId && existing) {
+      setClearing(true)
+      await clearSection(sectionId, existing)
+      setClearing(false)
+      router.push('/dashboard/chat')
+    }
+  }
+
   return (
     <div className="pt-4 space-y-2">
       <Separator />
@@ -117,8 +152,8 @@ function SectionActions({ saving, onClear, message }: SectionActionsProps) {
         <Button type="submit" size="sm" disabled={saving} className="min-h-[44px]">
           {saving ? 'Saving…' : 'Save Section'}
         </Button>
-        <Button type="button" variant="outline" size="sm" onClick={onClear} className="min-h-[44px]">
-          Clear Section
+        <Button type="button" variant="outline" size="sm" onClick={handleClearAndReask} disabled={clearing} className="min-h-[44px]">
+          {clearing ? 'Clearing…' : 'Clear & Re-ask in Chat'}
         </Button>
         <SaveMessage message={message} />
       </div>
@@ -322,7 +357,7 @@ function WorkScheduleSection({ existing }: { existing: AgentProfileDoc | undefin
           </div>
         </div>
 
-        <SectionActions saving={saving} onClear={handleClear} message={message} />
+        <SectionActions saving={saving} onClear={handleClear} message={message} sectionId="work-schedule" existing={existing} />
       </form>
     </SectionWrapper>
   )
@@ -389,7 +424,7 @@ function ServiceAreaSection({ existing }: { existing: AgentProfileDoc | undefine
           />
           <p className="text-xs text-gray-500">Which areas you prefer to work in on which days</p>
         </div>
-        <SectionActions saving={saving} onClear={() => form.reset({ towns: '', day_area_notes: '' })} message={message} />
+        <SectionActions saving={saving} onClear={() => form.reset({ towns: '', day_area_notes: '' })} message={message} sectionId="service-area" existing={existing} />
       </form>
     </SectionWrapper>
   )
@@ -459,7 +494,7 @@ function TravelRulesSection({ existing }: { existing: AgentProfileDoc | undefine
           <Label htmlFor="equip_notes">Equipment Constraints (optional)</Label>
           <Textarea id="equip_notes" {...form.register('equipment_notes')} placeholder="e.g. Large van — avoid narrow streets, need parking" rows={3} className="resize-none" />
         </div>
-        <SectionActions saving={saving} onClear={handleClear} message={message} />
+        <SectionActions saving={saving} onClear={handleClear} message={message} sectionId="travel-rules" existing={existing} />
       </form>
     </SectionWrapper>
   )
@@ -509,7 +544,7 @@ function ClientRulesSection({ existing }: { existing: AgentProfileDoc | undefine
           />
           <p className="text-xs text-gray-500">Freeform notes the agent will use when scheduling specific clients</p>
         </div>
-        <SectionActions saving={saving} onClear={() => form.reset({ notes: '' })} message={message} />
+        <SectionActions saving={saving} onClear={() => form.reset({ notes: '' })} message={message} sectionId="client-rules" existing={existing} />
       </form>
     </SectionWrapper>
   )
@@ -559,7 +594,7 @@ function PersonalCommitmentsSection({ existing }: { existing: AgentProfileDoc | 
           />
           <p className="text-xs text-gray-500">Format: Day Start – End: Label</p>
         </div>
-        <SectionActions saving={saving} onClear={() => form.reset({ commitments: '' })} message={message} />
+        <SectionActions saving={saving} onClear={() => form.reset({ commitments: '' })} message={message} sectionId="personal-commitments" existing={existing} />
       </form>
     </SectionWrapper>
   )
@@ -627,7 +662,7 @@ function BusinessRulesSection({ existing }: { existing: AgentProfileDoc | undefi
           <Input id="changeover" type="number" min={0} max={120} {...form.register('equipment_changeover_minutes')} className="min-h-[44px]" />
           <p className="text-xs text-gray-500">Time needed between appointments requiring different equipment</p>
         </div>
-        <SectionActions saving={saving} onClear={handleClear} message={message} />
+        <SectionActions saving={saving} onClear={handleClear} message={message} sectionId="business-rules" existing={existing} />
       </form>
     </SectionWrapper>
   )
@@ -708,7 +743,7 @@ function PrioritiesSection({ existing }: { existing: AgentProfileDoc | undefined
           ))}
         </div>
         <p className="text-xs text-gray-500">Tip: each priority should have a unique rank.</p>
-        <SectionActions saving={saving} onClear={handleClear} message={message} />
+        <SectionActions saving={saving} onClear={handleClear} message={message} sectionId="priorities" existing={existing} />
       </form>
     </SectionWrapper>
   )

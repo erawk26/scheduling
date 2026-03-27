@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils';
 import { useChat } from '@/hooks/use-chat';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { format } from 'date-fns';
+import { app } from '@/lib/offlinekit';
+import { getMonthlyUsage } from '@/lib/agent/token-budget';
+import { FREE_TIER } from '@/lib/agent/tier';
 
 export default function ChatPage() {
   const { messages, sendMessage, isProcessing, streamingContent } = useChat();
@@ -88,6 +91,9 @@ export default function ChatPage() {
           <h1 className="text-base font-semibold text-gray-900">AI Scheduler</h1>
           <p className="text-xs text-gray-500">Your scheduling assistant</p>
         </div>
+        <div className="ml-auto">
+          <TokenUsageWidget />
+        </div>
       </div>
 
       {/* Message list */}
@@ -148,6 +154,47 @@ export default function ChatPage() {
         <p className="text-center text-xs text-gray-400 mt-2">
           Press Enter to send · Shift+Enter for new line
         </p>
+      </div>
+    </div>
+  );
+}
+
+function TokenUsageWidget() {
+  const [tokensUsed, setTokensUsed] = useState<number | null>(null);
+  const limit = FREE_TIER.maxTokensPerMonth;
+
+  useEffect(() => {
+    getMonthlyUsage(app).then(setTokensUsed).catch(() => setTokensUsed(null));
+  }, []);
+
+  if (tokensUsed === null) return null;
+
+  const ratio = tokensUsed / limit;
+  const isRed = ratio >= 0.95;
+  const isAmber = ratio >= 0.8;
+
+  function formatTokens(n: number): string {
+    return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1 min-w-[120px]">
+      <span
+        className={cn(
+          'text-xs font-medium tabular-nums',
+          isRed ? 'text-red-600' : isAmber ? 'text-amber-600' : 'text-gray-400'
+        )}
+      >
+        {formatTokens(tokensUsed)} / {formatTokens(limit)} tokens
+      </span>
+      <div className="w-full h-1 rounded-full bg-gray-100 overflow-hidden">
+        <div
+          className={cn(
+            'h-full rounded-full transition-all',
+            isRed ? 'bg-red-500' : isAmber ? 'bg-amber-400' : 'bg-primary/40'
+          )}
+          style={{ width: `${Math.min(ratio * 100, 100)}%` }}
+        />
       </div>
     </div>
   );
