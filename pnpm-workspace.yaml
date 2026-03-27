@@ -1,0 +1,4 @@
+ignoredBuiltDependencies: []
+
+patchedDependencies:
+  mpb-localkit: patches/mpb-localkit.patch

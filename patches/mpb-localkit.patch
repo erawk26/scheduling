@@ -1,0 +1,16 @@
+diff --git a/dist/core/index.js b/dist/core/index.js
+index 4625b7de6945174e862096534b3b0d2ccfac94c8..d1ca80d7660cfe635cb14bca5cb487a0f905fe5d 100644
+--- a/dist/core/index.js
++++ b/dist/core/index.js
+@@ -23,10 +23,7 @@ var IndexedDBAdapter = class {
+   }
+   async getDb() {
+     if (this.db) return this.db;
+-    this.db = await openDB(this.dbName, 1, {
+-      upgrade(_db) {
+-      }
+-    });
++    this.db = await openDB(this.dbName);
+     return this.db;
+   }
+   async ensureStore(collection2) {

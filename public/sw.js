@@ -45,6 +45,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Never cache Turbopack / webpack dev chunks — they change every HMR cycle
+  if (
+    url.pathname.includes('__turbopack__') ||
+    url.pathname.includes('__webpack') ||
+    url.pathname.includes('/_next/static/chunks/') ||
+    url.pathname.includes('/_next/static/development/')
+  ) {
+    return;
+  }
+
   // Static assets: cache-first
   if (STATIC_EXTENSIONS.test(url.pathname)) {
     event.respondWith(

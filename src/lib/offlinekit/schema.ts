@@ -83,7 +83,7 @@ export const AgentNoteSchema = BaseDoc.extend({
 });
 
 export const AgentProfileSectionId = z.enum([
-  'work-schedule', 'service-area', 'travel-rules', 'client-rules',
+  'bootstrap', 'work-schedule', 'service-area', 'travel-rules', 'client-rules',
   'personal-commitments', 'business-rules', 'priorities'
 ]);
 

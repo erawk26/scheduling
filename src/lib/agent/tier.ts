@@ -14,7 +14,7 @@ export type TierConfig = {
 
 export const FREE_TIER: TierConfig = {
   name: 'free',
-  model: 'google/gemma-2-9b-it:free',
+  model: 'openrouter/auto:floor',
   maxTokensPerMonth: 50000,
   maxEmailsPerWeek: 10,
 };

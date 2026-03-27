@@ -25,6 +25,7 @@ type WithMeta<T> = T & { _id: string; _deleted: boolean }
 type AgentProfileDoc = WithMeta<AgentProfile>
 
 type SectionId =
+  | 'bootstrap'
   | 'work-schedule'
   | 'service-area'
   | 'travel-rules'
@@ -144,6 +145,65 @@ const workScheduleSchema = z.object({
   build_day: z.string(),
 })
 type WorkScheduleValues = z.infer<typeof workScheduleSchema>
+
+function IdentitySection({ existing }: { existing: AgentProfileDoc | undefined }) {
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [open, setOpen] = useState(true)
+  const [preferredName, setPreferredName] = useState((existing?.content?.preferredName as string) ?? '')
+  const [businessType, setBusinessType] = useState((existing?.content?.businessType as string) ?? '')
+
+  async function handleSave() {
+    setSaving(true)
+    setMessage('')
+    try {
+      await saveSection('bootstrap' as SectionId, {
+        ...existing?.content,
+        preferredName,
+        businessType,
+        completed: existing?.content?.completed ?? true,
+      }, existing)
+      setMessage('Saved!')
+    } catch {
+      setMessage('Failed to save.')
+    } finally {
+      setSaving(false)
+      setTimeout(() => setMessage(''), 2000)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="cursor-pointer" onClick={() => setOpen(!open)}>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">About You</CardTitle>
+            <CardDescription>Your name and business type</CardDescription>
+          </div>
+          {open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </div>
+      </CardHeader>
+      {open && (
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="preferredName">What should we call you?</Label>
+            <Input id="preferredName" value={preferredName} onChange={(e) => setPreferredName(e.target.value)} placeholder="Erik" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="businessType">Business type</Label>
+            <Input id="businessType" value={businessType} onChange={(e) => setBusinessType(e.target.value)} placeholder="Dog grooming, music lessons, etc." />
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSave} disabled={saving} size="sm">
+              {saving ? 'Saving…' : 'Save Section'}
+            </Button>
+            {message && <span className="text-sm text-green-600">{message}</span>}
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  )
+}
 
 function WorkScheduleSection({ existing }: { existing: AgentProfileDoc | undefined }) {
   const [saving, setSaving] = useState(false)
@@ -691,6 +751,7 @@ export default function AgentProfilePage() {
         <div className="text-center py-12 text-gray-500">Loading profile…</div>
       ) : (
         <div className="space-y-4">
+          <IdentitySection existing={sections['bootstrap']} />
           <WorkScheduleSection existing={sections['work-schedule']} />
           <ServiceAreaSection existing={sections['service-area']} />
           <TravelRulesSection existing={sections['travel-rules']} />

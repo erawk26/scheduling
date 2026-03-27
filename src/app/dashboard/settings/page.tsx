@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { User, Building, Shield, LogOut, MapPin } from 'lucide-react'
+import { authClient } from '@/lib/auth-client'
 
 const US_TIMEZONES = [
   { value: 'America/New_York', label: 'Eastern Time (ET)' },
@@ -38,6 +39,9 @@ export default function SettingsPage() {
   const syncStatus: string = 'idle'
   const lastSyncAt: Date | null = null
 
+  const [profileName, setProfileName] = useState(session?.user?.name || '')
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [profileMessage, setProfileMessage] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [phone, setPhone] = useState('')
   const [timezone, setTimezone] = useState('America/New_York')
@@ -48,6 +52,28 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+
+  // Keep profileName in sync when session loads
+  useEffect(() => {
+    if (session?.user?.name && !profileName) {
+      setProfileName(session.user.name)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.name])
+
+  const handleSaveProfile = async () => {
+    setIsSavingProfile(true)
+    setProfileMessage('')
+    try {
+      await authClient.updateUser({ name: profileName })
+      setProfileMessage('Profile saved successfully!')
+      setTimeout(() => setProfileMessage(''), 3000)
+    } catch {
+      setProfileMessage('Failed to save profile. Please try again.')
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
 
   useEffect(() => {
     async function loadProfile() {
@@ -179,8 +205,13 @@ export default function SettingsPage() {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Name</Label>
-                  <Input value={session?.user?.name || 'Not set'} readOnly disabled className="bg-gray-50" />
+                  <Label htmlFor="profileName">Name</Label>
+                  <Input
+                    id="profileName"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    placeholder="Enter your name"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Email</Label>
@@ -199,6 +230,19 @@ export default function SettingsPage() {
                     className="bg-gray-50"
                   />
                 </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Button onClick={handleSaveProfile} disabled={isSavingProfile} className="w-full">
+                  {isSavingProfile ? 'Saving...' : 'Save Profile'}
+                </Button>
+                {profileMessage && (
+                  <p className={`text-sm text-center ${profileMessage.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                    {profileMessage}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
