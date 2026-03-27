@@ -21,8 +21,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { User, Building, Shield, LogOut, MapPin } from 'lucide-react'
+import { User, Building, Shield, LogOut, MapPin, Database } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
+import { seedDemoData, clearDemoData } from '@/lib/seed-data'
 
 const US_TIMEZONES = [
   { value: 'America/New_York', label: 'Eastern Time (ET)' },
@@ -178,6 +179,10 @@ export default function SettingsPage() {
           <TabsTrigger value="account">
             <Shield className="w-4 h-4 mr-2" />
             Account
+          </TabsTrigger>
+          <TabsTrigger value="developer">
+            <Database className="w-4 h-4 mr-2" />
+            Developer
           </TabsTrigger>
         </TabsList>
 
@@ -472,7 +477,81 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Developer Tab */}
+        <TabsContent value="developer" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Demo Data</CardTitle>
+              <CardDescription>
+                Seed the app with sample clients, pets, services, and appointments for testing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SeedDataButton />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+function SeedDataButton() {
+  const [seeding, setSeeding] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+
+  async function handleSeed() {
+    setSeeding(true)
+    setResult(null)
+    try {
+      const { counts } = await seedDemoData()
+      const summary = Object.entries(counts)
+        .map(([k, v]) => `${v} ${k}`)
+        .join(', ')
+      setResult(`Seeded: ${summary}. Reloading...`)
+      setTimeout(() => window.location.reload(), 500)
+    } catch (err) {
+      setResult(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  async function handleClear() {
+    setSeeding(true)
+    setResult(null)
+    try {
+      const removed = await clearDemoData()
+      setResult(`Cleared ${removed} demo records. Reloading...`)
+      setTimeout(() => window.location.reload(), 500)
+    } catch (err) {
+      setResult(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <Button onClick={handleSeed} disabled={seeding} variant="outline">
+          <Database className="w-4 h-4 mr-2" />
+          {seeding ? 'Working...' : 'Seed Demo Data'}
+        </Button>
+        <Button onClick={handleClear} disabled={seeding} variant="outline">
+          {seeding ? 'Working...' : 'Clear Demo Data'}
+        </Button>
+      </div>
+      {result && (
+        <p className={`text-sm ${result.startsWith('Failed') ? 'text-red-600' : 'text-green-600'}`}>
+          {result}
+        </p>
+      )}
+      <p className="text-xs text-gray-500">
+        Seed creates 5 clients, 8 pets, 4 services, and 13 appointments in the Portland area.
+        Clear removes only seeded records (identified by UUID prefix) — your real data is safe.
+      </p>
     </div>
   )
 }
