@@ -1,74 +1,48 @@
 /**
  * POST /api/agent/chat
  *
- * Receives a user message and streams the agent response.
- * Body: { message: string, conversationId?: string, context?: Record<string, unknown>, bootstrapPrompt?: string }
- *
- * Normal messages are routed through the skill engine (router + budget + logging).
- * Bootstrap messages bypass the engine and stream directly.
+ * AI SDK v6-compatible streaming chat endpoint for assistant-ui.
+ * Uses convertToModelMessages + streamText + toUIMessageStreamResponse.
  */
 
-import { NextRequest } from 'next/server';
-import { sendMessageStream } from '@/lib/agent/openrouter-client';
-import { processMessageStream } from '@/lib/agent/skills/engine-stream';
-import type { ChatMessage } from '@/lib/agent/types';
+import { createOpenAI } from '@ai-sdk/openai';
+import { streamText, convertToModelMessages } from 'ai';
+import type { UIMessage } from 'ai';
+import { FREE_TIER } from '@/lib/agent/tier';
 
 export const runtime = 'nodejs';
+export const maxDuration = 30;
 
-const STREAM_HEADERS = {
-  'Content-Type': 'text/event-stream',
-  'Cache-Control': 'no-cache',
-  Connection: 'keep-alive',
-} as const;
+const openrouter = createOpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY ?? '',
+  baseURL: 'https://openrouter.ai/api/v1',
+});
 
-export async function POST(request: NextRequest) {
-  let body: { message?: string; conversationId?: string; context?: Record<string, unknown>; bootstrapPrompt?: string };
+const BASE_SYSTEM_PROMPT =
+  'You are a helpful scheduling assistant for a mobile service professional. Help them manage their appointments, clients, and schedule efficiently. Be concise and friendly.';
 
-  try {
-    body = await request.json();
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const { message } = body;
-
-  if (!message?.trim()) {
-    return new Response(JSON.stringify({ error: 'message is required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Guard: return a graceful plain-text response when the API key is missing
+export async function POST(req: Request) {
   if (!process.env.OPENROUTER_API_KEY) {
     return new Response(
-      'AI is not configured yet. Set the OPENROUTER_API_KEY environment variable to enable the AI scheduler.',
-      {
-        headers: {
-          'Content-Type': 'text/plain',
-          'Cache-Control': 'no-cache',
-        },
-      }
+      JSON.stringify({ error: 'AI is not configured. Set OPENROUTER_API_KEY.' }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  const { context, bootstrapPrompt } = body;
+  const body = await req.json();
+  const { messages, system } = body as {
+    messages: UIMessage[];
+    system?: string;
+  };
 
-  // Bootstrap mode: use the bootstrap system prompt directly, skip skill engine
-  if (bootstrapPrompt) {
-    const messages: ChatMessage[] = [
-      { role: 'system', content: bootstrapPrompt },
-      { role: 'user', content: message },
-    ];
+  // Use provided system prompt (from bootstrap or context injection), fall back to base
+  const systemPrompt = system || BASE_SYSTEM_PROMPT;
 
-    const stream = sendMessageStream(messages);
-    return new Response(stream, { headers: STREAM_HEADERS });
-  }
+  const result = streamText({
+    model: openrouter(FREE_TIER.model),
+    system: systemPrompt,
+    messages: await convertToModelMessages(messages),
+  });
 
-  // Normal mode: route through the skill engine (skill detection, budget, logging)
-  const stream = processMessageStream(message, context);
-  return new Response(stream, { headers: STREAM_HEADERS });
+  return result.toUIMessageStreamResponse();
 }
