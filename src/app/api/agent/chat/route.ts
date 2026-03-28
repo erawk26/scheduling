@@ -1,13 +1,12 @@
 /**
  * POST /api/agent/chat
  *
- * AI SDK v6-compatible streaming chat endpoint for assistant-ui.
- * Uses convertToModelMessages + streamText + toUIMessageStreamResponse.
+ * Streaming chat endpoint. Receives plain messages from the ChatModelAdapter,
+ * streams via AI SDK streamText + SSE.
  */
 
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, convertToModelMessages } from 'ai';
-import type { UIMessage } from 'ai';
+import { streamText } from 'ai';
 import { FREE_TIER } from '@/lib/agent/tier';
 
 export const runtime = 'nodejs';
@@ -31,18 +30,28 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { messages, system } = body as {
-    messages: UIMessage[];
+    messages: Array<{ id?: string; role: string; content: string }>;
     system?: string;
   };
 
-  // Use provided system prompt (from bootstrap or context injection), fall back to base
+  const message = messages?.[messages.length - 1]?.content;
+  if (!message) {
+    return new Response(JSON.stringify({ error: 'No message provided' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const systemPrompt = system || BASE_SYSTEM_PROMPT;
 
   const result = streamText({
     model: openrouter(FREE_TIER.model),
     system: systemPrompt,
-    messages: await convertToModelMessages(messages),
+    messages: messages.map((m) => ({
+      role: m.role as 'user' | 'assistant' | 'system',
+      content: m.content,
+    })),
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toTextStreamResponse();
 }
