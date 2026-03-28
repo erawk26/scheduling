@@ -29,6 +29,17 @@ type StoredMessage = {
   timestamp: string;
 };
 
+// --- Clear all conversation history from OfflineKit ---
+async function clearConversationHistory(): Promise<void> {
+  type ConvDoc = { _id: string; _deleted?: boolean; channel: string };
+  const allDocs = (await app.agentConversations.findMany()) as ConvDoc[];
+  for (const doc of allDocs) {
+    if (!doc._deleted && doc.channel === CHANNEL) {
+      await app.agentConversations.delete(doc._id);
+    }
+  }
+}
+
 // --- Chat Model Adapter: streams from our API ---
 const chatModelAdapter: ChatModelAdapter = {
   async *run({ messages, abortSignal }) {
@@ -37,6 +48,15 @@ const chatModelAdapter: ChatModelAdapter = {
       ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
       .map((p) => p.text)
       .join(' ') ?? '';
+
+    // Handle /new and /clear commands
+    if (userText.trim() === '/new' || userText.trim() === '/clear') {
+      await clearConversationHistory();
+      yield { content: [{ type: 'text' as const, text: 'Conversation cleared. Reloading...' }] };
+      // Give the UI a moment to show the message, then reload
+      setTimeout(() => window.location.reload(), 500);
+      return;
+    }
 
     // Build system prompt with context
     let system = 'You are a helpful scheduling assistant for a mobile service professional. Help them manage their appointments, clients, and schedule efficiently. Be concise and friendly.';
