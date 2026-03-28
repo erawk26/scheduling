@@ -6,7 +6,7 @@
 import { app } from '@/lib/offlinekit';
 import { sendMessage } from '@/lib/agent/openrouter-client';
 import { fetchWeatherForecast } from '@/lib/weather/service';
-import type { WithMeta } from 'mpb-localkit';
+import type { WithMeta } from '@erawk26/localkit';
 import type { Service } from '@/lib/offlinekit/schema';
 import type {
   ContextProvider,

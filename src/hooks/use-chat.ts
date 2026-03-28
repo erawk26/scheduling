@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { useCollection } from 'mpb-localkit/react';
+import { useCollection } from '@erawk26/localkit/react';
 import { app } from '@/lib/offlinekit';
 import { extractNote } from '@/lib/agent/skills/note-extractor';
 import { StructuredContextProvider } from '@/lib/agent/context';

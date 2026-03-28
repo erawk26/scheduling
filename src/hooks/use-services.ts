@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useCollection } from 'mpb-localkit/react';
+import { useCollection } from '@erawk26/localkit/react';
 import { app } from '@/lib/offlinekit';
 import type { Service } from '@/lib/offlinekit/schema';
 import type { ServiceFormData } from '@/lib/validations';

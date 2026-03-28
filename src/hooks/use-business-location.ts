@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useCollection } from 'mpb-localkit/react';
+import { useCollection } from '@erawk26/localkit/react';
 import { app } from '@/lib/offlinekit';
 
 export function useBusinessLocation() {

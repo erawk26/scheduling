@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/auth-provider'
 // TODO: re-enable useSync when sync worker is deployed
-// import { useSync } from 'mpb-localkit/react'
+// import { useSync } from '@erawk26/localkit/react'
 import { app } from '@/lib/offlinekit'
 import type { BusinessProfile } from '@/lib/offlinekit/schema'
 

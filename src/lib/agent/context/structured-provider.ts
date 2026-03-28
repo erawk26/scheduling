@@ -1,5 +1,5 @@
 import { app } from '@/lib/offlinekit';
-import type { WithMeta } from 'mpb-localkit';
+import type { WithMeta } from '@erawk26/localkit';
 import type {
   ContextProvider,
   DateRange,
