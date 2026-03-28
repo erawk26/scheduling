@@ -1,8 +1,10 @@
 # AI Scheduling Agent - Design Document
 
 > **Date:** 2026-03-21
-> **Status:** Approved
+> **Status:** PARTIALLY SUPERSEDED (see below)
 > **Fork of:** KE Agenda V3
+>
+> **2026-03-28 UPDATE:** The OpenViking context layer (Section 2, "Three Pillars") has been replaced. Research proved OpenViking cannot run on the target platform (mobile PWA on tablets/phones — Python process incompatible, server-side breaks OfflineKit encryption-at-rest, embedding API calls break offline). The replacement architecture is **Tiered L0/L1/L2 with MiniSearch BM25** — see `.omc/plans/phase-2-chat-tdd.md` for the full approved plan. Everything else in this document (product vision, onboarding, weekly workflow, client communication, PII model) remains valid.
 
 ---
 

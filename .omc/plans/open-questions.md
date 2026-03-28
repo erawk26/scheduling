@@ -62,3 +62,24 @@
 - [ ] mpb-localkit .default() behavior verification -- Must confirm whether mpb-localkit applies Zod `.default()` on document read before Phase 7A implementation begins. Blocks migration strategy decision.
 - [ ] Twilio A2P 10DLC registration -- US SMS requires A2P 10DLC campaign registration for business messaging. Timeline: 2-4 weeks for approval. Must start registration during Phase 7B to be ready for Phase 7C.
 - [ ] OpenRouter key pool sizing -- How many pre-provisioned keys to maintain? What's the provisioning latency for new keys? Blocks Task 7A-1a implementation details.
+
+## Phase 2 Chat TDD - 2026-03-28
+
+### Stage 0 (OpenViking) — Open
+
+- [ ] OpenViking exact API surface — The design doc describes conceptual endpoints (index, query, health, iterate). Need to verify the actual HTTP API from OpenViking docs/source before implementing the client. Blocks Step 2.
+- [ ] OpenViking Python version and install requirements — Does `pip install openviking` require Python 3.10+? venv? Any native dependencies? Need to document the developer setup for running OpenViking locally. Blocks Step 2 (developer experience).
+- [ ] OpenViking self-iteration output format — The `iterate()` endpoint extracts long-term memories from conversations. What is the exact response shape? Array of memory objects? What fields? Need this to write the persistence layer in Step 6. Blocks Step 6.
+- [ ] Hydration batch size and performance — For a user with 200+ appointments and 500+ conversation messages, how long does full hydration take? Should we chunk/batch index calls or does OpenViking support bulk indexing? Affects Step 3 performance.
+- [ ] OpenViking query response format — What does a query result look like? `{ results: [{ path, content, score }] }`? Need exact types for the client. Blocks Step 2 types.
+- [ ] Token budget estimation from content length — Step 4 proposes estimating tokens from content length for tiered loading. What's the conversion factor? ~4 chars per token is a rough heuristic. Should we use a proper tokenizer? Affects Step 4 accuracy.
+- [ ] StructuredContextProvider keyword list as resolved question — Previous open question "StructuredContextProvider keyword matching implementation" is now partially resolved: OpenViking replaces keyword matching for semantic queries. Keyword matching remains as fallback only.
+
+### Phases 1-5 — Open
+
+- [ ] @assistant-ui/react custom message part support — Can we render schedule cards and option chips inside `MessagePrimitive.Parts`, or do we need a wrapper outside the primitive? Blocks Phase 3 card design.
+- [ ] LLM structured marker reliability — Will the free-tier model (openrouter/auto:floor) reliably produce `[CHIPS: ...]` and `[HEARD: ...]` markers? May need few-shot examples or a more capable model. Affects Phases 2-3.
+- [ ] Web Speech API on iOS Safari PWA — SpeechRecognition may not be available in standalone PWA mode on iOS. Need to test on real device before committing to AC 11. Affects Phase 5 scope.
+- [ ] Offline response source — AC 7 says "agent responds using cached data and local model." There is no local model today. Options: (a) canned responses from cached context, (b) queue message and wait, (c) integrate a tiny on-device model (heavy). Recommend (b) for v1. Blocks Phase 4 design.
+- [ ] Proactive message delivery mechanism — AC 9 requires agent-initiated messages without user prompt. Options: (a) polling interval checking conditions, (b) OfflineKit reactive subscription on data changes, (c) service worker push. Recommend (b) for local-first. Blocks Phase 3 task 3.2.
+- [ ] Conflict resolution UX for sync (AC 8) — "Resolution prompt in-chat" is specified but not detailed. What does the resolution UI look like? Side-by-side diff? Pick-one? Needs design decision before Phase 4 task 4.2.

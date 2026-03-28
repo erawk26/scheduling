@@ -6,7 +6,9 @@
 > **Type:** Fork of KE Agenda V3 (agent-first rebuild, not a bolt-on)
 > **Branch:** `feature/agent-rebuild` (long-lived feature branch off `main`)
 > **Data Strategy:** Greenfield. No migration from existing SQLite data. New OfflineKit collections start empty. Existing KE Agenda V3 users are not expected to carry data forward -- this is a new product fork.
-> **Status:** Draft v2 - Post Architect/Critic Review
+> **Status:** PARTIALLY SUPERSEDED
+>
+> **2026-03-28 UPDATE:** All OpenViking-related tasks (Task 2.1 OpenVikingContextProvider, hydration pipeline, HTTP client, etc.) are replaced by the Tiered L0/L1/L2 MiniSearch BM25 architecture. See `.omc/plans/phase-2-chat-tdd.md` for the approved replacement plan. Reason: OpenViking (Python) cannot run on mobile PWA target devices; server-side deployment breaks OfflineKit's encryption-at-rest privacy model. Non-OpenViking tasks in this plan (chat UI, bootstrap, skills, OfflineKit collections) remain valid.
 
 ---
 
