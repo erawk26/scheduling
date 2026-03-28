@@ -1,0 +1,3 @@
+KE Agenda is the first scheduling app where an AI agent builds your schedule for you. Just message it like a coworker throughout the week ("taking Monday off", "Mrs. Johnson wants biweekly"), and it assembles an optimized route-efficient schedule using weather, client flexibility, and your preferences.
+It works offline for 72+ hours with local-first storage that syncs across devices, so mobile service professionals never lose access to their schedule in the field.
+No more manual drag-and-drop scheduling. The agent contacts your clients with booking links, handles confirmations, and learns your patterns over time so each week gets smarter.
