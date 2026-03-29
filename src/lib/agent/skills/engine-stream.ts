@@ -111,33 +111,7 @@ async function buildSkillMessages(
   const skillDef: AgentSkillDef = { name: skillName, systemPrompt, piiLevel };
 
   // Gather full context from the provider
-  const fullContext = await contextProvider.getFullContext(userMessage);
-
-  // Convert to the AgentContext shape expected by buildPrompt
-  const agentContext: import('@/lib/agent/types').AgentContext = {
-    upcomingAppointments: fullContext.schedule?.appointments.map((apt) => ({
-      id: apt.id,
-      clientName: apt.clientName,
-      serviceName: apt.serviceName,
-      startTime: apt.start_time,
-      address: apt.address ?? undefined,
-    })),
-    clients: fullContext.clients?.clients.map((c) => ({
-      id: c.id,
-      name: `${c.first_name} ${c.last_name}`,
-      address: c.address ?? undefined,
-      flexibility: c.scheduling_flexibility,
-    })),
-    businessProfile: fullContext.profile?.sections.length
-      ? {
-          businessName: fullContext.profile.sections.find((s) => s.section_id === 'business_info')?.content?.businessName as string | undefined,
-          timezone: fullContext.profile.sections.find((s) => s.section_id === 'business_info')?.content?.timezone as string | undefined,
-        }
-      : undefined,
-    rawText: fullContext.notes?.notes
-      .map((n) => `[${n.date_ref ?? 'no date'}] ${n.summary}`)
-      .join('\n') || undefined,
-  };
+  const agentContext = await contextProvider.getFullContext(userMessage);
 
   return buildPrompt(skillDef, agentContext, userMessage);
 }

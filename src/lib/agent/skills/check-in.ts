@@ -5,8 +5,8 @@
 
 import { sendMessage } from '@/lib/agent/openrouter-client';
 import { buildPrompt } from '@/lib/agent/prompt-builder';
-import type { AgentContext } from '@/lib/agent/types';
-import type { ContextProvider, ScheduleContext, NotesContext } from '@/lib/agent/context';
+import type { AgentContext } from '@/lib/agent/context/types';
+import type { ContextProvider } from '@/lib/agent/context';
 import type { Skill, SkillResult, SkillExecuteOptions } from './types';
 
 function getWeekRange(): { from: string; to: string } {
@@ -18,23 +18,6 @@ function getWeekRange(): { from: string; to: string } {
   sun.setDate(mon.getDate() + 6);
   sun.setHours(23, 59, 59, 999);
   return { from: mon.toISOString(), to: sun.toISOString() };
-}
-
-function toAgentContext(schedule: ScheduleContext, notes: NotesContext): AgentContext {
-  const rawNotes = notes.notes
-    .map((n) => `[${n.date_ref ?? 'no date'}] ${n.summary}`)
-    .join('\n');
-
-  return {
-    upcomingAppointments: schedule.appointments.map((apt) => ({
-      id: apt.id,
-      clientName: apt.clientName,
-      serviceName: apt.serviceName,
-      startTime: apt.start_time,
-      address: apt.address ?? undefined,
-    })),
-    rawText: rawNotes || undefined,
-  };
 }
 
 export const checkInSkill: Skill = {
@@ -56,7 +39,7 @@ export const checkInSkill: Skill = {
       contextProvider.getNotesContext(range),
     ]);
 
-    const agentContext = toAgentContext(schedule, notes);
+    const agentContext: AgentContext = { query: userMessage, schedule, notes };
     const messages = buildPrompt(
       {
         name: 'check-in',

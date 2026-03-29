@@ -6,7 +6,7 @@
 import { format } from 'date-fns';
 import { sendMessage } from '@/lib/agent/openrouter-client';
 import { buildPrompt } from '@/lib/agent/prompt-builder';
-import type { AgentContext } from '@/lib/agent/types';
+import type { AgentContext } from '@/lib/agent/context/types';
 import type { ContextProvider, ScheduleContext } from '@/lib/agent/context';
 import { analyzeWeekEfficiency } from '@/lib/schedule-intelligence/analyzer';
 import type { AnalysisAppointment } from '@/lib/schedule-intelligence/types';
@@ -54,19 +54,6 @@ function toAnalysisAppointments(schedule: ScheduleContext): Map<string, Analysis
   return byDate;
 }
 
-function toAgentContext(schedule: ScheduleContext, efficiencyText: string): AgentContext {
-  return {
-    upcomingAppointments: schedule.appointments.map((apt) => ({
-      id: apt.id,
-      clientName: apt.clientName,
-      serviceName: apt.serviceName,
-      startTime: apt.start_time,
-      address: apt.address ?? undefined,
-    })),
-    rawText: efficiencyText,
-  };
-}
-
 export const reportSkill: Skill = {
   name: 'report',
   description: 'Generates a weekly summary with appointment stats and route efficiency',
@@ -93,7 +80,20 @@ export const reportSkill: Skill = {
       `Estimated wasted travel: ${efficiency.totalWastedMinutes.toFixed(0)} minutes`,
     ].join('\n');
 
-    const agentContext = toAgentContext(schedule, efficiencyText);
+    const agentContext: AgentContext = {
+      query: userMessage,
+      schedule,
+      notes: {
+        notes: [{
+          id: 'efficiency',
+          summary: efficiencyText,
+          content: null,
+          tags: ['route-efficiency'],
+          date_ref: weekStart,
+          client_id: null,
+        }],
+      },
+    };
     const systemPrompt = `You are a scheduling assistant. Produce a concise weekly summary covering: appointments completed, any no-shows or cancellations, route efficiency highlights, and any patterns worth noting. Keep it under 200 words.`;
 
     const messages = buildPrompt(

@@ -4,37 +4,48 @@
  */
 
 import { minimizePII } from './pii-minimizer';
-import type { ChatMessage, AgentContext, AgentSkillDef } from './types';
+import type { ChatMessage, AgentSkillDef } from './types';
+import type { AgentContext } from './context/types';
 
 function serializeContext(context: AgentContext): string {
   const parts: string[] = [];
 
-  if (context.businessProfile) {
-    const bp = context.businessProfile;
-    parts.push(
-      `Business: ${bp.businessName ?? 'Unknown'} | Timezone: ${bp.timezone ?? 'UTC'} | Service area: ${bp.serviceAreaMiles ?? 0} miles`
-    );
+  if (context.profile?.sections.length) {
+    parts.push('Business profile:');
+    for (const section of context.profile.sections) {
+      const content = section.content;
+      const entries = Object.entries(content)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(' | ');
+      parts.push(`  [${section.section_id}] ${entries}`);
+    }
   }
 
-  if (context.upcomingAppointments?.length) {
+  if (context.schedule?.appointments.length) {
     parts.push('\nUpcoming appointments:');
-    for (const appt of context.upcomingAppointments) {
+    for (const appt of context.schedule.appointments) {
       const addr = appt.address ? ` @ ${appt.address}` : '';
-      parts.push(`  - ${appt.startTime}: ${appt.clientName} — ${appt.serviceName}${addr}`);
+      parts.push(`  - ${appt.start_time}: ${appt.clientName} — ${appt.serviceName}${addr}`);
     }
   }
 
-  if (context.clients?.length) {
+  if (context.clients?.clients.length) {
     parts.push('\nClients:');
-    for (const c of context.clients) {
+    for (const c of context.clients.clients) {
       const addr = c.address ? ` (${c.address})` : '';
-      const flex = c.flexibility ? ` [${c.flexibility}]` : '';
-      parts.push(`  - ${c.name}${addr}${flex}`);
+      const flex = c.scheduling_flexibility ? ` [${c.scheduling_flexibility}]` : '';
+      const petNames = c.pets.map((p) => `${p.name} the ${p.breed ?? p.species}`).join(', ');
+      const petStr = petNames ? ` — Pets: ${petNames}` : '';
+      parts.push(`  - ${c.first_name} ${c.last_name}${addr}${flex}${petStr}`);
     }
   }
 
-  if (context.rawText) {
-    parts.push(`\nAdditional context:\n${context.rawText}`);
+  if (context.notes?.notes.length) {
+    parts.push('\nNotes/memories:');
+    for (const note of context.notes.notes) {
+      const date = note.date_ref ? ` (${note.date_ref})` : '';
+      parts.push(`  - ${note.summary}${date}`);
+    }
   }
 
   return parts.join('\n');
@@ -44,7 +55,7 @@ function serializeContext(context: AgentContext): string {
  * Build the ChatMessage array for an OpenRouter request.
  *
  * @param skill - Skill definition with system prompt and PII level
- * @param context - Agent context from the ContextProvider
+ * @param context - Agent context from the ContextProvider (canonical rich type)
  * @param userMessage - The user's latest message
  * @returns Array of ChatMessage objects ready for sendMessage / sendMessageStream
  */
@@ -55,10 +66,10 @@ export function buildPrompt(
 ): ChatMessage[] {
   let contextText = serializeContext(context);
 
-  if (skill.piiLevel === 'anonymized' && context.clients?.length) {
-    const clientList = context.clients.map((c) => ({
-      name: c.name,
-      address: c.address,
+  if (skill.piiLevel === 'anonymized' && context.clients?.clients.length) {
+    const clientList = context.clients.clients.map((c) => ({
+      name: `${c.first_name} ${c.last_name}`,
+      address: c.address ?? undefined,
     }));
     const { text } = minimizePII(contextText, clientList);
     contextText = text;

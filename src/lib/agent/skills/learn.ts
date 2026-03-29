@@ -6,8 +6,8 @@
 import { app } from '@/lib/offlinekit';
 import { sendMessage } from '@/lib/agent/openrouter-client';
 import { buildPrompt } from '@/lib/agent/prompt-builder';
-import type { AgentContext } from '@/lib/agent/types';
-import type { ContextProvider, NotesContext, ProfileContext } from '@/lib/agent/context';
+import type { AgentContext } from '@/lib/agent/context/types';
+import type { ContextProvider } from '@/lib/agent/context';
 import type { Appointment, Client } from '@/lib/offlinekit/schema';
 import { detectPatterns } from '@/lib/agent/pattern-detector';
 import type { DetectedPattern } from '@/lib/agent/pattern-detector';
@@ -20,35 +20,6 @@ function getFourWeekRange(): { from: string; to: string } {
   return { from: start.toISOString(), to: now.toISOString() };
 }
 
-function toAgentContext(
-  notes: NotesContext,
-  profile: ProfileContext,
-  patterns: DetectedPattern[]
-): AgentContext {
-  const notesText = notes.notes
-    .map((n) => `[${n.date_ref ?? 'no date'}] ${n.summary}${n.content ? `: ${n.content}` : ''}`)
-    .join('\n');
-
-  const profileText = profile.sections
-    .map((s) => `[${s.section_id}] ${JSON.stringify(s.content)}`)
-    .join('\n');
-
-  const patternText = patterns.length > 0
-    ? patterns
-        .map((p) => `[${p.type}] ${p.description} (confidence: ${(p.confidence * 100).toFixed(0)}%) → ${p.suggestion}`)
-        .join('\n')
-    : '';
-
-  return {
-    rawText: [
-      notesText ? `Recent notes:\n${notesText}` : '',
-      profileText ? `Current profile:\n${profileText}` : '',
-      patternText ? `Detected patterns:\n${patternText}` : '',
-    ]
-      .filter(Boolean)
-      .join('\n\n'),
-  };
-}
 
 type ProfileUpdate = {
   section_id: string;
@@ -168,7 +139,19 @@ export const learnSkill: Skill = {
     );
     const patterns = detectPatterns(rawApts, 4, clientNames);
 
-    const agentContext = toAgentContext(notes, profile, patterns);
+    const patternNotes = patterns.map((p, i) => ({
+      id: `pattern-${i}`,
+      summary: `[${p.type}] ${p.description} (confidence: ${(p.confidence * 100).toFixed(0)}%) → ${p.suggestion}`,
+      content: null,
+      tags: ['detected-pattern'],
+      date_ref: null,
+      client_id: null,
+    }));
+    const agentContext: AgentContext = {
+      query: userMessage,
+      notes: { notes: [...notes.notes, ...patternNotes] },
+      profile,
+    };
     const systemPrompt = `You are a scheduling assistant that learns from patterns. Analyze the notes, current profile, and any detected patterns, then suggest profile updates.
 If you identify clear updates, return a JSON array of profile updates in a code block, then explain your reasoning.
 JSON format: [{"section_id":"<id>","content":{<key-value pairs>}}]

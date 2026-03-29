@@ -26,9 +26,8 @@ export type OpenRouterOptions = {
   maxTokensPerMonth?: number;
 };
 
-// Context provided by the ContextProvider (built by worker-1)
-// This is the minimal shape; ContextProvider implementations may extend it
-export type AgentContext = {
+// Internal flat context shape used only by buildPrompt serialization
+export type PromptContext = {
   upcomingAppointments?: Array<{
     id: string;
     clientName: string;

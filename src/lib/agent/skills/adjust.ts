@@ -6,8 +6,8 @@
 import { app } from '@/lib/offlinekit';
 import { sendMessage } from '@/lib/agent/openrouter-client';
 import { buildPrompt } from '@/lib/agent/prompt-builder';
-import type { AgentContext } from '@/lib/agent/types';
-import type { ContextProvider, ScheduleContext, ClientContext } from '@/lib/agent/context';
+import type { AgentContext } from '@/lib/agent/context/types';
+import type { ContextProvider } from '@/lib/agent/context';
 import type { WithMeta } from '@erawk26/localkit';
 import type { Appointment } from '@/lib/offlinekit/schema';
 import type { Skill, SkillResult, SkillExecuteOptions } from './types';
@@ -17,24 +17,6 @@ function getTwoWeekRange(): { from: string; to: string } {
   const end = new Date(now);
   end.setDate(now.getDate() + 14);
   return { from: now.toISOString(), to: end.toISOString() };
-}
-
-function toAgentContext(schedule: ScheduleContext, clients: ClientContext): AgentContext {
-  return {
-    upcomingAppointments: schedule.appointments.map((apt) => ({
-      id: apt.id,
-      clientName: apt.clientName,
-      serviceName: apt.serviceName,
-      startTime: apt.start_time,
-      address: apt.address ?? undefined,
-    })),
-    clients: clients.clients.map((c) => ({
-      id: c.id,
-      name: `${c.first_name} ${c.last_name}`,
-      address: c.address ?? undefined,
-      flexibility: c.scheduling_flexibility,
-    })),
-  };
 }
 
 type AdjustAction =
@@ -100,7 +82,7 @@ export const adjustSkill: Skill = {
       contextProvider.getClientContext(),
     ]);
 
-    const agentContext = toAgentContext(schedule, clients);
+    const agentContext: AgentContext = { query: userMessage, schedule, clients };
     const systemPrompt = `You are a scheduling assistant. The user wants to modify an appointment.
 Identify the target appointment and action from the context. Respond with a JSON block followed by a friendly confirmation message.
 JSON format:
