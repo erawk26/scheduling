@@ -13,6 +13,17 @@ import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAgentChatRouteImport } from './routes/api/agent/chat'
+import { Route as ApiWeatherForecastRouteImport } from './routes/api/weather/forecast'
+import { Route as ApiGeocodeRouteImport } from './routes/api/geocode'
+import { Route as ApiCreditsRouteImport } from './routes/api/credits'
+import { Route as ApiRoutesOptimizeRouteImport } from './routes/api/routes/optimize'
+import { Route as ApiScheduleSuggestRouteImport } from './routes/api/schedule/suggest'
+import { Route as ApiEmailSendRouteImport } from './routes/api/email/send'
+import { Route as ApiBookConfirmRouteImport } from './routes/api/book/confirm'
+import { Route as ApiMessagingTelegramSetupRouteImport } from './routes/api/messaging/telegram/setup'
+import { Route as ApiMessagingWebhookRouteImport } from './routes/api/messaging/webhook'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardWeatherRouteImport } from './routes/dashboard/weather'
 import { Route as DashboardServicesRouteImport } from './routes/dashboard/services'
@@ -139,6 +150,62 @@ const BookTokenConfirmedRoute = BookTokenConfirmedRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentChatRoute = ApiAgentChatRouteImport.update({
+  id: '/api/agent/chat',
+  path: '/api/agent/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWeatherForecastRoute = ApiWeatherForecastRouteImport.update({
+  id: '/api/weather/forecast',
+  path: '/api/weather/forecast',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeocodeRoute = ApiGeocodeRouteImport.update({
+  id: '/api/geocode',
+  path: '/api/geocode',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCreditsRoute = ApiCreditsRouteImport.update({
+  id: '/api/credits',
+  path: '/api/credits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRoutesOptimizeRoute = ApiRoutesOptimizeRouteImport.update({
+  id: '/api/routes/optimize',
+  path: '/api/routes/optimize',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiScheduleSuggestRoute = ApiScheduleSuggestRouteImport.update({
+  id: '/api/schedule/suggest',
+  path: '/api/schedule/suggest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailSendRoute = ApiEmailSendRouteImport.update({
+  id: '/api/email/send',
+  path: '/api/email/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookConfirmRoute = ApiBookConfirmRouteImport.update({
+  id: '/api/book/confirm',
+  path: '/api/book/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMessagingTelegramSetupRoute = ApiMessagingTelegramSetupRouteImport.update({
+  id: '/api/messaging/telegram/setup',
+  path: '/api/messaging/telegram/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMessagingWebhookRoute = ApiMessagingWebhookRouteImport.update({
+  id: '/api/messaging/webhook',
+  path: '/api/messaging/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -160,6 +227,17 @@ export interface FileRoutesByFullPath {
   '/book/$token/': typeof BookTokenIndexRoute
   '/dashboard/clients/': typeof DashboardClientsIndexRoute
   '/dashboard/settings/': typeof DashboardSettingsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/agent/chat': typeof ApiAgentChatRoute
+  '/api/weather/forecast': typeof ApiWeatherForecastRoute
+  '/api/geocode': typeof ApiGeocodeRoute
+  '/api/credits': typeof ApiCreditsRoute
+  '/api/routes/optimize': typeof ApiRoutesOptimizeRoute
+  '/api/schedule/suggest': typeof ApiScheduleSuggestRoute
+  '/api/email/send': typeof ApiEmailSendRoute
+  '/api/book/confirm': typeof ApiBookConfirmRoute
+  '/api/messaging/telegram/setup': typeof ApiMessagingTelegramSetupRoute
+  '/api/messaging/webhook': typeof ApiMessagingWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -181,6 +259,17 @@ export interface FileRoutesByTo {
   '/book/$token': typeof BookTokenIndexRoute
   '/dashboard/clients': typeof DashboardClientsIndexRoute
   '/dashboard/settings': typeof DashboardSettingsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/agent/chat': typeof ApiAgentChatRoute
+  '/api/weather/forecast': typeof ApiWeatherForecastRoute
+  '/api/geocode': typeof ApiGeocodeRoute
+  '/api/credits': typeof ApiCreditsRoute
+  '/api/routes/optimize': typeof ApiRoutesOptimizeRoute
+  '/api/schedule/suggest': typeof ApiScheduleSuggestRoute
+  '/api/email/send': typeof ApiEmailSendRoute
+  '/api/book/confirm': typeof ApiBookConfirmRoute
+  '/api/messaging/telegram/setup': typeof ApiMessagingTelegramSetupRoute
+  '/api/messaging/webhook': typeof ApiMessagingWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -205,6 +294,17 @@ export interface FileRoutesById {
   '/book/$token/': typeof BookTokenIndexRoute
   '/dashboard/clients/': typeof DashboardClientsIndexRoute
   '/dashboard/settings/': typeof DashboardSettingsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/agent/chat': typeof ApiAgentChatRoute
+  '/api/weather/forecast': typeof ApiWeatherForecastRoute
+  '/api/geocode': typeof ApiGeocodeRoute
+  '/api/credits': typeof ApiCreditsRoute
+  '/api/routes/optimize': typeof ApiRoutesOptimizeRoute
+  '/api/schedule/suggest': typeof ApiScheduleSuggestRoute
+  '/api/email/send': typeof ApiEmailSendRoute
+  '/api/book/confirm': typeof ApiBookConfirmRoute
+  '/api/messaging/telegram/setup': typeof ApiMessagingTelegramSetupRoute
+  '/api/messaging/webhook': typeof ApiMessagingWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -229,6 +329,17 @@ export interface FileRouteTypes {
     | '/book/$token/'
     | '/dashboard/clients/'
     | '/dashboard/settings/'
+    | '/api/auth/$'
+    | '/api/agent/chat'
+    | '/api/weather/forecast'
+    | '/api/geocode'
+    | '/api/credits'
+    | '/api/routes/optimize'
+    | '/api/schedule/suggest'
+    | '/api/email/send'
+    | '/api/book/confirm'
+    | '/api/messaging/telegram/setup'
+    | '/api/messaging/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -250,6 +361,17 @@ export interface FileRouteTypes {
     | '/book/$token'
     | '/dashboard/clients'
     | '/dashboard/settings'
+    | '/api/auth/$'
+    | '/api/agent/chat'
+    | '/api/weather/forecast'
+    | '/api/geocode'
+    | '/api/credits'
+    | '/api/routes/optimize'
+    | '/api/schedule/suggest'
+    | '/api/email/send'
+    | '/api/book/confirm'
+    | '/api/messaging/telegram/setup'
+    | '/api/messaging/webhook'
   id:
     | '__root__'
     | '/'
@@ -273,6 +395,17 @@ export interface FileRouteTypes {
     | '/book/$token/'
     | '/dashboard/clients/'
     | '/dashboard/settings/'
+    | '/api/auth/$'
+    | '/api/agent/chat'
+    | '/api/weather/forecast'
+    | '/api/geocode'
+    | '/api/credits'
+    | '/api/routes/optimize'
+    | '/api/schedule/suggest'
+    | '/api/email/send'
+    | '/api/book/confirm'
+    | '/api/messaging/telegram/setup'
+    | '/api/messaging/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -282,6 +415,17 @@ export interface RootRouteChildren {
   OfflineRoute: typeof OfflineRoute
   BookTokenConfirmedRoute: typeof BookTokenConfirmedRoute
   BookTokenIndexRoute: typeof BookTokenIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiAgentChatRoute: typeof ApiAgentChatRoute
+  ApiWeatherForecastRoute: typeof ApiWeatherForecastRoute
+  ApiGeocodeRoute: typeof ApiGeocodeRoute
+  ApiCreditsRoute: typeof ApiCreditsRoute
+  ApiRoutesOptimizeRoute: typeof ApiRoutesOptimizeRoute
+  ApiScheduleSuggestRoute: typeof ApiScheduleSuggestRoute
+  ApiEmailSendRoute: typeof ApiEmailSendRoute
+  ApiBookConfirmRoute: typeof ApiBookConfirmRoute
+  ApiMessagingTelegramSetupRoute: typeof ApiMessagingTelegramSetupRoute
+  ApiMessagingWebhookRoute: typeof ApiMessagingWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -433,6 +577,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookTokenConfirmedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agent/chat': {
+      id: '/api/agent/chat'
+      path: '/api/agent/chat'
+      fullPath: '/api/agent/chat'
+      preLoaderRoute: typeof ApiAgentChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/weather/forecast': {
+      id: '/api/weather/forecast'
+      path: '/api/weather/forecast'
+      fullPath: '/api/weather/forecast'
+      preLoaderRoute: typeof ApiWeatherForecastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/geocode': {
+      id: '/api/geocode'
+      path: '/api/geocode'
+      fullPath: '/api/geocode'
+      preLoaderRoute: typeof ApiGeocodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/credits': {
+      id: '/api/credits'
+      path: '/api/credits'
+      fullPath: '/api/credits'
+      preLoaderRoute: typeof ApiCreditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/routes/optimize': {
+      id: '/api/routes/optimize'
+      path: '/api/routes/optimize'
+      fullPath: '/api/routes/optimize'
+      preLoaderRoute: typeof ApiRoutesOptimizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/schedule/suggest': {
+      id: '/api/schedule/suggest'
+      path: '/api/schedule/suggest'
+      fullPath: '/api/schedule/suggest'
+      preLoaderRoute: typeof ApiScheduleSuggestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/send': {
+      id: '/api/email/send'
+      path: '/api/email/send'
+      fullPath: '/api/email/send'
+      preLoaderRoute: typeof ApiEmailSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/book/confirm': {
+      id: '/api/book/confirm'
+      path: '/api/book/confirm'
+      fullPath: '/api/book/confirm'
+      preLoaderRoute: typeof ApiBookConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/messaging/telegram/setup': {
+      id: '/api/messaging/telegram/setup'
+      path: '/api/messaging/telegram/setup'
+      fullPath: '/api/messaging/telegram/setup'
+      preLoaderRoute: typeof ApiMessagingTelegramSetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/messaging/webhook': {
+      id: '/api/messaging/webhook'
+      path: '/api/messaging/webhook'
+      fullPath: '/api/messaging/webhook'
+      preLoaderRoute: typeof ApiMessagingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -491,6 +712,17 @@ const rootRouteChildren: RootRouteChildren = {
   OfflineRoute: OfflineRoute,
   BookTokenConfirmedRoute: BookTokenConfirmedRoute,
   BookTokenIndexRoute: BookTokenIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiAgentChatRoute: ApiAgentChatRoute,
+  ApiWeatherForecastRoute: ApiWeatherForecastRoute,
+  ApiGeocodeRoute: ApiGeocodeRoute,
+  ApiCreditsRoute: ApiCreditsRoute,
+  ApiRoutesOptimizeRoute: ApiRoutesOptimizeRoute,
+  ApiScheduleSuggestRoute: ApiScheduleSuggestRoute,
+  ApiEmailSendRoute: ApiEmailSendRoute,
+  ApiBookConfirmRoute: ApiBookConfirmRoute,
+  ApiMessagingTelegramSetupRoute: ApiMessagingTelegramSetupRoute,
+  ApiMessagingWebhookRoute: ApiMessagingWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
