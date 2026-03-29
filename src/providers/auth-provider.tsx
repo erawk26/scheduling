@@ -5,10 +5,8 @@
  * Uses Better Auth's typed client for sign-in, sign-up, and sign-out.
  */
 
-"use client"
-
 import React, { createContext, useContext, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useNavigate } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { authClient } from "@/lib/auth-client"
 import type {
@@ -36,7 +34,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, isPending: isLoading, error } = authClient.useSession()
-  const router = useRouter()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const signIn = useCallback(async (credentials: SignInCredentials) => {
@@ -50,8 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     await queryClient.invalidateQueries({ queryKey: ["auth-session"] })
-    router.push("/dashboard")
-  }, [queryClient, router])
+    navigate({ to: "/dashboard" })
+  }, [queryClient, navigate])
 
   const signUp = useCallback(async (credentials: SignUpCredentials) => {
     const { error } = await authClient.signUp.email({
@@ -65,15 +63,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     await queryClient.invalidateQueries({ queryKey: ["auth-session"] })
-    router.push("/dashboard")
-  }, [queryClient, router])
+    navigate({ to: "/dashboard" })
+  }, [queryClient, navigate])
 
   const signOut = useCallback(async () => {
     await authClient.signOut()
 
     queryClient.setQueryData(["auth-session"], null)
-    router.push("/sign-in")
-  }, [queryClient, router])
+    navigate({ to: "/sign-in" })
+  }, [queryClient, navigate])
 
   // If session fetch errored (e.g., 500 from stale cookie), clear the error
   // and treat as unauthenticated rather than showing a broken state

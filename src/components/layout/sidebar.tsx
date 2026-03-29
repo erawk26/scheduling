@@ -1,7 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, useLocation } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { Calendar, Users, Briefcase, CloudSun, Settings, LayoutDashboard, Bot, UserCog, CreditCard } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/use-network-status'
@@ -19,7 +16,7 @@ const navigation = [
 ]
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const { pathname } = useLocation()
   const { isOnline } = useNetworkStatus()
   const statusLabel = isOnline ? 'Online' : 'Offline'
 
@@ -41,7 +38,7 @@ export function Sidebar() {
               return (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className={cn(
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
                     isActive

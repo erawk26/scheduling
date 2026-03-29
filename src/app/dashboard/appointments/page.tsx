@@ -1,7 +1,5 @@
-'use client';
-
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parseISO, addMinutes, startOfDay, endOfDay } from 'date-fns';
@@ -102,7 +100,7 @@ const statusLabels: Record<Appointment['status'], string> = {
 };
 
 export default function AppointmentsPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
@@ -260,7 +258,7 @@ export default function AppointmentsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => router.push('/dashboard/chat')}
+                onClick={() => navigate({ to: '/dashboard/chat' })}
               >
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Ask Agent to Adjust

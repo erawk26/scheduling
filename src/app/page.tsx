@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, Cloud, Route, Wifi } from 'lucide-react'
@@ -17,10 +17,10 @@ export default function Home() {
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg">
-              <Link href="/sign-in">Sign In</Link>
+              <Link to="/sign-in">Sign In</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/sign-up">Get Started</Link>
+              <Link to="/sign-up">Get Started</Link>
             </Button>
           </div>
         </div>

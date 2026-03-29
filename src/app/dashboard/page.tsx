@@ -1,7 +1,5 @@
-'use client';
-
 import { useMemo } from 'react';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { format, parseISO } from 'date-fns';
 import {
   Card,
@@ -178,7 +176,7 @@ export default function DashboardPage() {
                   No appointments scheduled yet.
                 </p>
                 <Button asChild>
-                  <Link href="/dashboard/appointments">
+                  <Link to="/dashboard/appointments">
                     <Plus className="w-4 h-4 mr-2" />
                     Schedule Appointment
                   </Link>
@@ -236,25 +234,25 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/dashboard/appointments">
+                <Link to="/dashboard/appointments">
                   <Calendar className="w-4 h-4 mr-2" />
                   Schedule New Appointment
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/dashboard/clients">
+                <Link to="/dashboard/clients">
                   <Users className="w-4 h-4 mr-2" />
                   Add New Client
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/dashboard/services">
+                <Link to="/dashboard/services">
                   <Briefcase className="w-4 h-4 mr-2" />
                   Manage Services
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/dashboard/settings">
+                <Link to="/dashboard/settings">
                   <SettingsIcon className="w-4 h-4 mr-2" />
                   Settings
                 </Link>

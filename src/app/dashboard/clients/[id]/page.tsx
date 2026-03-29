@@ -1,7 +1,5 @@
-'use client';
-
 import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useClient, useUpdateClient, useDeleteClient } from '@/hooks/use-clients';
 import { usePets, useCreatePet, useUpdatePet, useDeletePet } from '@/hooks/use-pets';
 import { useForm } from 'react-hook-form';
@@ -20,9 +18,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Mail, Phone, MapPin, Pencil, Trash2, Plus, Users } from 'lucide-react';
 
 export default function ClientDetailPage() {
-  const router = useRouter();
-  const params = useParams();
-  const clientId = params.id as string;
+  const navigate = useNavigate();
+  const { id: clientId } = useParams({ from: '/dashboard/clients/$id' });
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddPetDialogOpen, setIsAddPetDialogOpen] = useState(false);
@@ -89,7 +86,7 @@ export default function ClientDetailPage() {
   const handleDeleteClient = async () => {
     try {
       await deleteClient.mutateAsync(clientId);
-      router.push('/dashboard/clients');
+      navigate({ to: '/dashboard/clients' });
     } catch (error) {
       console.error('Failed to delete client:', error);
     }
@@ -160,7 +157,7 @@ export default function ClientDetailPage() {
   if (!client) {
     return (
       <div className="space-y-6">
-        <Button onClick={() => router.push('/dashboard/clients')} variant="outline">
+        <Button onClick={() => navigate({ to: '/dashboard/clients' })} variant="outline">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Clients
         </Button>
@@ -175,7 +172,7 @@ export default function ClientDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Button onClick={() => router.push('/dashboard/clients')} variant="outline">
+      <Button onClick={() => navigate({ to: '/dashboard/clients' })} variant="outline">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Clients
       </Button>

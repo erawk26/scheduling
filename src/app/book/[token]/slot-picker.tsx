@@ -1,7 +1,5 @@
-'use client';
-
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
 interface Slot {
@@ -15,7 +13,7 @@ interface Props {
 }
 
 export default function BookingSlotPicker({ token, slots }: Props) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [showDecline, setShowDecline] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
@@ -39,7 +37,7 @@ export default function BookingSlotPicker({ token, slots }: Props) {
         return;
       }
 
-      router.push(data.redirectTo);
+      navigate({ to: data.redirectTo });
     } catch {
       setError('Network error. Please try again.');
     } finally {

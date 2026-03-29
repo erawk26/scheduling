@@ -1,7 +1,5 @@
-'use client'
-
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -132,7 +130,7 @@ interface SectionActionsProps {
 }
 
 function SectionActions({ saving, onClear, message, sectionId, existing }: SectionActionsProps) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [clearing, setClearing] = useState(false)
 
   async function handleClearAndReask() {
@@ -141,7 +139,7 @@ function SectionActions({ saving, onClear, message, sectionId, existing }: Secti
       setClearing(true)
       await clearSection(sectionId, existing)
       setClearing(false)
-      router.push('/dashboard/chat')
+      navigate({ to: '/dashboard/chat' })
     }
   }
 

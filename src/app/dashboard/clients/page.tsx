@@ -1,7 +1,5 @@
-'use client';
-
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import { useClients, useCreateClient } from '@/hooks/use-clients';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Search, Mail, Phone, MapPin } from 'lucide-react';
 
 export default function ClientsPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -47,7 +45,7 @@ export default function ClientsPage() {
   };
 
   const handleCardClick = (clientId: string) => {
-    router.push(`/dashboard/clients/${clientId}`);
+    navigate({ to: `/dashboard/clients/${clientId}` });
   };
 
   return (

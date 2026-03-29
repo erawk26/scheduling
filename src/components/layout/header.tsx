@@ -1,7 +1,5 @@
-'use client'
-
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -88,7 +86,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" className="flex items-center">
+                <Link to="/dashboard/settings" className="flex items-center">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </Link>

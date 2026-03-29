@@ -1,7 +1,5 @@
-'use client';
+import { useState, useEffect, lazy } from 'react';
 
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { format, parseISO } from 'date-fns';
 import { Navigation, MapPin, Clock, Route, Car, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +11,8 @@ import { Label } from '@/components/ui/label';
 import { useOptimizedRoute } from '@/hooks/use-routes';
 import { fetchCreditUsage } from '@/lib/graphhopper/optimize';
 
-const RouteMap = dynamic(
-  () => import('@/components/routes/route-map').then((m) => ({ default: m.RouteMap })),
-  { ssr: false, loading: () => <Skeleton className="h-[400px] w-full rounded-lg" /> }
+const RouteMap = lazy(
+  () => import('@/components/routes/route-map').then((m) => ({ default: m.RouteMap }))
 );
 
 const KM_TO_MILES = 0.621371;

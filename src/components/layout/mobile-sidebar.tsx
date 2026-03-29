@@ -1,7 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, useLocation } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import {
   Sheet,
@@ -30,7 +27,7 @@ interface MobileSidebarProps {
 }
 
 export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
-  const pathname = usePathname()
+  const { pathname } = useLocation()
   const { isOnline } = useNetworkStatus()
 
   return (
@@ -52,7 +49,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             return (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 onClick={() => onOpenChange(false)}
                 className={cn(
                   'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 
 export default function NotFound() {
   return (
@@ -7,7 +7,7 @@ export default function NotFound() {
         <h1 className="text-4xl font-bold text-gray-900">404</h1>
         <p className="mt-2 text-gray-600">Page not found</p>
         <Link
-          href="/"
+          to="/"
           className="mt-4 inline-block text-primary hover:underline"
         >
           Go home

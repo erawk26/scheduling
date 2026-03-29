@@ -39,23 +39,15 @@
         "./src/*"
       ]
     },
-    /* Next.js specific */
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "allowJs": true
   },
   "include": [
-    "src/**/*",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
-    ".next",
     "dist",
-    "build"
+    "build",
+    ".output"
   ]
 }

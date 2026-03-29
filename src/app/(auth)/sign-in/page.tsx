@@ -1,7 +1,5 @@
-'use client'
-
 import { useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -99,7 +97,7 @@ export default function SignInPage() {
       <CardFooter>
         <p className="text-sm text-center w-full text-gray-600">
           Don&apos;t have an account?{' '}
-          <Link href="/sign-up" className="text-primary hover:underline font-medium">
+          <Link to="/sign-up" className="text-primary hover:underline font-medium">
             Sign up
           </Link>
         </p>

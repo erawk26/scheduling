@@ -1,6 +1,4 @@
-'use client'
-
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Mail } from 'lucide-react'
@@ -23,7 +21,7 @@ export default function VerifyEmailPage() {
       </CardContent>
       <CardFooter className="flex justify-center">
         <Button variant="outline" asChild>
-          <Link href="/sign-in">Back to Sign In</Link>
+          <Link to="/sign-in">Back to Sign In</Link>
         </Button>
       </CardFooter>
     </Card>
