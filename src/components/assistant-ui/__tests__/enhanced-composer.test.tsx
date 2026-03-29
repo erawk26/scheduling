@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { EnhancedComposer } from '../enhanced-composer'
 
 // Mock @assistant-ui/react so tests run without a runtime context.
@@ -47,9 +46,6 @@ vi.mock('@assistant-ui/react', () => ({
 
 // Minimal React import for the mock JSX above
 import React from 'react'
-
-const CHAR_LIMIT = 1000
-const CHAR_WARNING = 900
 
 function typeIntoInput(input: HTMLTextAreaElement, value: string) {
   fireEvent.change(input, { target: { value } })

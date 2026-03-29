@@ -4,44 +4,93 @@ import {
   MessagePrimitive,
 } from '@assistant-ui/react';
 import { Bot, User } from 'lucide-react';
+import { useRef, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { TypingIndicator } from './typing-indicator';
 import { EnhancedComposer } from './enhanced-composer';
+import { MessageTimestamp } from './message-timestamp';
+import { NewMessageBadge } from './new-message-badge';
 
 export function Thread() {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
+  const [newMessageCount, setNewMessageCount] = useState(0);
+  const prevMessageCountRef = useRef(0);
+
+  const handleScroll = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+    if (atBottom) {
+      setIsScrolledUp(false);
+      setNewMessageCount(0);
+    } else {
+      setIsScrolledUp(true);
+    }
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    setIsScrolledUp(false);
+    setNewMessageCount(0);
+  }, []);
+
   return (
     <ThreadPrimitive.Root className="flex h-full flex-col">
-      <ThreadPrimitive.Viewport className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
-        <AuiIf condition={(s) => s.thread.isEmpty}>
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
-              <Bot className="w-7 h-7 text-primary" />
+      <div className="relative flex flex-1 flex-col overflow-hidden">
+        <ThreadPrimitive.Viewport
+          ref={viewportRef}
+          onScroll={handleScroll}
+          className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4"
+        >
+          <AuiIf condition={(s) => s.thread.isEmpty}>
+            <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
+                <Bot className="w-7 h-7 text-primary" />
+              </div>
+              <p className="text-sm font-medium text-gray-700">How can I help with your schedule?</p>
+              <p className="text-xs text-gray-500 max-w-xs">
+                Try: &ldquo;What appointments do I have this week?&rdquo; or &ldquo;Move Sarah to Tuesday&rdquo;
+              </p>
             </div>
-            <p className="text-sm font-medium text-gray-700">How can I help with your schedule?</p>
-            <p className="text-xs text-gray-500 max-w-xs">
-              Try: &ldquo;What appointments do I have this week?&rdquo; or &ldquo;Move Sarah to Tuesday&rdquo;
+          </AuiIf>
+
+          <ThreadPrimitive.Messages>
+            {({ message }) => {
+              if (message.role === 'user') return <UserMessage />;
+              return <AssistantMessage />;
+            }}
+          </ThreadPrimitive.Messages>
+
+          <AuiIf condition={(s) => {
+            const count = s.thread.messages.length;
+            if (count > prevMessageCountRef.current) {
+              if (isScrolledUp) {
+                setNewMessageCount((n) => n + (count - prevMessageCountRef.current));
+              }
+              prevMessageCountRef.current = count;
+            }
+            return s.thread.isRunning;
+          }}>
+            <TypingIndicator isTyping={true} />
+          </AuiIf>
+
+          <ThreadPrimitive.ViewportFooter className="sticky bottom-0 pt-2">
+            <EnhancedComposer />
+            <p className="text-center text-xs text-gray-400 mt-2">
+              Press Enter to send · Shift+Enter for new line
             </p>
-          </div>
-        </AuiIf>
+          </ThreadPrimitive.ViewportFooter>
+        </ThreadPrimitive.Viewport>
 
-        <ThreadPrimitive.Messages>
-          {({ message }) => {
-            if (message.role === 'user') return <UserMessage />;
-            return <AssistantMessage />;
-          }}
-        </ThreadPrimitive.Messages>
-
-        <AuiIf condition={(s) => s.thread.isRunning}>
-          <TypingIndicator isTyping={true} />
-        </AuiIf>
-
-        <ThreadPrimitive.ViewportFooter className="sticky bottom-0 pt-2">
-          <EnhancedComposer />
-          <p className="text-center text-xs text-gray-400 mt-2">
-            Press Enter to send · Shift+Enter for new line
-          </p>
-        </ThreadPrimitive.ViewportFooter>
-      </ThreadPrimitive.Viewport>
+        <NewMessageBadge
+          visible={isScrolledUp && newMessageCount > 0}
+          onClick={scrollToBottom}
+          count={newMessageCount}
+        />
+      </div>
     </ThreadPrimitive.Root>
   );
 }
