@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useCollection } from 'mpb-localkit/react';
+import { useCollection } from '@erawk26/localkit/react';
 import { startOfDay, endOfDay } from 'date-fns';
 import { app } from '@/lib/offlinekit';
 import type { Appointment } from '@/lib/offlinekit/schema';

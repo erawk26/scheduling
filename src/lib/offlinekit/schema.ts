@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { collection } from 'mpb-localkit';
+import { collection } from '@erawk26/localkit';
 
 // Base schema for all OfflineKit documents
 const BaseDoc = z.object({

@@ -8,7 +8,7 @@ import { sendMessage } from '@/lib/agent/openrouter-client';
 import { buildPrompt } from '@/lib/agent/prompt-builder';
 import type { AgentContext } from '@/lib/agent/types';
 import type { ContextProvider, ScheduleContext, ClientContext } from '@/lib/agent/context';
-import type { WithMeta } from 'mpb-localkit';
+import type { WithMeta } from '@erawk26/localkit';
 import type { Appointment } from '@/lib/offlinekit/schema';
 import type { Skill, SkillResult, SkillExecuteOptions } from './types';
 

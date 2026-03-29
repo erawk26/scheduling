@@ -71,3 +71,4 @@ page-*.png
 .env.production.local
 # Auth database (better-sqlite3)
 data/
+.npmrc

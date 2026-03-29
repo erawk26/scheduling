@@ -1,4 +1,4 @@
-import { createApp } from 'mpb-localkit';
+import { createApp } from '@erawk26/localkit';
 import { collections, type Collections } from './schema';
 
 const syncEndpoint = process.env.NEXT_PUBLIC_OFFLINEKIT_SYNC_ENDPOINT || 'http://localhost:8787/sync';
