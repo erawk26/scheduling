@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState, useCallback } from 'react';
 import { Bot, WifiOff, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';

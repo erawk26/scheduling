@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { app } from '@/lib/offlinekit'
 import type { BusinessProfile } from '@/lib/offlinekit/schema'

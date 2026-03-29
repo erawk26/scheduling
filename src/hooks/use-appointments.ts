@@ -1,5 +1,3 @@
-'use client';
-
 import { useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useCollection } from '@erawk26/localkit/react';

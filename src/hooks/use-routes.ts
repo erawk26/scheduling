@@ -1,5 +1,3 @@
-'use client';
-
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { app } from '@/lib/offlinekit';

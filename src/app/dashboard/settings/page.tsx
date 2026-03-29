@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/auth-provider'
 // TODO: re-enable useSync when sync worker is deployed

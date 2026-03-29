@@ -5,8 +5,6 @@
  * Auto-detects on first load, caches in localStorage.
  */
 
-'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 
 const LOCATION_CACHE_KEY = 'ke-agenda-weather-location';

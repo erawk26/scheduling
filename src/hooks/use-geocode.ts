@@ -1,5 +1,3 @@
-'use client';
-
 import { useCallback } from 'react';
 import { app } from '@/lib/offlinekit';
 import { geocodeAddress } from '@/lib/graphhopper/geocode';

@@ -5,8 +5,6 @@
  * Follows existing hook patterns (named exports, error handling).
  */
 
-'use client';
-
 import { useQuery } from '@tanstack/react-query';
 import type { WeatherForecast, WeatherResponse } from '@/lib/weather/types';
 

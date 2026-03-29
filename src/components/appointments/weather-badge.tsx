@@ -6,8 +6,6 @@
  * See: /docs/design/component-library.md:453-463
  */
 
-'use client';
-
 import {
   Cloud,
   CloudRain,
