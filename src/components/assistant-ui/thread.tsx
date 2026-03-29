@@ -96,6 +96,7 @@ export function Thread() {
 }
 
 function UserMessage() {
+  const timestamp = new Date().toISOString();
   return (
     <MessagePrimitive.Root className={cn('flex items-end gap-2 flex-row-reverse')}>
       <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white flex-shrink-0">
@@ -105,12 +106,14 @@ function UserMessage() {
         <div className="px-4 py-2.5 rounded-2xl rounded-br-sm bg-primary text-white text-sm leading-relaxed whitespace-pre-wrap">
           <MessagePrimitive.Parts />
         </div>
+        <MessageTimestamp timestamp={timestamp} />
       </div>
     </MessagePrimitive.Root>
   );
 }
 
 function AssistantMessage() {
+  const timestamp = new Date().toISOString();
   return (
     <MessagePrimitive.Root className={cn('flex items-end gap-2 flex-row')}>
       <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 flex-shrink-0">
@@ -120,6 +123,7 @@ function AssistantMessage() {
         <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-gray-100 text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">
           <MessagePrimitive.Parts />
         </div>
+        <MessageTimestamp timestamp={timestamp} />
       </div>
     </MessagePrimitive.Root>
   );
