@@ -72,3 +72,7 @@ page-*.png
 # Auth database (better-sqlite3)
 data/
 .npmrc
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key

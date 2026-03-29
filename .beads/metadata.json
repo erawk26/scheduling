@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "ke_agenda_v2",
+  "project_id": "95cf3629-b322-4d54-bbae-04e1b0647ef1"
+}
