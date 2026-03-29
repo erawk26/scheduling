@@ -1,10 +1,20 @@
 import { useState } from 'react'
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { MobileSidebar } from '@/components/layout/mobile-sidebar'
 
+const SESSION_COOKIE = 'better-auth.session_token'
+
 export const Route = createFileRoute('/dashboard')({
+  beforeLoad: () => {
+    if (typeof document !== 'undefined') {
+      const hasCookie = document.cookie.includes(SESSION_COOKIE)
+      if (!hasCookie) {
+        throw redirect({ to: '/sign-in' })
+      }
+    }
+  },
   component: DashboardLayout,
 })
 
