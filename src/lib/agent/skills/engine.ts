@@ -5,7 +5,8 @@
  */
 
 import { app } from '@/lib/offlinekit';
-import { StructuredContextProvider } from '@/lib/agent/context';
+import { TieredContextProvider } from '@/lib/agent/context/tiered-provider';
+import { AgentSearchIndex } from '@/lib/search/search-index';
 import { checkBudget, getMonthlyUsage, logUsage } from '@/lib/agent/token-budget';
 import type { AgentResponse } from '@/lib/agent/types';
 import { routeMessage } from './router';
@@ -13,7 +14,8 @@ import { routeMessage } from './router';
 const CHANNEL = 'default';
 const USER_ID = '00000000-0000-0000-0000-000000000000';
 
-const contextProvider = new StructuredContextProvider();
+const searchIndex = new AgentSearchIndex();
+const contextProvider = new TieredContextProvider(searchIndex);
 
 // Simple per-user queue: one message processed at a time
 let messageQueue: Promise<void> = Promise.resolve();

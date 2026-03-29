@@ -6,18 +6,21 @@
  */
 
 import { app } from '@/lib/offlinekit';
-import { StructuredContextProvider } from '@/lib/agent/context';
+import { TieredContextProvider } from '@/lib/agent/context/tiered-provider';
+import { AgentSearchIndex } from '@/lib/search/search-index';
 import { checkBudget, getMonthlyUsage, logUsage } from '@/lib/agent/token-budget';
 import { buildPrompt } from '@/lib/agent/prompt-builder';
 import { sendMessageStream } from '@/lib/agent/openrouter-client';
 import type { ChatMessage, AgentSkillDef } from '@/lib/agent/types';
 import type { ContextProvider } from '@/lib/agent/context';
 import { routeMessage } from './router';
+import { extractNote } from './note-extractor';
 
 const USER_ID = '00000000-0000-0000-0000-000000000000';
 const CHANNEL = 'default';
 
-const serverContextProvider = new StructuredContextProvider();
+const searchIndex = new AgentSearchIndex();
+const serverContextProvider = new TieredContextProvider(searchIndex);
 
 type ConversationEntry = {
   id: string;
@@ -270,6 +273,9 @@ export function processMessageStream(
           storeConversation(messageId, 'agent', fullResponse, skillName),
           logUsage(estimatedTokens, skillName, app),
         ]);
+
+        // Fire-and-forget memory extraction
+        extractNote(userMessage, fullResponse, searchIndex).catch(() => {});
 
         // Append budget warning if approaching limit
         if (budgetCheck.warning) {

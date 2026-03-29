@@ -13,3 +13,4 @@ export type {
   NoteSummary,
 } from './types';
 export { StructuredContextProvider } from './structured-provider';
+export { TieredContextProvider } from './tiered-provider';
