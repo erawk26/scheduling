@@ -12,7 +12,8 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { app } from '@/lib/offlinekit';
 import { getMonthlyUsage, logUsage } from '@/lib/agent/token-budget';
 import { FREE_TIER } from '@/lib/agent/tier';
-import { StructuredContextProvider } from '@/lib/agent/context';
+import { TieredContextProvider } from '@/lib/agent/context/tiered-provider';
+import { AgentSearchIndex } from '@/lib/search/search-index';
 import {
   listThreads,
   createThread,
@@ -26,7 +27,8 @@ import {
 import { Button } from '@/components/ui/button';
 
 const USER_ID = '00000000-0000-0000-0000-000000000000';
-const contextProvider = new StructuredContextProvider();
+const searchIndex = new AgentSearchIndex();
+const contextProvider = new TieredContextProvider(searchIndex);
 
 type StoredMessageLike = { role: 'user' | 'assistant'; content: string };
 
