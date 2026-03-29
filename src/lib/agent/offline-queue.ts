@@ -63,13 +63,13 @@ export class OfflineQueue {
 
     for (let i = 0; i < this.queue.length; i++) {
       const msg = this.queue[i]
-      if (msg.status !== 'pending') continue
+      if (!msg || msg.status !== 'pending') continue
 
       try {
         await this.sendFn(msg)
-        this.queue[i] = { ...msg, status: 'sent', attempts: msg.attempts + 1 }
+        this.queue[i] = { id: msg.id, content: msg.content, timestamp: msg.timestamp, status: 'sent', attempts: msg.attempts + 1 }
       } catch {
-        this.queue[i] = { ...msg, attempts: msg.attempts + 1 }
+        this.queue[i] = { id: msg.id, content: msg.content, timestamp: msg.timestamp, status: msg.status, attempts: msg.attempts + 1 }
       }
     }
   }
