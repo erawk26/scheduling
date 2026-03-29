@@ -113,17 +113,35 @@ export async function deleteThread(threadId: string): Promise<void> {
   }
 }
 
+export type StoredMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+};
+
 export async function loadThreadMessages(
-  threadId: string
-): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
+  threadId: string,
+  options?: { limit?: number; before?: string }
+): Promise<StoredMessage[]> {
   const allDocs = (await app.agentConversations.findMany()) as ConvDoc[];
-  return allDocs
+  let filtered = allDocs
     .filter((d) => !d._deleted && d.channel === threadId)
-    .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
-    .map((m) => ({
-      role: m.role === 'agent' ? ('assistant' as const) : ('user' as const),
-      content: m.content,
-    }));
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+
+  if (options?.before) {
+    filtered = filtered.filter((d) => d.timestamp < options.before!);
+  }
+
+  const limit = options?.limit ?? 50;
+  const sliced = filtered.slice(-limit);
+
+  return sliced.map((m) => ({
+    id: m._id,
+    role: m.role === 'agent' ? ('assistant' as const) : ('user' as const),
+    content: m.content,
+    timestamp: m.timestamp,
+  }));
 }
 
 /**

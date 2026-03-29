@@ -1,11 +1,12 @@
 import {
   AuiIf,
-  ComposerPrimitive,
   ThreadPrimitive,
   MessagePrimitive,
 } from '@assistant-ui/react';
-import { Bot, Send, User } from 'lucide-react';
+import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TypingIndicator } from './typing-indicator';
+import { EnhancedComposer } from './enhanced-composer';
 
 export function Thread() {
   return (
@@ -30,18 +31,12 @@ export function Thread() {
           }}
         </ThreadPrimitive.Messages>
 
+        <AuiIf condition={(s) => s.thread.isRunning}>
+          <TypingIndicator isTyping={true} />
+        </AuiIf>
+
         <ThreadPrimitive.ViewportFooter className="sticky bottom-0 pt-2">
-          <ComposerPrimitive.Root className="flex items-end gap-2 max-w-3xl mx-auto w-full border border-gray-200 bg-white rounded-2xl px-4 py-3">
-            <ComposerPrimitive.Input
-              placeholder="Message your AI scheduler..."
-              className="flex-1 min-h-[44px] max-h-[160px] resize-none bg-transparent text-sm focus:outline-none"
-              rows={1}
-              autoFocus
-            />
-            <ComposerPrimitive.Send className="flex items-center justify-center h-11 w-11 rounded-full bg-primary text-primary-foreground disabled:opacity-30 flex-shrink-0">
-              <Send className="w-4 h-4" />
-            </ComposerPrimitive.Send>
-          </ComposerPrimitive.Root>
+          <EnhancedComposer />
           <p className="text-center text-xs text-gray-400 mt-2">
             Press Enter to send · Shift+Enter for new line
           </p>
