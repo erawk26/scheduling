@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/auth';
+import { test, expect } from '../fixtures/enhanced';
 
 test.describe('Appointments page', () => {
   test('loads at /dashboard/appointments and shows heading', async ({ authPage }) => {
@@ -133,10 +133,11 @@ test.describe('Appointments create dialog', () => {
   test('dialog contains client and service selects', async ({ authPage }) => {
     await authPage.goto('/dashboard/appointments');
     await authPage.getByRole('button', { name: /schedule appointment/i }).click();
-    await expect(authPage.getByRole('dialog')).toBeVisible();
+    const dialog = authPage.getByRole('dialog');
+    await expect(dialog).toBeVisible();
 
-    await expect(authPage.getByText(/client/i).first()).toBeVisible();
-    await expect(authPage.getByText(/service/i).first()).toBeVisible();
+    await expect(dialog.getByText(/client/i).first()).toBeVisible();
+    await expect(dialog.getByText(/service/i).first()).toBeVisible();
   });
 
   test('dialog can be closed with Cancel', async ({ authPage }) => {

@@ -65,6 +65,17 @@ test.describe('Booking Page — valid token', () => {
     });
   });
 
+  /** Navigate and wait for hydration so React click handlers are attached */
+  async function gotoAndHydrate(page: import('@playwright/test').Page) {
+    await page.goto(`/book/${validToken}`);
+    // Wait for React hydration — slot buttons become interactive
+    await page.waitForFunction(() => {
+      const btn = document.querySelector('button');
+      // React attaches __reactFiber or __reactInternalInstance on hydration
+      return btn && Object.keys(btn).some((k) => k.startsWith('__react'));
+    }, { timeout: 10000 });
+  }
+
   test('page loads with valid token', async ({ page }) => {
     await page.goto(`/book/${validToken}`);
     await expect(page).toHaveURL(`/book/${validToken}`);
@@ -112,21 +123,21 @@ test.describe('Booking Page — valid token', () => {
       });
     });
 
-    await page.goto(`/book/${validToken}`);
+    await gotoAndHydrate(page);
     await page.getByRole('button', { name: 'Mon 9am' }).click();
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
     expect(confirmCalled).toBe(true);
   });
 
   test('"None of these work" shows decline textarea', async ({ page }) => {
-    await page.goto(`/book/${validToken}`);
+    await gotoAndHydrate(page);
     await page.getByRole('button', { name: /none of these work/i }).click();
     await expect(page.getByPlaceholder(/i'm free weekday mornings/i)).toBeVisible();
   });
 
   test('decline textarea accepts text input', async ({ page }) => {
-    await page.goto(`/book/${validToken}`);
+    await gotoAndHydrate(page);
     await page.getByRole('button', { name: /none of these work/i }).click();
     const textarea = page.getByPlaceholder(/i'm free weekday mornings/i);
     await textarea.fill('I am free Saturday mornings');
@@ -134,7 +145,7 @@ test.describe('Booking Page — valid token', () => {
   });
 
   test('decline send button is disabled when textarea is empty', async ({ page }) => {
-    await page.goto(`/book/${validToken}`);
+    await gotoAndHydrate(page);
     await page.getByRole('button', { name: /none of these work/i }).click();
     // The Send button inside the decline form should be disabled when empty
     const sendBtn = page.getByRole('button', { name: 'Send' });
@@ -142,7 +153,7 @@ test.describe('Booking Page — valid token', () => {
   });
 
   test('decline form has a Cancel button to hide it', async ({ page }) => {
-    await page.goto(`/book/${validToken}`);
+    await gotoAndHydrate(page);
     await page.getByRole('button', { name: /none of these work/i }).click();
     const cancelBtn = page.getByRole('button', { name: 'Cancel' });
     await expect(cancelBtn).toBeVisible();
