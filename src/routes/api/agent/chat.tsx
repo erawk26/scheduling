@@ -6,14 +6,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { createOpenAI } from '@ai-sdk/openai'
-import { streamText } from 'ai'
 import { FREE_TIER } from '@/lib/agent/tier'
-
-const openrouter = createOpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY ?? '',
-  baseURL: 'https://openrouter.ai/api/v1',
-})
 
 const BASE_SYSTEM_PROMPT =
   'You are a helpful scheduling assistant for a mobile service professional. Help them manage their appointments, clients, and schedule efficiently. Be concise and friendly.'
@@ -81,16 +74,43 @@ export const Route = createFileRoute('/api/agent/chat')({
 
         const systemPrompt = system || BASE_SYSTEM_PROMPT
 
-        const result = streamText({
-          model: openrouter(FREE_TIER.model),
-          system: systemPrompt,
-          messages: messages.map((m) => ({
+        const apiMessages = [
+          { role: 'system' as const, content: systemPrompt },
+          ...messages.map((m) => ({
             role: m.role as 'user' | 'assistant' | 'system',
             content: m.content,
           })),
+        ]
+
+        const orResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: FREE_TIER.model,
+            messages: apiMessages,
+          }),
         })
 
-        return result.toTextStreamResponse()
+        if (!orResponse.ok) {
+          const err = await orResponse.text().catch(() => 'Unknown error')
+          return new Response(JSON.stringify({ error: err }), {
+            status: orResponse.status,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+
+        const data = await orResponse.json() as {
+          choices?: Array<{ message?: { content?: string } }>
+        }
+        const text = data.choices?.[0]?.message?.content ?? ''
+
+        return new Response(text, {
+          status: 200,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        })
       },
     },
   },

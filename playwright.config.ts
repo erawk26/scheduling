@@ -29,6 +29,7 @@ export default defineConfig({
     timeout: 60000,
     env: {
       BOOKING_JWT_SECRET: process.env.BOOKING_JWT_SECRET ?? 'test-booking-jwt-secret',
+      BETTER_AUTH_URL: 'http://localhost:3001',
     },
   },
 });

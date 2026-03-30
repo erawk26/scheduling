@@ -25,30 +25,81 @@ const TEST_SESSION = {
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
+/** Create a real auth session via Better Auth API */
+async function createRealSession(baseURL: string): Promise<string[]> {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Origin': baseURL,
+  };
+
+  // Sign up — returns session cookies on success
+  const signUpRes = await fetch(`${baseURL}/api/auth/sign-up/email`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      email: `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`,
+      password: 'testpassword123',
+      name: TEST_USER.name,
+    }),
+  });
+
+  if (!signUpRes.ok) {
+    const body = await signUpRes.text().catch(() => '');
+    throw new Error(`Auth sign-up failed: ${signUpRes.status} ${body}`);
+  }
+
+  // Extract set-cookie headers from sign-up response
+  const cookies = signUpRes.headers.getSetCookie?.() ?? [];
+  return cookies;
+}
+
 /** Setup auth + mock external APIs */
 async function setupAuth(page: Page) {
-  // Auth cookie
-  await page.context().addCookies([
-    {
-      name: 'better-auth.session_token',
-      value: 'test-session-token',
+  const baseURL = 'http://localhost:3001';
+
+  // Create a real session via the auth API
+  const rawCookies = await createRealSession(baseURL);
+
+  // Parse and set cookies on the browser context
+  for (const raw of rawCookies) {
+    const parts = raw.split(';').map(p => p.trim());
+    const [nameVal, ...attrs] = parts;
+    if (!nameVal) continue;
+    const eqIdx = nameVal.indexOf('=');
+    const name = nameVal.slice(0, eqIdx);
+    const value = decodeURIComponent(nameVal.slice(eqIdx + 1));
+
+    const cookie: {
+      name: string;
+      value: string;
+      domain: string;
+      path: string;
+      httpOnly?: boolean;
+      sameSite?: 'Strict' | 'Lax' | 'None';
+      expires?: number;
+    } = {
+      name,
+      value,
       domain: 'localhost',
       path: '/',
-    },
-  ]);
+    };
 
-  // Mock Better Auth session endpoint
-  await page.route('**/api/auth/**', async (route) => {
-    const url = route.request().url();
-    if (url.includes('get-session') || url.includes('session')) {
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ user: TEST_USER, session: TEST_SESSION }),
-      });
+    for (const attr of attrs) {
+      const lower = attr.toLowerCase();
+      if (lower === 'httponly') cookie.httpOnly = true;
+      if (lower.startsWith('path=')) cookie.path = attr.split('=')[1] || '/';
+      if (lower.startsWith('max-age=')) {
+        const maxAge = parseInt(attr.split('=')[1] || '0', 10);
+        cookie.expires = Math.floor(Date.now() / 1000) + maxAge;
+      }
+      if (lower.startsWith('samesite=')) {
+        const ss = attr.split('=')[1] || 'Lax';
+        cookie.sameSite = ss as 'Strict' | 'Lax' | 'None';
+      }
     }
-    return route.continue();
-  });
+
+    await page.context().addCookies([cookie]);
+  }
 
   // Mock other external APIs
   await page.route('**/api/weather/**', (route) =>

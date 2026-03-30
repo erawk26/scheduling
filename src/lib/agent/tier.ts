@@ -14,7 +14,7 @@ export type TierConfig = {
 
 export const FREE_TIER: TierConfig = {
   name: 'free',
-  model: 'openrouter/auto:floor',
+  model: 'openrouter/auto',
   maxTokensPerMonth: 50000,
   maxEmailsPerWeek: 10,
 };

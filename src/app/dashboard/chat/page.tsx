@@ -88,26 +88,44 @@ export function createChatModelAdapter(threadId: string, onFirstMessage: (text: 
           .join(' ') ?? '',
       }));
 
-      const response = await fetch('/api/agent/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, system }),
-        signal: abortSignal,
-      });
+      let response: Response;
+      try {
+        response = await fetch('/api/agent/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: apiMessages, system }),
+          signal: abortSignal,
+        });
+      } catch (fetchErr) {
+        console.error('[chat-adapter] fetch failed:', fetchErr);
+        yield { content: [{ type: 'text' as const, text: 'Sorry, I could not connect to the AI service.' }] };
+        return;
+      }
 
       if (!response.ok || !response.body) {
-        throw new Error(`API error: ${response.status}`);
+        console.error('[chat-adapter] bad response:', response.status, response.statusText);
+        yield { content: [{ type: 'text' as const, text: `Error: ${response.status} ${response.statusText}` }] };
+        return;
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullText = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        fullText += decoder.decode(value, { stream: true });
-        yield { content: [{ type: 'text' as const, text: fullText }] };
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          fullText += decoder.decode(value, { stream: true });
+          yield { content: [{ type: 'text' as const, text: fullText }] };
+        }
+      } catch (streamErr) {
+        console.error('[chat-adapter] stream error:', streamErr);
+      }
+
+      if (!fullText) {
+        console.error('[chat-adapter] empty response body');
+        yield { content: [{ type: 'text' as const, text: 'No response received. Please try again.' }] };
       }
 
       // Log token usage
