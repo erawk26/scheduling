@@ -7,6 +7,7 @@ export type SkillPIILevel = 'anonymized' | 'full';
 export interface SkillResult {
   response: AgentResponse;
   skillName: string;
+  pendingAction?: unknown;
 }
 
 export interface SkillExecuteOptions {

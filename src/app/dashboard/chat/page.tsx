@@ -54,23 +54,42 @@ export function createChatModelAdapter(threadId: string, onFirstMessage: (text: 
         const ctx = await contextProvider.getFullContext(userText).catch(() => null);
         if (ctx) {
           const parts: string[] = [];
-          if (ctx.schedule?.appointments?.length) {
-            parts.push('Upcoming appointments:');
-            for (const a of ctx.schedule.appointments) {
-              parts.push(`  - ${a.start_time}: ${a.clientName} — ${a.serviceName}`);
-            }
-          }
-          if (ctx.clients?.clients?.length) {
-            parts.push('Clients:');
-            for (const c of ctx.clients.clients) {
-              const addr = c.address ? ` (${c.address})` : '';
-              parts.push(`  - ${c.first_name} ${c.last_name}${addr}`);
-            }
-          }
           if (ctx.profile?.sections?.length) {
             parts.push('Business profile:');
             for (const s of ctx.profile.sections) {
               parts.push(`  [${s.section_id}]: ${JSON.stringify(s.content)}`);
+            }
+          }
+          if (ctx.schedule?.appointments?.length) {
+            parts.push('\nAppointments:');
+            // Group by day so the LLM can see the full week structure
+            const byDay = new Map<string, typeof ctx.schedule.appointments>();
+            for (const a of ctx.schedule.appointments) {
+              const dateKey = a.start_time.slice(0, 10);
+              const list = byDay.get(dateKey) ?? [];
+              list.push(a);
+              byDay.set(dateKey, list);
+            }
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            for (const [dateKey, appts] of byDay) {
+              const date = new Date(dateKey + 'T00:00:00');
+              const dayLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+              const past = date < today ? ' (past)' : '';
+              parts.push(`\n${dayLabel}${past}:`);
+              for (const a of appts) {
+                const time = new Date(a.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const addr = a.address ? ` @ ${a.address}` : '';
+                parts.push(`  ${time} — ${a.clientName} — ${a.serviceName} (id: ${a.id})${addr}`);
+              }
+            }
+          }
+          if (ctx.clients?.clients?.length) {
+            parts.push('\nClients:');
+            for (const c of ctx.clients.clients) {
+              const addr = c.address ? ` (${c.address})` : '';
+              const flex = c.scheduling_flexibility ? ` [${c.scheduling_flexibility}]` : '';
+              parts.push(`  - ${c.first_name} ${c.last_name}${addr}${flex}`);
             }
           }
           if (parts.length > 0) {
@@ -125,20 +144,24 @@ export function createChatModelAdapter(threadId: string, onFirstMessage: (text: 
 
       if (!fullText) {
         console.error('[chat-adapter] empty response body');
-        yield { content: [{ type: 'text' as const, text: 'No response received. Please try again.' }] };
+        fullText = 'No response received. Please try again.';
+        yield { content: [{ type: 'text' as const, text: fullText }] };
       }
 
       // Log token usage
       const estimatedTokens = Math.ceil((userText.length + fullText.length) / 4);
       logUsage(estimatedTokens, 'chat', app).catch(() => {});
 
-      // Persist messages
+      // Persist messages — use fullText which includes the fallback message
+      // IMPORTANT: always use crypto.randomUUID() for id — assistant-ui message IDs
+      // are nanoid format which fails AgentConversationSchema's z.string().uuid() validation
       const now = new Date().toISOString();
+      const userMsgId = crypto.randomUUID();
       app.agentConversations.create({
-        id: lastUserMsg?.id ?? crypto.randomUUID(),
+        id: userMsgId,
         user_id: USER_ID,
         channel: threadId,
-        message_id: lastUserMsg?.id ?? crypto.randomUUID(),
+        message_id: userMsgId,
         role: 'user',
         content: userText,
         timestamp: now,

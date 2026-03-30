@@ -9,9 +9,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     testTimeout: 15000,
+    hookTimeout: 30000,
     exclude: [
       'e2e/**',
       '**/*.spec.{ts,tsx}',
+      'node_modules/**',
     ],
     coverage: {
       provider: 'v8',

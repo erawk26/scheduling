@@ -3,9 +3,22 @@
  * agent context, and user message. Applies PII minimization when required.
  */
 
+import { parseISO, format, isBefore, startOfDay } from 'date-fns';
 import { minimizePII } from './pii-minimizer';
 import type { ChatMessage, AgentSkillDef } from './types';
 import type { AgentContext } from './context/types';
+import type { AppointmentSummary } from './context/types';
+
+function groupByDay(appointments: AppointmentSummary[]): Map<string, AppointmentSummary[]> {
+  const grouped = new Map<string, AppointmentSummary[]>();
+  for (const appt of appointments) {
+    const dateKey = appt.start_time.slice(0, 10);
+    const list = grouped.get(dateKey) ?? [];
+    list.push(appt);
+    grouped.set(dateKey, list);
+  }
+  return grouped;
+}
 
 function serializeContext(context: AgentContext): string {
   const parts: string[] = [];
@@ -22,10 +35,19 @@ function serializeContext(context: AgentContext): string {
   }
 
   if (context.schedule?.appointments.length) {
-    parts.push('\nUpcoming appointments:');
-    for (const appt of context.schedule.appointments) {
-      const addr = appt.address ? ` @ ${appt.address}` : '';
-      parts.push(`  - ${appt.start_time}: ${appt.clientName} — ${appt.serviceName}${addr}`);
+    parts.push('\nAppointments:');
+    const grouped = groupByDay(context.schedule.appointments);
+    const today = startOfDay(new Date());
+    for (const [dateKey, appts] of grouped) {
+      const date = parseISO(dateKey);
+      const past = isBefore(date, today);
+      const dayLabel = format(date, 'EEEE, MMMM d');
+      parts.push(`\n${dayLabel}${past ? ' (past)' : ''}:`);
+      for (const appt of appts) {
+        const time = format(parseISO(appt.start_time), 'h:mm a');
+        const addr = appt.address ? ` @ ${appt.address}` : '';
+        parts.push(`  ${time} — ${appt.clientName} — ${appt.serviceName} (id: ${appt.id})${addr}`);
+      }
     }
   }
 

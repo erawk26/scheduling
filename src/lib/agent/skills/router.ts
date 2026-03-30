@@ -48,6 +48,7 @@ const SKILL_PATTERNS: SkillPattern[] = [
   {
     skill: adjustSkill,
     patterns: [
+      /\bswap\b/i,
       /\b(move|reschedule|shift|change)\b.*(to|from)/i,
       /\b(cancel|remove|delete)\b.*(appointment|session|booking)/i,
       /\bcancel\s+\w+/i,              // "cancel Sarah", "cancel Mrs. Johnson"

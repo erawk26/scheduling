@@ -144,12 +144,29 @@ function buildMessagesFromClientContext(
     }
 
     if (context.schedule) {
-      const sched = context.schedule as { appointments?: Array<{ start_time: string; clientName: string; serviceName: string; address?: string | null }> };
+      const sched = context.schedule as { appointments?: Array<{ id?: string; start_time: string; clientName: string; serviceName: string; address?: string | null }> };
       if (sched.appointments?.length) {
-        parts.push('\nUpcoming appointments:');
-        for (const a of sched.appointments) {
-          const addr = a.address ? ` @ ${a.address}` : '';
-          parts.push(`  - ${a.start_time}: ${a.clientName} — ${a.serviceName}${addr}`);
+        parts.push('\nAppointments:');
+        const byDay = new Map<string, typeof sched.appointments>();
+        for (const a of sched.appointments!) {
+          const dateKey = a.start_time.slice(0, 10);
+          const list = byDay.get(dateKey) ?? [];
+          list.push(a);
+          byDay.set(dateKey, list);
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        for (const [dateKey, appts] of byDay) {
+          const date = new Date(dateKey + 'T00:00:00');
+          const dayLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+          const past = date < today ? ' (past)' : '';
+          parts.push(`\n${dayLabel}${past}:`);
+          for (const a of appts) {
+            const time = new Date(a.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            const addr = a.address ? ` @ ${a.address}` : '';
+            const id = a.id ? ` (id: ${a.id})` : '';
+            parts.push(`  ${time} — ${a.clientName} — ${a.serviceName}${id}${addr}`);
+          }
         }
       }
     }

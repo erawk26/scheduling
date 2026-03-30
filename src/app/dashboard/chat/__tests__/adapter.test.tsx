@@ -288,6 +288,28 @@ describe('createChatModelAdapter', () => {
     expect(agentDoc.channel).toBe('thread-42')
   })
 
+  it('persists user messages with UUID ids, not assistant-ui nanoid ids', async () => {
+    // assistant-ui generates IDs like "msg_abc123" (nanoid), but
+    // AgentConversationSchema requires z.string().uuid() — non-UUID ids
+    // cause silent create failures, losing user messages on thread reload
+    const adapter = createChatModelAdapter('thread-uuid', vi.fn())
+    const gen = adapter.run({
+      messages: [userMessage('nanoid-not-uuid', 'Save me')],
+      abortSignal: new AbortController().signal,
+    })
+    for await (const _ of gen) { /* consume */ }
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    const docs = mockAgentConversations._raw()
+    const userDoc = docs.find((d) => d.role === 'user')!
+    expect(userDoc).toBeDefined()
+    // The persisted id must be a UUID, NOT the assistant-ui message id
+    expect(userDoc.id).not.toBe('nanoid-not-uuid')
+    expect(userDoc.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+    expect(userDoc.message_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+  })
+
   it('logs token usage via logUsage()', async () => {
     const adapter = createChatModelAdapter('thread-1', vi.fn())
     const gen = adapter.run({
@@ -349,9 +371,9 @@ describe('createChatModelAdapter', () => {
     expect(mockUpdateThreadTimestamp).toHaveBeenCalledWith('thread-99')
   })
 
-  it('throws on non-OK API response', async () => {
+  it('yields error message on non-OK API response', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(null, { status: 500 }),
+      new Response(null, { status: 500, statusText: 'Internal Server Error' }),
     )
 
     const adapter = createChatModelAdapter('thread-1', vi.fn())
@@ -360,8 +382,78 @@ describe('createChatModelAdapter', () => {
       abortSignal: new AbortController().signal,
     })
 
-    await expect(async () => {
-      for await (const _ of gen) { /* consume */ }
-    }).rejects.toThrow('API error: 500')
+    const parts: Array<{ content: Array<{ type: string; text: string }> }> = []
+    for await (const part of gen) {
+      parts.push(part as { content: Array<{ type: string; text: string }> })
+    }
+
+    expect(parts.length).toBeGreaterThanOrEqual(1)
+    expect(parts[parts.length - 1]!.content[0]!.text).toContain('Error: 500')
+  })
+
+  it('groups appointments by day in the system prompt with day labels', async () => {
+    mockGetFullContext.mockResolvedValueOnce({
+      query: 'test',
+      schedule: {
+        appointments: [
+          { id: 'a1', start_time: '2026-04-06T09:00:00', clientName: 'Sarah', serviceName: 'Full Groom', address: null },
+          { id: 'a2', start_time: '2026-04-06T14:00:00', clientName: 'David', serviceName: 'Nail Trim', address: null },
+          { id: 'a3', start_time: '2026-04-08T10:00:00', clientName: 'Lisa', serviceName: 'Bath', address: null },
+        ],
+        dateRange: { start: '', end: '' },
+      },
+      clients: { clients: [] },
+      profile: { sections: [] },
+    })
+
+    const adapter = createChatModelAdapter('thread-1', vi.fn())
+    const gen = adapter.run({
+      messages: [userMessage('m-1', "what's my week look like")],
+      abortSignal: new AbortController().signal,
+    })
+    for await (const _ of gen) { /* consume */ }
+
+    const body = JSON.parse((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body)
+    // Should contain day headers, not a flat list
+    expect(body.system).toContain('Monday')
+    expect(body.system).toContain('Wednesday')
+    // Should contain appointment IDs for the LLM to reference
+    expect(body.system).toContain('(id: a1)')
+    expect(body.system).toContain('(id: a3)')
+  })
+
+  it('persists fallback message when API returns empty response', async () => {
+    // Simulate OpenRouter returning empty content
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' },
+      }),
+    )
+
+    const adapter = createChatModelAdapter('thread-empty', vi.fn())
+    const gen = adapter.run({
+      messages: [userMessage('m-1', 'hello')],
+      abortSignal: new AbortController().signal,
+    })
+
+    const parts: Array<{ content: Array<{ type: string; text: string }> }> = []
+    for await (const part of gen) {
+      parts.push(part as { content: Array<{ type: string; text: string }> })
+    }
+
+    // Should show fallback message to user
+    const lastText = parts[parts.length - 1]!.content[0]!.text
+    expect(lastText).toContain('No response received')
+
+    // Wait for fire-and-forget persistence
+    await new Promise((r) => setTimeout(r, 10))
+
+    // The persisted agent message should contain the fallback, not empty string
+    const docs = mockAgentConversations._raw()
+    const agentDoc = docs.find((d) => d.role === 'agent')!
+    expect(agentDoc).toBeDefined()
+    expect(agentDoc.content).toContain('No response received')
+    expect(agentDoc.content).not.toBe('')
   })
 })

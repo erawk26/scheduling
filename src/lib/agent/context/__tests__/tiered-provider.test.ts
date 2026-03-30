@@ -119,10 +119,11 @@ describe('TieredContextProvider', () => {
       expect(ids).not.toContain('apt-old')
     })
 
-    it('includes appointments up to 7 days in the future', async () => {
+    it('includes appointments up to 14 days in the future', async () => {
       const futureApt = makeAppointment({ id: 'apt-future', start_time: '2026-04-04T09:00:00', end_time: '2026-04-04T10:00:00' })
+      const nextWeekApt = makeAppointment({ id: 'apt-nextweek', start_time: '2026-04-10T09:00:00', end_time: '2026-04-10T10:00:00' })
       const farFutureApt = makeAppointment({ id: 'apt-far', start_time: '2026-05-01T09:00:00', end_time: '2026-05-01T10:00:00' })
-      mockApp.appointments.findMany.mockResolvedValue([futureApt, farFutureApt])
+      mockApp.appointments.findMany.mockResolvedValue([futureApt, nextWeekApt, farFutureApt])
       mockApp.clients.findMany.mockResolvedValue([makeClient()])
       mockApp.services.findMany.mockResolvedValue([makeService()])
       const index = new AgentSearchIndex()
@@ -132,7 +133,29 @@ describe('TieredContextProvider', () => {
 
       const ids = ctx.schedule!.appointments.map((a) => a.id)
       expect(ids).toContain('apt-future')
+      expect(ids).toContain('apt-nextweek')
       expect(ids).not.toContain('apt-far')
+    })
+
+    it('sees a full week of appointments when asked on Sunday (the +7 day bug)', async () => {
+      // Simulate: today is Sunday March 29, user asks about next week (Mon Apr 6 - Fri Apr 10)
+      // Old bug: +7 days only reached Apr 5, missing the entire next week
+      const mondayApt = makeAppointment({ id: 'apt-mon', start_time: '2026-04-06T09:00:00', end_time: '2026-04-06T10:00:00' })
+      const wednesdayApt = makeAppointment({ id: 'apt-wed', start_time: '2026-04-08T14:00:00', end_time: '2026-04-08T15:00:00' })
+      const fridayApt = makeAppointment({ id: 'apt-fri', start_time: '2026-04-10T10:00:00', end_time: '2026-04-10T11:00:00' })
+      mockApp.appointments.findMany.mockResolvedValue([mondayApt, wednesdayApt, fridayApt])
+      mockApp.clients.findMany.mockResolvedValue([makeClient()])
+      mockApp.services.findMany.mockResolvedValue([makeService()])
+      const index = new AgentSearchIndex()
+      const provider = new TieredContextProvider(index)
+
+      const ctx = await provider.getFullContext("what's my next week look like")
+
+      const ids = ctx.schedule!.appointments.map((a) => a.id)
+      expect(ids).toContain('apt-mon')
+      expect(ids).toContain('apt-wed')
+      expect(ids).toContain('apt-fri')
+      expect(ids).toHaveLength(3)
     })
   })
 

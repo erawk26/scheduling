@@ -159,7 +159,7 @@ export class TieredContextProvider implements ContextProvider {
     const from = new Date(now);
     from.setDate(now.getDate() - 7);
     const to = new Date(now);
-    to.setDate(now.getDate() + 7);
+    to.setDate(now.getDate() + 14);
     return {
       from: from.toISOString().replace('Z', '').split('.')[0]!,
       to: to.toISOString().replace('Z', '').split('.')[0]!,
