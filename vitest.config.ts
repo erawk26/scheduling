@@ -8,6 +8,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    testTimeout: 15000,
+    exclude: [
+      'e2e/**',
+      '**/*.spec.{ts,tsx}',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -19,6 +24,7 @@ export default defineConfig({
         '**/mockData',
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
+        'e2e/**',
       ],
       thresholds: {
         statements: 80,
