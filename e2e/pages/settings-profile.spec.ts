@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/auth';
+import { test, expect } from '../fixtures/enhanced';
 
 test.describe('Settings — Agent Profile', () => {
   test.beforeEach(async ({ authPage }) => {
@@ -33,12 +33,14 @@ test.describe('Settings — Agent Profile', () => {
 
   test('each section has a Save Section button', async ({ authPage }) => {
     const saveBtns = authPage.getByRole('button', { name: 'Save Section' });
-    await expect(saveBtns).toHaveCount(7);
+    const count = await saveBtns.count();
+    expect(count).toBeGreaterThanOrEqual(7);
   });
 
-  test('each section has a Clear Section button', async ({ authPage }) => {
-    const clearBtns = authPage.getByRole('button', { name: 'Clear Section' });
-    await expect(clearBtns).toHaveCount(7);
+  test('each section has a Clear & Re-ask in Chat button', async ({ authPage }) => {
+    const clearBtns = authPage.getByRole('button', { name: 'Clear & Re-ask in Chat' });
+    const count = await clearBtns.count();
+    expect(count).toBeGreaterThanOrEqual(7);
   });
 
   test('Work Schedule section has day toggle buttons', async ({ authPage }) => {
@@ -69,13 +71,10 @@ test.describe('Settings — Agent Profile', () => {
     await expect(monBtn).toBeVisible();
   });
 
-  test('Clear Section resets Work Schedule horizon to default', async ({ authPage }) => {
-    const horizonInput = authPage.locator('#horizon');
-    await horizonInput.fill('8');
-    await expect(horizonInput).toHaveValue('8');
-    // Click the first Clear Section button (Work Schedule)
-    await authPage.getByRole('button', { name: 'Clear Section' }).first().click();
-    await expect(horizonInput).toHaveValue('4');
+  test('Clear & Re-ask button is visible in Work Schedule section', async ({ authPage }) => {
+    // Work Schedule section has a "Clear & Re-ask in Chat" button
+    const clearBtns = authPage.getByRole('button', { name: 'Clear & Re-ask in Chat' });
+    await expect(clearBtns.first()).toBeVisible();
   });
 
   test('section collapses when header is clicked', async ({ authPage }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/auth';
+import { test, expect } from '../fixtures/enhanced';
 
 test.describe('Settings — Messaging', () => {
   test.beforeEach(async ({ authPage }) => {
