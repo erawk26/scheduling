@@ -8,7 +8,7 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { verifyBookingToken } from '@/lib/email/jwt'
-import { writeFile, mkdir } from 'fs/promises'
+import * as fs from 'fs/promises'
 import path from 'path'
 import { z } from 'zod'
 
@@ -23,9 +23,9 @@ async function writeBookingResult(
   data: Record<string, unknown>
 ): Promise<void> {
   const dir = path.join(process.cwd(), '.omc', 'bookings')
-  await mkdir(dir, { recursive: true })
+  await fs.mkdir(dir, { recursive: true })
   const filePath = path.join(dir, `${appointmentId}.json`)
-  await writeFile(filePath, JSON.stringify(data, null, 2), 'utf8')
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8')
 }
 
 export const Route = createFileRoute('/api/book/confirm')({
@@ -60,12 +60,16 @@ export const Route = createFileRoute('/api/book/confirm')({
         const { appointmentId, clientId } = result.payload
 
         if (selectedSlot) {
-          await writeBookingResult(appointmentId, {
-            clientId,
-            selectedSlot,
-            confirmedAt: new Date().toISOString(),
-            status: 'confirmed',
-          })
+          try {
+            await writeBookingResult(appointmentId, {
+              clientId,
+              selectedSlot,
+              confirmedAt: new Date().toISOString(),
+              status: 'confirmed',
+            })
+          } catch {
+            return Response.json({ error: 'Failed to save booking' }, { status: 500 })
+          }
 
           return Response.json({
             success: true,
@@ -74,12 +78,16 @@ export const Route = createFileRoute('/api/book/confirm')({
         }
 
         if (declineReason) {
-          await writeBookingResult(appointmentId, {
-            clientId,
-            declineReason,
-            declinedAt: new Date().toISOString(),
-            status: 'declined',
-          })
+          try {
+            await writeBookingResult(appointmentId, {
+              clientId,
+              declineReason,
+              declinedAt: new Date().toISOString(),
+              status: 'declined',
+            })
+          } catch {
+            return Response.json({ error: 'Failed to save booking' }, { status: 500 })
+          }
 
           return Response.json({ success: true, status: 'declined' })
         }

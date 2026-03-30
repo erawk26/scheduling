@@ -12,18 +12,25 @@ export const Route = createFileRoute('/api/schedule/suggest')({
   server: {
     handlers: {
       POST: async ({ request }): Promise<Response> => {
+        let body: unknown
         try {
-          const body = (await request.json()) as RequestBody
+          body = await request.json()
+        } catch {
+          return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+        }
 
-          if (!body.appointmentsByDate || typeof body.appointmentsByDate !== 'object') {
-            return Response.json({ error: 'appointmentsByDate is required' }, { status: 400 })
-          }
+        const typedBody = body as RequestBody
 
-          const map = new Map<string, AnalysisAppointment[]>(
-            Object.entries(body.appointmentsByDate)
-          )
+        if (!typedBody.appointmentsByDate || typeof typedBody.appointmentsByDate !== 'object') {
+          return Response.json({ error: 'appointmentsByDate is required' }, { status: 400 })
+        }
 
-          const suggestions: WeeklySuggestions = generateSuggestions(map, body.options)
+        const map = new Map<string, AnalysisAppointment[]>(
+          Object.entries(typedBody.appointmentsByDate)
+        )
+
+        try {
+          const suggestions: WeeklySuggestions = generateSuggestions(map, typedBody.options)
           return Response.json(suggestions)
         } catch (error) {
           return Response.json(

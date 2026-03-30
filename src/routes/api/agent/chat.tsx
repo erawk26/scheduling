@@ -29,13 +29,49 @@ export const Route = createFileRoute('/api/agent/chat')({
           )
         }
 
-        const body = await request.json()
+        // Test mode: return mock response if header present
+        const testResponse = request.headers.get('X-Test-Response')
+        if (testResponse) {
+          const encoder = new TextEncoder()
+          const stream = new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(encoder.encode(testResponse))
+              controller.close()
+            },
+          })
+          return new Response(stream, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              Connection: 'keep-alive',
+            },
+          })
+        }
+
+        let body: unknown
+        try {
+          body = await request.json()
+        } catch {
+          return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+
         const { messages, system } = body as {
-          messages: Array<{ id?: string; role: string; content: string }>
+          messages?: Array<{ id?: string; role: string; content: string }>
           system?: string
         }
 
-        const message = messages?.[messages.length - 1]?.content
+        if (!messages || !Array.isArray(messages)) {
+          return new Response(JSON.stringify({ error: 'No message provided' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+
+        const message = messages[messages.length - 1]?.content
         if (!message) {
           return new Response(JSON.stringify({ error: 'No message provided' }), {
             status: 400,

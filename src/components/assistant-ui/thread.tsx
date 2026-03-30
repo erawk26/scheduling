@@ -102,7 +102,7 @@ function UserMessage() {
       <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white flex-shrink-0">
         <User className="w-4 h-4" />
       </div>
-      <div className="flex flex-col gap-1 max-w-[75%] items-end">
+      <div data-testid="user-message-root" className="flex flex-col gap-1 max-w-[75%] items-end">
         <div className="px-4 py-2.5 rounded-2xl rounded-br-sm bg-primary text-white text-sm leading-relaxed whitespace-pre-wrap">
           <MessagePrimitive.Parts />
         </div>
@@ -119,7 +119,7 @@ function AssistantMessage() {
       <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 flex-shrink-0">
         <Bot className="w-4 h-4 text-gray-600" />
       </div>
-      <div className="flex flex-col gap-1 max-w-[75%] items-start">
+      <div data-testid="assistant-message-root" className="flex flex-col gap-1 max-w-[75%] items-start">
         <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-gray-100 text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">
           <MessagePrimitive.Parts />
         </div>

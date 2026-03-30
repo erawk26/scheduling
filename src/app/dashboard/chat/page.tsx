@@ -33,7 +33,7 @@ const contextProvider = new TieredContextProvider(searchIndex);
 type StoredMessageLike = { role: 'user' | 'assistant'; content: string };
 
 // --- Chat Model Adapter factory: creates one per thread ---
-function createChatModelAdapter(threadId: string, onFirstMessage: (text: string) => void): ChatModelAdapter {
+export function createChatModelAdapter(threadId: string, onFirstMessage: (text: string) => void): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }) {
       const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');

@@ -5,18 +5,24 @@ export const Route = createFileRoute('/api/geocode')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        let body: unknown
         try {
-          const body = await request.json()
-          const { address } = body
+          body = await request.json()
+        } catch {
+          return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+        }
 
-          if (!address || typeof address !== 'string') {
-            return Response.json({ error: 'Address is required' }, { status: 400 })
-          }
+        const { address } = body as { address?: unknown }
 
-          if (!process.env.GRAPHHOPPER_API_KEY) {
-            return Response.json({ error: 'Geocoding not configured' }, { status: 503 })
-          }
+        if (!address || typeof address !== 'string') {
+          return Response.json({ error: 'Address is required' }, { status: 400 })
+        }
 
+        if (!process.env.GRAPHHOPPER_API_KEY) {
+          return Response.json({ error: 'Geocoding not configured' }, { status: 503 })
+        }
+
+        try {
           const result = await geocode(address)
 
           if (!result) {
