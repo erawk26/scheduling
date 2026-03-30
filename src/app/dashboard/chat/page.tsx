@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { Bot, WifiOff, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -332,7 +332,12 @@ function ThreadView({
   initialMessages: StoredMessageLike[];
   onFirstMessage: (text: string) => void;
 }) {
-  const adapter = createChatModelAdapter(threadId, onFirstMessage);
+  const onFirstMessageRef = useRef(onFirstMessage);
+  onFirstMessageRef.current = onFirstMessage;
+  const adapter = useMemo(
+    () => createChatModelAdapter(threadId, (text) => onFirstMessageRef.current(text)),
+    [threadId]
+  );
   const runtime = useLocalRuntime(adapter, { initialMessages });
 
   return (

@@ -2,9 +2,10 @@ import {
   AuiIf,
   ThreadPrimitive,
   MessagePrimitive,
+  useAuiState,
 } from '@assistant-ui/react';
 import { Bot, User } from 'lucide-react';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { TypingIndicator } from './typing-indicator';
 import { EnhancedComposer } from './enhanced-composer';
@@ -37,6 +38,21 @@ export function Thread() {
     setNewMessageCount(0);
   }, []);
 
+  const messagesLength = useAuiState((s) => s.thread.messages.length);
+  useEffect(() => {
+    if (messagesLength > prevMessageCountRef.current) {
+      if (isScrolledUp) {
+        setNewMessageCount((n) => n + (messagesLength - prevMessageCountRef.current));
+      }
+      prevMessageCountRef.current = messagesLength;
+    }
+  }, [messagesLength, isScrolledUp]);
+
+  const renderMessage = useCallback(({ message }: { message: { role: string } }) => {
+    if (message.role === 'user') return <UserMessage />;
+    return <AssistantMessage />;
+  }, []);
+
   return (
     <ThreadPrimitive.Root className="flex h-full flex-col">
       <div className="relative flex flex-1 flex-col overflow-hidden">
@@ -58,22 +74,10 @@ export function Thread() {
           </AuiIf>
 
           <ThreadPrimitive.Messages>
-            {({ message }) => {
-              if (message.role === 'user') return <UserMessage />;
-              return <AssistantMessage />;
-            }}
+            {renderMessage}
           </ThreadPrimitive.Messages>
 
-          <AuiIf condition={(s) => {
-            const count = s.thread.messages.length;
-            if (count > prevMessageCountRef.current) {
-              if (isScrolledUp) {
-                setNewMessageCount((n) => n + (count - prevMessageCountRef.current));
-              }
-              prevMessageCountRef.current = count;
-            }
-            return s.thread.isRunning;
-          }}>
+          <AuiIf condition={(s) => s.thread.isRunning}>
             <TypingIndicator isTyping={true} />
           </AuiIf>
 
