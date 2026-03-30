@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCollection } from '@erawk26/localkit/react';
 import { app } from '@/lib/offlinekit';
 import type { Client } from '@/lib/offlinekit/schema';
@@ -40,7 +40,9 @@ export function useClient(id: string) {
 }
 
 export function useCreateClient() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'clients'] }),
     mutationFn: async (data: ClientFormData): Promise<Client> => {
       const now = new Date().toISOString();
       const created = await app.clients.create({
@@ -48,12 +50,12 @@ export function useCreateClient() {
         user_id: '00000000-0000-0000-0000-000000000000',
         first_name: data.first_name,
         last_name: data.last_name,
-        email: data.email ?? null,
-        phone: data.phone ?? null,
-        address: data.address ?? null,
+        email: data.email || null,
+        phone: data.phone || null,
+        address: data.address || null,
         latitude: null,
         longitude: null,
-        notes: data.notes ?? null,
+        notes: data.notes || null,
         scheduling_flexibility: data.scheduling_flexibility ?? 'unknown',
         created_at: now,
         updated_at: now,
@@ -85,7 +87,9 @@ export function useCreateClient() {
 }
 
 export function useUpdateClient() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'clients'] }),
     mutationFn: async ({
       id,
       data,
@@ -97,8 +101,14 @@ export function useUpdateClient() {
       const doc = all.find((d) => d.id === id && !d._deleted);
       if (!doc) throw new Error(`Client ${id} not found`);
 
+      // Sanitize empty strings to null for optional fields
+      const sanitized = { ...data } as Record<string, unknown>;
+      for (const key of ['email', 'phone', 'address', 'notes'] as const) {
+        if (sanitized[key] === '') sanitized[key] = null;
+      }
+
       const updated = await app.clients.update(doc._id, {
-        ...data,
+        ...sanitized,
         updated_at: new Date().toISOString(),
         needs_sync: 1,
         sync_operation: 'UPDATE',
@@ -125,7 +135,13 @@ export function useUpdateClient() {
 }
 
 export function useDeleteClient() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['localkit', 'clients'] });
+      queryClient.invalidateQueries({ queryKey: ['localkit', 'pets'] });
+      queryClient.invalidateQueries({ queryKey: ['localkit', 'appointments'] });
+    },
     mutationFn: async (id: string): Promise<void> => {
       const [allClients, allPets, allApts] = await Promise.all([
         app.clients.findMany() as Promise<WithMeta<Client>[]>,

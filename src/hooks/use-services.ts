@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCollection } from '@erawk26/localkit/react';
 import { app } from '@/lib/offlinekit';
 import type { Service } from '@/lib/offlinekit/schema';
@@ -21,14 +21,16 @@ export function useServices() {
 }
 
 export function useCreateService() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'services'] }),
     mutationFn: async (data: ServiceFormData): Promise<Service> => {
       const now = new Date().toISOString();
       const created = await app.services.create({
         id: crypto.randomUUID(),
         user_id: '00000000-0000-0000-0000-000000000000',
         name: data.name,
-        description: data.description ?? null,
+        description: data.description || null,
         duration_minutes: data.duration_minutes,
         price_cents: data.price_cents ?? null,
         weather_dependent: !!data.weather_dependent,
@@ -48,7 +50,9 @@ export function useCreateService() {
 }
 
 export function useUpdateService() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'services'] }),
     mutationFn: async ({
       id,
       data,
@@ -60,8 +64,11 @@ export function useUpdateService() {
       const doc = all.find((d) => d.id === id && !d._deleted);
       if (!doc) throw new Error(`Service ${id} not found`);
 
+      const sanitized = { ...data } as Record<string, unknown>;
+      if (sanitized.description === '') sanitized.description = null;
+
       const updated = await app.services.update(doc._id, {
-        ...data,
+        ...sanitized,
         updated_at: new Date().toISOString(),
         needs_sync: 1,
         sync_operation: 'UPDATE',
@@ -73,7 +80,9 @@ export function useUpdateService() {
 }
 
 export function useDeleteService() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'services'] }),
     mutationFn: async (id: string): Promise<void> => {
       const all = await app.services.findMany() as WithMeta<Service>[];
       const doc = all.find((d) => d.id === id && !d._deleted);

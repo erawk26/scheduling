@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCollection } from '@erawk26/localkit/react';
 import { app } from '@/lib/offlinekit';
 import type { Pet } from '@/lib/offlinekit/schema';
@@ -21,7 +21,9 @@ export function usePets(clientId: string) {
 }
 
 export function useCreatePet() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'pets'] }),
     mutationFn: async (
       data: PetFormData & { client_id: string }
     ): Promise<Pet> => {
@@ -53,7 +55,9 @@ export function useCreatePet() {
 }
 
 export function useUpdatePet() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'pets'] }),
     mutationFn: async ({
       id,
       data,
@@ -78,7 +82,9 @@ export function useUpdatePet() {
 }
 
 export function useDeletePet() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'pets'] }),
     mutationFn: async (id: string): Promise<string> => {
       const all = await app.pets.findMany() as WithMeta<Pet>[];
       const doc = all.find((d) => d.id === id && !d._deleted);

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCollection } from '@erawk26/localkit/react';
 import { startOfDay, endOfDay } from 'date-fns';
 import { app } from '@/lib/offlinekit';
@@ -45,7 +45,9 @@ export function useTodayAppointments() {
 }
 
 export function useCreateAppointment() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'appointments'] }),
     mutationFn: async (data: AppointmentFormData): Promise<Appointment> => {
       const now = new Date().toISOString();
       const created = await app.appointments.create({
@@ -94,7 +96,9 @@ export function useCreateAppointment() {
 }
 
 export function useUpdateAppointment() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'appointments'] }),
     mutationFn: async ({
       id,
       data,
@@ -134,7 +138,9 @@ export function useUpdateAppointment() {
 }
 
 export function useUpdateAppointmentStatus() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'appointments'] }),
     mutationFn: async ({
       id,
       status,
@@ -159,7 +165,9 @@ export function useUpdateAppointmentStatus() {
 }
 
 export function useDeleteAppointment() {
+  const queryClient = useQueryClient();
   return useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['localkit', 'appointments'] }),
     mutationFn: async (id: string): Promise<void> => {
       const all = await app.appointments.findMany() as WithMeta<Appointment>[];
       const doc = all.find((d) => d.id === id && !d._deleted);
