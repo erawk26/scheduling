@@ -57,7 +57,13 @@ export function createChatModelAdapter(threadId: string, onFirstMessage: (text: 
           if (ctx.schedule?.appointments?.length) {
             parts.push('Upcoming appointments:');
             for (const a of ctx.schedule.appointments) {
-              parts.push(`  - ${a.start_time}: ${a.clientName} — ${a.serviceName}`);
+              const dt = new Date(a.start_time);
+              const day = dt.toLocaleDateString('en-US', { weekday: 'long' });
+              const date = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              const time = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+              const loc = a.address ? ` @ ${a.address}` : '';
+              const status = a.status !== 'scheduled' ? ` [${a.status}]` : '';
+              parts.push(`  - ${day} ${date} ${time}: ${a.clientName} — ${a.serviceName}${loc}${status}`);
             }
           }
           if (ctx.clients?.clients?.length) {
