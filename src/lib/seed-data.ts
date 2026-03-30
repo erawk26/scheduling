@@ -43,12 +43,18 @@ const SERVICES = [
   { id: '10000000-0000-4000-8000-000000000004', name: 'De-shed Treatment', description: 'Undercoat removal and de-shedding', duration_minutes: 75, price_cents: 7500, weather_dependent: true, location_type: 'mobile' },
 ];
 
+// Clients clustered in 2 Portland neighborhoods:
+// Cluster A: SE Division/Hawthorne (3 clients within ~1 mile)
+// Cluster B: NE Alberta/Killingsworth (2 clients within ~1 mile)
+// This creates testable route optimization: an optimal day hits one cluster, not both
 const CLIENTS = [
-  { id: '20000000-0000-4000-8000-000000000001', first_name: 'Sarah', last_name: 'Johnson', email: 'sarah.j@email.com', phone: '555-867-5309', address: '456 Oak Ave, Portland, OR 97201', latitude: 45.5231, longitude: -122.6765, scheduling_flexibility: 'flexible' as const, notes: 'Prefers morning appointments. Has a fenced backyard.' },
-  { id: '20000000-0000-4000-8000-000000000002', first_name: 'Mike', last_name: 'Chen', email: 'mike.chen@email.com', phone: '555-234-5678', address: '1200 NW 23rd Ave, Portland, OR 97210', latitude: 45.5328, longitude: -122.6985, scheduling_flexibility: 'fixed' as const, notes: 'Only available Tuesdays and Thursdays before noon.' },
-  { id: '20000000-0000-4000-8000-000000000003', first_name: 'Emily', last_name: 'Rodriguez', email: 'emily.r@email.com', phone: '555-345-6789', address: '3400 SE Hawthorne Blvd, Portland, OR 97214', latitude: 45.5118, longitude: -122.6267, scheduling_flexibility: 'flexible' as const, notes: 'Works from home. Flexible on timing.' },
-  { id: '20000000-0000-4000-8000-000000000004', first_name: 'David', last_name: 'Kim', email: 'david.kim@email.com', phone: '555-456-7890', address: '7890 N Mississippi Ave, Portland, OR 97217', latitude: 45.5571, longitude: -122.6759, scheduling_flexibility: 'unknown' as const, notes: null },
-  { id: '20000000-0000-4000-8000-000000000005', first_name: 'Lisa', last_name: 'Martinez', email: 'lisa.m@email.com', phone: '555-567-8901', address: '2100 NE Alberta St, Portland, OR 97211', latitude: 45.5590, longitude: -122.6437, scheduling_flexibility: 'flexible' as const, notes: 'Two large dogs — needs extra time between appointments.' },
+  // — Cluster A: SE Portland —
+  { id: '20000000-0000-4000-8000-000000000001', first_name: 'Sarah', last_name: 'Johnson', email: 'sarah.j@email.com', phone: '555-867-5309', address: '3545 SE Division St, Portland, OR 97202', latitude: 45.5046, longitude: -122.6310, scheduling_flexibility: 'flexible' as const, notes: 'Prefers morning appointments. Has a fenced backyard.' },
+  { id: '20000000-0000-4000-8000-000000000002', first_name: 'Mike', last_name: 'Chen', email: 'mike.chen@email.com', phone: '555-234-5678', address: '3200 SE Hawthorne Blvd, Portland, OR 97214', latitude: 45.5118, longitude: -122.6300, scheduling_flexibility: 'fixed' as const, notes: 'Only available Tuesdays and Thursdays before noon.' },
+  { id: '20000000-0000-4000-8000-000000000003', first_name: 'Emily', last_name: 'Rodriguez', email: 'emily.r@email.com', phone: '555-345-6789', address: '2905 SE Belmont St, Portland, OR 97214', latitude: 45.5160, longitude: -122.6345, scheduling_flexibility: 'flexible' as const, notes: 'Works from home. Flexible on timing.' },
+  // — Cluster B: NE Portland —
+  { id: '20000000-0000-4000-8000-000000000004', first_name: 'David', last_name: 'Kim', email: 'david.kim@email.com', phone: '555-456-7890', address: '2530 NE Alberta St, Portland, OR 97211', latitude: 45.5590, longitude: -122.6410, scheduling_flexibility: 'unknown' as const, notes: null },
+  { id: '20000000-0000-4000-8000-000000000005', first_name: 'Lisa', last_name: 'Martinez', email: 'lisa.m@email.com', phone: '555-567-8901', address: '5015 NE Killingsworth St, Portland, OR 97218', latitude: 45.5635, longitude: -122.6130, scheduling_flexibility: 'flexible' as const, notes: 'Two large dogs — needs extra time between appointments.' },
 ];
 
 const PETS = [
@@ -67,21 +73,32 @@ function generateAppointments(): Array<Record<string, unknown>> {
   const monday = addDays(now, (1 - now.getDay() + 7) % 7 || 7); // Next Monday
 
   const appointments = [
-    // Week 1
-    { id: '40000000-0000-4000-8000-000000000001', client_id: '20000000-0000-4000-8000-000000000001', pet_id: '30000000-0000-4000-8000-000000000001', service_id: '10000000-0000-4000-8000-000000000001', day: 0, hour: 9, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000002', client_id: '20000000-0000-4000-8000-000000000002', pet_id: '30000000-0000-4000-8000-000000000003', service_id: '10000000-0000-4000-8000-000000000001', day: 0, hour: 11, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000003', client_id: '20000000-0000-4000-8000-000000000003', pet_id: '30000000-0000-4000-8000-000000000004', service_id: '10000000-0000-4000-8000-000000000002', day: 1, hour: 9, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000004', client_id: '20000000-0000-4000-8000-000000000003', pet_id: '30000000-0000-4000-8000-000000000005', service_id: '10000000-0000-4000-8000-000000000003', day: 1, hour: 10, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000005', client_id: '20000000-0000-4000-8000-000000000004', pet_id: '30000000-0000-4000-8000-000000000006', service_id: '10000000-0000-4000-8000-000000000004', day: 2, hour: 10, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000006', client_id: '20000000-0000-4000-8000-000000000005', pet_id: '30000000-0000-4000-8000-000000000007', service_id: '10000000-0000-4000-8000-000000000001', day: 2, hour: 13, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000007', client_id: '20000000-0000-4000-8000-000000000005', pet_id: '30000000-0000-4000-8000-000000000008', service_id: '10000000-0000-4000-8000-000000000004', day: 3, hour: 9, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000008', client_id: '20000000-0000-4000-8000-000000000001', pet_id: '30000000-0000-4000-8000-000000000002', service_id: '10000000-0000-4000-8000-000000000002', day: 3, hour: 11, status: 'scheduled' },
-    { id: '40000000-0000-4000-8000-000000000009', client_id: '20000000-0000-4000-8000-000000000002', pet_id: '30000000-0000-4000-8000-000000000003', service_id: '10000000-0000-4000-8000-000000000003', day: 4, hour: 9, status: 'scheduled' },
-    // Week 2
-    { id: '40000000-0000-4000-8000-000000000010', client_id: '20000000-0000-4000-8000-000000000003', pet_id: '30000000-0000-4000-8000-000000000004', service_id: '10000000-0000-4000-8000-000000000001', day: 7, hour: 9, status: 'draft' },
-    { id: '40000000-0000-4000-8000-000000000011', client_id: '20000000-0000-4000-8000-000000000004', pet_id: '30000000-0000-4000-8000-000000000006', service_id: '10000000-0000-4000-8000-000000000002', day: 7, hour: 11, status: 'draft' },
-    { id: '40000000-0000-4000-8000-000000000012', client_id: '20000000-0000-4000-8000-000000000005', pet_id: '30000000-0000-4000-8000-000000000007', service_id: '10000000-0000-4000-8000-000000000001', day: 8, hour: 10, status: 'draft' },
-    { id: '40000000-0000-4000-8000-000000000013', client_id: '20000000-0000-4000-8000-000000000001', pet_id: '30000000-0000-4000-8000-000000000001', service_id: '10000000-0000-4000-8000-000000000004', day: 9, hour: 9, status: 'draft' },
+    // === Monday: 4 appointments, INTENTIONAL ZIGZAG (SE → NE → SE → NE) ===
+    // An optimizer should reorder to: SE, SE, NE, NE (cluster-first)
+    { id: '40000000-0000-4000-8000-000000000001', client_id: '20000000-0000-4000-8000-000000000001', pet_id: '30000000-0000-4000-8000-000000000001', service_id: '10000000-0000-4000-8000-000000000001', day: 0, hour: 8, status: 'scheduled' },  // Sarah (SE) 8am
+    { id: '40000000-0000-4000-8000-000000000002', client_id: '20000000-0000-4000-8000-000000000004', pet_id: '30000000-0000-4000-8000-000000000006', service_id: '10000000-0000-4000-8000-000000000003', day: 0, hour: 10, status: 'scheduled' },  // David (NE) 10am
+    { id: '40000000-0000-4000-8000-000000000003', client_id: '20000000-0000-4000-8000-000000000003', pet_id: '30000000-0000-4000-8000-000000000004', service_id: '10000000-0000-4000-8000-000000000002', day: 0, hour: 11, status: 'scheduled' },  // Emily (SE) 11am
+    { id: '40000000-0000-4000-8000-000000000004', client_id: '20000000-0000-4000-8000-000000000005', pet_id: '30000000-0000-4000-8000-000000000007', service_id: '10000000-0000-4000-8000-000000000001', day: 0, hour: 13, status: 'scheduled' },  // Lisa (NE) 1pm
+
+    // === Tuesday: 3 appointments, Mike is FIXED (Tue/Thu only) ===
+    { id: '40000000-0000-4000-8000-000000000005', client_id: '20000000-0000-4000-8000-000000000002', pet_id: '30000000-0000-4000-8000-000000000003', service_id: '10000000-0000-4000-8000-000000000001', day: 1, hour: 9, status: 'scheduled' },  // Mike (SE, fixed) 9am
+    { id: '40000000-0000-4000-8000-000000000006', client_id: '20000000-0000-4000-8000-000000000001', pet_id: '30000000-0000-4000-8000-000000000002', service_id: '10000000-0000-4000-8000-000000000002', day: 1, hour: 11, status: 'scheduled' },  // Sarah (SE) 11am — Mochi
+    { id: '40000000-0000-4000-8000-000000000007', client_id: '20000000-0000-4000-8000-000000000003', pet_id: '30000000-0000-4000-8000-000000000005', service_id: '10000000-0000-4000-8000-000000000003', day: 1, hour: 13, status: 'scheduled' },  // Emily (SE) 1pm — Olive
+
+    // === Wednesday: 2 appointments, NE only (good cluster day) ===
+    { id: '40000000-0000-4000-8000-000000000008', client_id: '20000000-0000-4000-8000-000000000004', pet_id: '30000000-0000-4000-8000-000000000006', service_id: '10000000-0000-4000-8000-000000000004', day: 2, hour: 10, status: 'scheduled' },  // David (NE) 10am
+    { id: '40000000-0000-4000-8000-000000000009', client_id: '20000000-0000-4000-8000-000000000005', pet_id: '30000000-0000-4000-8000-000000000008', service_id: '10000000-0000-4000-8000-000000000004', day: 2, hour: 12, status: 'scheduled' },  // Lisa (NE) 12pm — Luna
+
+    // === Thursday: Mike fixed + zigzag again ===
+    { id: '40000000-0000-4000-8000-000000000010', client_id: '20000000-0000-4000-8000-000000000005', pet_id: '30000000-0000-4000-8000-000000000007', service_id: '10000000-0000-4000-8000-000000000002', day: 3, hour: 9, status: 'scheduled' },  // Lisa (NE) 9am
+    { id: '40000000-0000-4000-8000-000000000011', client_id: '20000000-0000-4000-8000-000000000002', pet_id: '30000000-0000-4000-8000-000000000003', service_id: '10000000-0000-4000-8000-000000000003', day: 3, hour: 10, status: 'scheduled' },  // Mike (SE, fixed) 10am
+    { id: '40000000-0000-4000-8000-000000000012', client_id: '20000000-0000-4000-8000-000000000004', pet_id: '30000000-0000-4000-8000-000000000006', service_id: '10000000-0000-4000-8000-000000000002', day: 3, hour: 12, status: 'scheduled' },  // David (NE) 12pm
+
+    // === Next week drafts — AI should suggest clustering these ===
+    { id: '40000000-0000-4000-8000-000000000013', client_id: '20000000-0000-4000-8000-000000000001', pet_id: '30000000-0000-4000-8000-000000000001', service_id: '10000000-0000-4000-8000-000000000004', day: 7, hour: 9, status: 'draft' },   // Sarah (SE) Mon
+    { id: '40000000-0000-4000-8000-000000000014', client_id: '20000000-0000-4000-8000-000000000003', pet_id: '30000000-0000-4000-8000-000000000004', service_id: '10000000-0000-4000-8000-000000000001', day: 7, hour: 14, status: 'draft' },  // Emily (SE) Mon
+    { id: '40000000-0000-4000-8000-000000000015', client_id: '20000000-0000-4000-8000-000000000004', pet_id: '30000000-0000-4000-8000-000000000006', service_id: '10000000-0000-4000-8000-000000000002', day: 8, hour: 10, status: 'draft' },  // David (NE) Tue
+    { id: '40000000-0000-4000-8000-000000000016', client_id: '20000000-0000-4000-8000-000000000005', pet_id: '30000000-0000-4000-8000-000000000008', service_id: '10000000-0000-4000-8000-000000000001', day: 9, hour: 9, status: 'draft' },   // Lisa (NE) Wed
   ];
 
   const svcDurations: Record<string, number> = {
@@ -89,11 +106,13 @@ function generateAppointments(): Array<Record<string, unknown>> {
   };
 
   const clientAddresses: Record<string, { address: string; lat: number; lng: number }> = {
-    '20000000-0000-4000-8000-000000000001': { address: '456 Oak Ave, Portland, OR 97201', lat: 45.5231, lng: -122.6765 },
-    '20000000-0000-4000-8000-000000000002': { address: '1200 NW 23rd Ave, Portland, OR 97210', lat: 45.5328, lng: -122.6985 },
-    '20000000-0000-4000-8000-000000000003': { address: '3400 SE Hawthorne Blvd, Portland, OR 97214', lat: 45.5118, lng: -122.6267 },
-    '20000000-0000-4000-8000-000000000004': { address: '7890 N Mississippi Ave, Portland, OR 97217', lat: 45.5571, lng: -122.6759 },
-    '20000000-0000-4000-8000-000000000005': { address: '2100 NE Alberta St, Portland, OR 97211', lat: 45.5590, lng: -122.6437 },
+    // Cluster A: SE Portland
+    '20000000-0000-4000-8000-000000000001': { address: '3545 SE Division St, Portland, OR 97202', lat: 45.5046, lng: -122.6310 },
+    '20000000-0000-4000-8000-000000000002': { address: '3200 SE Hawthorne Blvd, Portland, OR 97214', lat: 45.5118, lng: -122.6300 },
+    '20000000-0000-4000-8000-000000000003': { address: '2905 SE Belmont St, Portland, OR 97214', lat: 45.5160, lng: -122.6345 },
+    // Cluster B: NE Portland
+    '20000000-0000-4000-8000-000000000004': { address: '2530 NE Alberta St, Portland, OR 97211', lat: 45.5590, lng: -122.6410 },
+    '20000000-0000-4000-8000-000000000005': { address: '5015 NE Killingsworth St, Portland, OR 97218', lat: 45.5635, lng: -122.6130 },
   };
 
   return appointments.map((apt) => {
