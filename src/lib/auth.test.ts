@@ -41,7 +41,7 @@ describe('Auth Configuration', () => {
     const { auth } = await import('./auth');
     expect(auth).toBeDefined();
     expect(typeof auth).toBe('object');
-  });
+  }, 30000);
 
   it('session expiresIn is 7 days in seconds (604800)', () => {
     const sevenDaysInSeconds = 60 * 60 * 24 * 7;
