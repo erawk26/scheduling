@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
+import { getRequest } from '@tanstack/react-start/server'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { MobileSidebar } from '@/components/layout/mobile-sidebar'
+import { auth } from '@/lib/auth'
 
-const SESSION_COOKIE = 'better-auth.session_token'
+const getSession = createServerFn({ method: 'GET' }).handler(async () => {
+  const request = getRequest()
+  const session = await auth.api.getSession({ headers: request.headers })
+  return session
+})
 
 export const Route = createFileRoute('/dashboard')({
-  beforeLoad: () => {
-    if (typeof document !== 'undefined') {
-      const hasCookie = document.cookie.includes(SESSION_COOKIE)
-      if (!hasCookie) {
-        throw redirect({ to: '/sign-in' })
-      }
+  beforeLoad: async () => {
+    const session = await getSession()
+    if (!session) {
+      throw redirect({ to: '/sign-in' })
     }
   },
   component: DashboardLayout,

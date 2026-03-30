@@ -12,6 +12,7 @@
 
 import { betterAuth } from "better-auth"
 import { bearer, jwt, magicLink } from "better-auth/plugins"
+import { tanstackStartCookies } from "better-auth/tanstack-start"
 import Database from "better-sqlite3"
 import path from "path"
 import fs from "fs"
@@ -99,5 +100,6 @@ export const auth = betterAuth({
         }
       },
     }),
+    tanstackStartCookies(),
   ],
 })
