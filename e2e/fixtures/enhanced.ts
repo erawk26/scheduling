@@ -155,41 +155,39 @@ export async function seedOfflineKit(page: Page, data: {
     const now = new Date().toISOString();
     const DB_NAME = 'offlinekit-localkit';
 
-    /** Open (or create) an object store and return its IDB database */
-    function openStore(storeName: string): Promise<IDBDatabase> {
+    /**
+     * Open the existing OfflineKit IndexedDB without upgrading.
+     * We never bump the version — OfflineKit owns schema creation.
+     * If the store doesn't exist yet, we retry after a short delay
+     * (OfflineKit may still be initializing on first page load).
+     */
+    function openDb(retries = 10): Promise<IDBDatabase> {
       return new Promise((resolve, reject) => {
         const req = indexedDB.open(DB_NAME);
         req.onerror = () => reject(req.error);
-        req.onsuccess = () => {
-          const db = req.result;
-          if (db.objectStoreNames.contains(storeName)) {
-            resolve(db);
-          } else {
-            // Need to upgrade to add the store
-            const version = db.version + 1;
-            db.close();
-            const req2 = indexedDB.open(DB_NAME, version);
-            req2.onerror = () => reject(req2.error);
-            req2.onupgradeneeded = (e) => {
-              const db2 = (e.target as IDBOpenDBRequest).result;
-              if (!db2.objectStoreNames.contains(storeName)) {
-                db2.createObjectStore(storeName, { keyPath: '_id' });
-              }
-            };
-            req2.onsuccess = () => resolve(req2.result);
-          }
+        req.onupgradeneeded = () => {
+          // Do NOT create stores here — let OfflineKit manage the schema.
+          // If we get here it means OfflineKit hasn't initialized yet.
         };
-        req.onupgradeneeded = (e) => {
-          const db = (e.target as IDBOpenDBRequest).result;
-          if (!db.objectStoreNames.contains(storeName)) {
-            db.createObjectStore(storeName, { keyPath: '_id' });
-          }
-        };
+        req.onsuccess = () => resolve(req.result);
+      }).then(async (db: unknown) => {
+        const idb = db as IDBDatabase;
+        // If OfflineKit stores are missing, wait for it to initialize
+        if (!idb.objectStoreNames.contains('clients') && retries > 0) {
+          idb.close();
+          await new Promise(r => setTimeout(r, 300));
+          return openDb(retries - 1);
+        }
+        return idb;
       });
     }
 
     async function putRecord(storeName: string, record: Record<string, unknown>) {
-      const db = await openStore(storeName);
+      const db = await openDb();
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.close();
+        return; // store doesn't exist, skip silently
+      }
       return new Promise<void>((resolve, reject) => {
         const tx = db.transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
@@ -197,6 +195,7 @@ export async function seedOfflineKit(page: Page, data: {
         req.onerror = () => reject(req.error);
         req.onsuccess = () => resolve();
         tx.oncomplete = () => db.close();
+        tx.onerror = () => reject(tx.error);
       });
     }
 
