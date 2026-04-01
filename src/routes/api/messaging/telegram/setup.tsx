@@ -31,7 +31,7 @@ export const Route = createFileRoute('/api/messaging/telegram/setup')({
         const parsed = SetupSchema.safeParse(body)
         if (!parsed.success) {
           return Response.json(
-            { success: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' },
+            { success: false, error: parsed.error.errors[0]?.message ?? 'Validation failed' },
             { status: 400 }
           )
         }
