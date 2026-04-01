@@ -26,6 +26,14 @@ function estimateDriveMinutes(km: number): number {
   return Math.round((km * KM_TO_MILES) / AVG_SPEED_MPH * 60);
 }
 
+function formatDriveTime(seconds: number): string {
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 function buildMapsUrl(address: string): string {
   const encoded = encodeURIComponent(address);
   const isIos =
@@ -315,17 +323,28 @@ export default function RoutesPage() {
               className="h-[400px] w-full"
             />
 
-            <div className="space-y-3">
+            <div className="space-y-0">
               {data.stops.map((stop, i) => (
-                <StopCard
-                  key={stop.appointment.id}
-                  index={i + 1}
-                  clientName={`${stop.client.first_name} ${stop.client.last_name}`}
-                  address={(stop.appointment.address ?? stop.client.address) ?? null}
-                  startTime={stop.appointment.start_time}
-                  serviceName={stop.service.name}
-                  status={stop.appointment.status}
-                />
+                <div key={stop.appointment.id}>
+                  {i > 0 && data.legDrivingTimesS[i] != null && data.legDrivingTimesS[i]! > 0 && (
+                    <div className="flex items-center gap-2 py-2 pl-5 text-xs text-gray-400">
+                      <Car className="h-3 w-3 flex-shrink-0" />
+                      <span>{formatDriveTime(data.legDrivingTimesS[i]!)} drive</span>
+                      <div className="flex-1 border-t border-dashed border-gray-200" />
+                    </div>
+                  )}
+                  {i > 0 && (!data.legDrivingTimesS[i] || data.legDrivingTimesS[i] === 0) && (
+                    <div className="py-1" />
+                  )}
+                  <StopCard
+                    index={i + 1}
+                    clientName={`${stop.client.first_name} ${stop.client.last_name}`}
+                    address={(stop.appointment.address ?? stop.client.address) ?? null}
+                    startTime={stop.appointment.start_time}
+                    serviceName={stop.service.name}
+                    status={stop.appointment.status}
+                  />
+                </div>
               ))}
             </div>
           </CardContent>

@@ -15,6 +15,8 @@ export interface RouteAppointment {
 
 export interface OptimizedRouteResult {
   stops: RouteAppointment[];
+  /** Driving time in seconds for each leg (stop[i-1] → stop[i]). Index 0 is always 0. */
+  legDrivingTimesS: number[];
   totalDistanceKm: number;
   skippedCount: number;
   polyline?: string;
@@ -81,6 +83,7 @@ export function useOptimizedRoute(date: string) {
 
       const localResult: OptimizedRouteResult = {
         stops: optimized.stops,
+        legDrivingTimesS: optimized.stops.map(() => 0),
         totalDistanceKm: optimized.totalDistanceKm,
         skippedCount,
         source: 'local',
@@ -102,8 +105,13 @@ export function useOptimizedRoute(date: string) {
             .map((s) => stopMap.get(s.id))
             .filter((s): s is RouteAppointment => !!s);
 
+          // Build a map from stop id → drivingTimeS from the ordered API result
+          const drivingTimeMap = new Map(apiResult.stops.map((s) => [s.id, s.drivingTimeS]));
+          const legTimes = reordered.map((s) => drivingTimeMap.get(s.appointment.id) ?? 0);
+
           return {
             stops: reordered,
+            legDrivingTimesS: legTimes,
             totalDistanceKm: apiResult.totalDistanceM / 1000,
             skippedCount,
             polyline: apiResult.polyline,
