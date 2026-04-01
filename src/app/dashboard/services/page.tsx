@@ -27,7 +27,7 @@ export default function ServicesPage() {
   const [priceDisplay, setPriceDisplay] = useState('');
 
   const form = useForm<ServiceFormData>({
-    resolver: zodResolver(serviceSchema),
+    resolver: zodResolver(serviceSchema as any),
     defaultValues: {
       name: '',
       description: '',

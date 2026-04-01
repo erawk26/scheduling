@@ -34,7 +34,7 @@ export default function ClientDetailPage() {
   const deletePet = useDeletePet();
 
   const clientForm = useForm<ClientFormData>({
-    resolver: zodResolver(clientSchema),
+    resolver: zodResolver(clientSchema as any),
     defaultValues: {
       first_name: '',
       last_name: '',
@@ -46,7 +46,7 @@ export default function ClientDetailPage() {
   });
 
   const petForm = useForm<PetFormData>({
-    resolver: zodResolver(petSchema),
+    resolver: zodResolver(petSchema as any),
     defaultValues: {
       name: '',
       species: 'dog',

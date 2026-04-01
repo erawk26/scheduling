@@ -616,7 +616,7 @@ function AppointmentForm({
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<AppointmentFormData>({
-    resolver: zodResolver(appointmentSchema),
+    resolver: zodResolver(appointmentSchema as any),
     defaultValues: appointment
       ? {
           client_id: appointment.client_id,
