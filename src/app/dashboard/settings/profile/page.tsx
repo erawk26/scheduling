@@ -102,7 +102,7 @@ function SectionWrapper({ title, description, children }: SectionWrapperProps) {
           <CardTitle className="text-base">{title}</CardTitle>
           <CardDescription className="text-sm mt-0.5">{description}</CardDescription>
         </div>
-        {open ? <ChevronUp className="h-4 w-4 text-gray-400 flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />}
+        {open ? <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
       </CardHeader>
       {open && <CardContent className="pt-0">{children}</CardContent>}
     </Card>
@@ -115,7 +115,7 @@ function SaveMessage({ message }: { message: string }) {
   if (!message) return null
   const isError = message.toLowerCase().includes('fail') || message.toLowerCase().includes('error')
   return (
-    <p className={`text-sm ${isError ? 'text-red-600' : 'text-green-600'}`}>{message}</p>
+    <p className={`text-sm ${isError ? 'text-destructive' : 'text-success-muted-foreground'}`}>{message}</p>
   )
 }
 
@@ -230,7 +230,7 @@ function IdentitySection({ existing }: { existing: AgentProfileDoc | undefined }
             <Button onClick={handleSave} disabled={saving} size="sm">
               {saving ? 'Saving…' : 'Save Section'}
             </Button>
-            {message && <span className="text-sm text-green-600">{message}</span>}
+            {message && <span className="text-sm text-success-muted-foreground">{message}</span>}
           </div>
         </CardContent>
       )}
@@ -294,8 +294,8 @@ function WorkScheduleSection({ existing }: { existing: AgentProfileDoc | undefin
                 onClick={() => toggleDay(day)}
                 className={`px-3 py-2 text-sm rounded-md border transition-colors min-h-[44px] ${
                   days.includes(day)
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-foreground border-border hover:border-muted-foreground'
                 }`}
               >
                 {day.slice(0, 3)}
@@ -303,7 +303,7 @@ function WorkScheduleSection({ existing }: { existing: AgentProfileDoc | undefin
             ))}
           </div>
           {form.formState.errors.days_of_week && (
-            <p className="text-sm text-red-600">{form.formState.errors.days_of_week.message}</p>
+            <p className="text-sm text-destructive">{form.formState.errors.days_of_week.message}</p>
           )}
         </div>
 
@@ -408,7 +408,7 @@ function ServiceAreaSection({ existing }: { existing: AgentProfileDoc | undefine
             className="resize-none"
           />
           {form.formState.errors.towns && (
-            <p className="text-sm text-red-600">{form.formState.errors.towns.message}</p>
+            <p className="text-sm text-destructive">{form.formState.errors.towns.message}</p>
           )}
         </div>
         <div className="space-y-1">
@@ -420,7 +420,7 @@ function ServiceAreaSection({ existing }: { existing: AgentProfileDoc | undefine
             rows={4}
             className="resize-none"
           />
-          <p className="text-xs text-gray-500">Which areas you prefer to work in on which days</p>
+          <p className="text-xs text-muted-foreground">Which areas you prefer to work in on which days</p>
         </div>
         <SectionActions saving={saving} onClear={() => form.reset({ towns: '', day_area_notes: '' })} message={message} sectionId="service-area" existing={existing} />
       </form>
@@ -477,7 +477,7 @@ function TravelRulesSection({ existing }: { existing: AgentProfileDoc | undefine
           <Label htmlFor="max_drive">Max Drive Time Between Appointments (minutes)</Label>
           <Input id="max_drive" type="number" min={1} max={480} {...form.register('max_drive_minutes')} className="min-h-[44px]" />
           {form.formState.errors.max_drive_minutes && (
-            <p className="text-sm text-red-600">{form.formState.errors.max_drive_minutes.message}</p>
+            <p className="text-sm text-destructive">{form.formState.errors.max_drive_minutes.message}</p>
           )}
         </div>
         <div className="space-y-1">
@@ -540,7 +540,7 @@ function ClientRulesSection({ existing }: { existing: AgentProfileDoc | undefine
             rows={6}
             className="resize-none"
           />
-          <p className="text-xs text-gray-500">Freeform notes the agent will use when scheduling specific clients</p>
+          <p className="text-xs text-muted-foreground">Freeform notes the agent will use when scheduling specific clients</p>
         </div>
         <SectionActions saving={saving} onClear={() => form.reset({ notes: '' })} message={message} sectionId="client-rules" existing={existing} />
       </form>
@@ -590,7 +590,7 @@ function PersonalCommitmentsSection({ existing }: { existing: AgentProfileDoc | 
             rows={6}
             className="resize-none"
           />
-          <p className="text-xs text-gray-500">Format: Day Start – End: Label</p>
+          <p className="text-xs text-muted-foreground">Format: Day Start – End: Label</p>
         </div>
         <SectionActions saving={saving} onClear={() => form.reset({ commitments: '' })} message={message} sectionId="personal-commitments" existing={existing} />
       </form>
@@ -645,20 +645,20 @@ function BusinessRulesSection({ existing }: { existing: AgentProfileDoc | undefi
           <Label htmlFor="min_spacing">Minimum Spacing Between Appointments (minutes)</Label>
           <Input id="min_spacing" type="number" min={0} max={120} {...form.register('min_spacing_minutes')} className="min-h-[44px]" />
           {form.formState.errors.min_spacing_minutes && (
-            <p className="text-sm text-red-600">{form.formState.errors.min_spacing_minutes.message}</p>
+            <p className="text-sm text-destructive">{form.formState.errors.min_spacing_minutes.message}</p>
           )}
         </div>
         <div className="space-y-1">
           <Label htmlFor="max_b2b">Max Back-to-Back Appointments</Label>
           <Input id="max_b2b" type="number" min={1} max={20} {...form.register('max_back_to_back')} className="min-h-[44px]" />
           {form.formState.errors.max_back_to_back && (
-            <p className="text-sm text-red-600">{form.formState.errors.max_back_to_back.message}</p>
+            <p className="text-sm text-destructive">{form.formState.errors.max_back_to_back.message}</p>
           )}
         </div>
         <div className="space-y-1">
           <Label htmlFor="changeover">Equipment Changeover Time (minutes)</Label>
           <Input id="changeover" type="number" min={0} max={120} {...form.register('equipment_changeover_minutes')} className="min-h-[44px]" />
-          <p className="text-xs text-gray-500">Time needed between appointments requiring different equipment</p>
+          <p className="text-xs text-muted-foreground">Time needed between appointments requiring different equipment</p>
         </div>
         <SectionActions saving={saving} onClear={handleClear} message={message} sectionId="business-rules" existing={existing} />
       </form>
@@ -740,7 +740,7 @@ function PrioritiesSection({ existing }: { existing: AgentProfileDoc | undefined
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-500">Tip: each priority should have a unique rank.</p>
+        <p className="text-xs text-muted-foreground">Tip: each priority should have a unique rank.</p>
         <SectionActions saving={saving} onClear={handleClear} message={message} sectionId="priorities" existing={existing} />
       </form>
     </SectionWrapper>
@@ -774,14 +774,14 @@ export default function AgentProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Agent Profile</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">Agent Profile</h1>
+        <p className="mt-2 text-muted-foreground">
           Tell the scheduling agent about your preferences so it can build smarter schedules.
         </p>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading profile…</div>
+        <div className="text-center py-12 text-muted-foreground">Loading profile…</div>
       ) : (
         <div className="space-y-4">
           <IdentitySection existing={sections['bootstrap']} />

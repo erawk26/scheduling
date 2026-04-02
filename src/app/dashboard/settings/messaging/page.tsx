@@ -67,8 +67,8 @@ export default function MessagingSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Messaging</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">Messaging</h1>
+        <p className="mt-2 text-muted-foreground">
           Connect messaging platforms so clients can reach your AI assistant directly.
         </p>
       </div>
@@ -77,7 +77,7 @@ export default function MessagingSettingsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-blue-500" />
+              <MessageSquare className="h-5 w-5 text-primary" />
               <CardTitle>Telegram Bot</CardTitle>
             </div>
             <Badge variant={isConfigured ? 'default' : 'secondary'}>
@@ -99,7 +99,7 @@ export default function MessagingSettingsPage() {
               placeholder="110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw"
               autoComplete="off"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Get your token from{' '}
               <span className="font-medium">@BotFather</span> on Telegram.
               Run <span className="font-mono">/newbot</span> to create a bot.
@@ -111,7 +111,7 @@ export default function MessagingSettingsPage() {
               {isSaving ? 'Saving...' : 'Save Token'}
             </Button>
             {saveMessage && (
-              <p className={`text-sm text-center ${saveMessage.includes('Failed') ? 'text-red-600' : 'text-green-600'}`}>
+              <p className={`text-sm text-center ${saveMessage.includes('Failed') ? 'text-destructive' : 'text-success-muted-foreground'}`}>
                 {saveMessage}
               </p>
             )}
@@ -121,7 +121,7 @@ export default function MessagingSettingsPage() {
 
           <div className="space-y-2">
             <Label>Webhook URL</Label>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Paste this URL into BotFather using{' '}
               <span className="font-mono">/setwebhook</span>, or use the Telegram API to set it programmatically.
             </p>
@@ -129,7 +129,7 @@ export default function MessagingSettingsPage() {
               <Input
                 readOnly
                 value={webhookUrl}
-                className="bg-gray-50 text-xs font-mono"
+                className="bg-secondary text-xs font-mono"
               />
               <Button
                 variant="outline"
@@ -138,7 +138,7 @@ export default function MessagingSettingsPage() {
                 aria-label="Copy webhook URL"
                 className="flex-shrink-0"
               >
-                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="h-4 w-4 text-success-muted-foreground" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function MessagingSettingsPage() {
 
           <div className="space-y-2">
             <Label>Test Connection</Label>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Send a test message to verify the bot is reachable. Requires the token to be saved and the webhook configured.
             </p>
             <Button variant="outline" disabled className="w-full">

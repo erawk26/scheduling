@@ -42,7 +42,7 @@ export default function SignInPage() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -77,15 +77,15 @@ export default function SignInPage() {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </Button>
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-400 cursor-not-allowed">
+            <span className="text-sm text-muted-foreground cursor-not-allowed">
               Forgot password?
             </span>
           </div>
@@ -95,7 +95,7 @@ export default function SignInPage() {
         </form>
       </CardContent>
       <CardFooter>
-        <p className="text-sm text-center w-full text-gray-600">
+        <p className="text-sm text-center w-full text-muted-foreground">
           Don&apos;t have an account?{' '}
           <Link to="/sign-up" className="text-primary hover:underline font-medium">
             Sign up

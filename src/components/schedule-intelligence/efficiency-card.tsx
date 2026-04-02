@@ -11,18 +11,18 @@ function toMiles(km: number): string {
 
 function getEfficiencyBadge(percent: number): { label: string; className: string } {
   if (percent >= 85) {
-    return { label: 'Efficient', className: 'bg-green-100 text-green-700 border-green-200' };
+    return { label: 'Efficient', className: 'bg-success-muted text-success-muted-foreground border-success-muted-foreground/20' };
   }
   if (percent >= 60) {
-    return { label: 'Moderate', className: 'bg-amber-100 text-amber-700 border-amber-200' };
+    return { label: 'Moderate', className: 'bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20' };
   }
-  return { label: 'Inefficient', className: 'bg-red-100 text-red-700 border-red-200' };
+  return { label: 'Inefficient', className: 'bg-destructive/10 text-destructive border-destructive/20' };
 }
 
 function getEfficiencyColor(percent: number): string {
-  if (percent >= 85) return 'text-green-600';
-  if (percent >= 60) return 'text-amber-600';
-  return 'text-red-600';
+  if (percent >= 85) return 'text-success-muted-foreground';
+  if (percent >= 60) return 'text-warning-muted-foreground';
+  return 'text-destructive';
 }
 
 interface EfficiencyCardProps {
@@ -46,29 +46,29 @@ export function EfficiencyCard({ day }: EfficiencyCardProps) {
           <span className={`text-3xl font-bold ${percentColor}`}>
             {Math.round(day.efficiencyPercent)}%
           </span>
-          <span className="text-sm text-gray-500">efficiency</span>
+          <span className="text-sm text-muted-foreground">efficiency</span>
         </div>
 
-        <div className="space-y-1.5 text-sm text-gray-600">
+        <div className="space-y-1.5 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 flex-shrink-0 text-gray-400" />
+            <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span>
               {toMiles(day.actualDistanceKm)} mi driven
               {day.optimalDistanceKm > 0 && (
-                <span className="text-gray-400"> / {toMiles(day.optimalDistanceKm)} mi optimal</span>
+                <span className="text-muted-foreground"> / {toMiles(day.optimalDistanceKm)} mi optimal</span>
               )}
             </span>
           </div>
 
           {day.estimatedWastedMinutes > 0 && (
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 flex-shrink-0 text-gray-400" />
+              <Clock className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
               <span>~{Math.round(day.estimatedWastedMinutes)} min wasted</span>
             </div>
           )}
 
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 flex-shrink-0 text-gray-400" />
+            <CalendarDays className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span>
               {day.appointmentCount} appointment{day.appointmentCount !== 1 ? 's' : ''}
             </span>

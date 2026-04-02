@@ -9,12 +9,12 @@ function getFlexibilityBadge(flexibility: ScheduleSuggestion['clientFlexibility'
   className: string;
 } {
   if (flexibility === 'flexible') {
-    return { label: 'Flexible', className: 'bg-green-100 text-green-700 border-green-200' };
+    return { label: 'Flexible', className: 'bg-success-muted text-success-muted-foreground border-success-muted-foreground/20' };
   }
   if (flexibility === 'fixed') {
-    return { label: 'Fixed', className: 'bg-red-100 text-red-700 border-red-200' };
+    return { label: 'Fixed', className: 'bg-destructive/10 text-destructive border-destructive/20' };
   }
-  return { label: 'Unknown', className: 'bg-amber-100 text-amber-700 border-amber-200' };
+  return { label: 'Unknown', className: 'bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20' };
 }
 
 interface SuggestionCardProps {
@@ -33,34 +33,34 @@ export function SuggestionCard({ suggestion, onApply, isApplying = false }: Sugg
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-gray-900">{suggestion.clientName}</p>
+              <p className="font-semibold text-foreground">{suggestion.clientName}</p>
               <Badge className={flexBadge.className}>{flexBadge.label}</Badge>
             </div>
-            <p className="text-sm text-gray-500">{suggestion.serviceName}</p>
+            <p className="text-sm text-muted-foreground">{suggestion.serviceName}</p>
 
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-700">
+              <span className="text-foreground">
                 {suggestion.currentDay} {suggestion.currentTime}
               </span>
-              <ArrowRight className="h-4 w-4 flex-shrink-0 text-blue-500" />
-              <span className="font-medium text-blue-700">
+              <ArrowRight className="h-4 w-4 flex-shrink-0 text-primary" />
+              <span className="font-medium text-primary">
                 {suggestion.suggestedDay} {suggestion.suggestedTime}
               </span>
             </div>
 
-            <p className="text-sm text-gray-500 italic">{suggestion.reason}</p>
+            <p className="text-sm text-muted-foreground italic">{suggestion.reason}</p>
 
             {hasSavings && (
-              <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                 {suggestion.estimatedMilesSaved > 0 && (
                   <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-green-500" />
+                    <MapPin className="h-3 w-3 text-success-muted-foreground" />
                     ~{suggestion.estimatedMilesSaved.toFixed(1)} miles saved
                   </span>
                 )}
                 {suggestion.estimatedMinutesSaved > 0 && (
                   <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-green-500" />
+                    <Clock className="h-3 w-3 text-success-muted-foreground" />
                     ~{Math.round(suggestion.estimatedMinutesSaved)} min saved
                   </span>
                 )}

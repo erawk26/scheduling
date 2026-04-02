@@ -16,7 +16,7 @@ export function MessageTimestamp({ timestamp }: MessageTimestampProps) {
     <button
       type="button"
       onClick={() => setShowAbsolute((p) => !p)}
-      className="text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer select-none"
+      className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer select-none"
       data-testid="message-timestamp"
     >
       {showAbsolute ? absoluteTime : relativeTime}

@@ -6,7 +6,7 @@ import 'leaflet/dist/leaflet.css';
 function createNumberedIcon(number: number): L.DivIcon {
   return L.divIcon({
     className: 'route-marker',
-    html: `<div style="background:#2563eb;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)">${number}</div>`,
+    html: `<div style="background:#2d5c3c;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)">${number}</div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -16],
@@ -105,7 +105,7 @@ export function RouteMap({ stops, polyline, className }: RouteMapProps) {
 
         <FitBounds positions={positions} />
 
-        <Polyline positions={routeLine} color="#2563eb" weight={4} opacity={0.7} />
+        <Polyline positions={routeLine} color="#2d5c3c" weight={4} opacity={0.7} />
 
         {stops.map((stop, i) => (
           <Marker
@@ -117,7 +117,7 @@ export function RouteMap({ stops, polyline, className }: RouteMapProps) {
               <div>
                 <strong>{stop.label}</strong>
                 {stop.sublabel && (
-                  <div style={{ fontSize: '0.85em', color: '#666' }}>{stop.sublabel}</div>
+                  <div style={{ fontSize: '0.85em', color: '#5a7862' }}>{stop.sublabel}</div>
                 )}
               </div>
             </Popup>

@@ -48,7 +48,7 @@ export default function SignUpPage() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -110,13 +110,13 @@ export default function SignUpPage() {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </Button>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Must be at least 8 characters
             </p>
           </div>
@@ -126,7 +126,7 @@ export default function SignUpPage() {
         </form>
       </CardContent>
       <CardFooter>
-        <p className="text-sm text-center w-full text-gray-600">
+        <p className="text-sm text-center w-full text-muted-foreground">
           Already have an account?{' '}
           <Link to="/sign-in" className="text-primary hover:underline font-medium">
             Sign in

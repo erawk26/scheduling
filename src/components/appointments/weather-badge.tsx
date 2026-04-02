@@ -73,7 +73,7 @@ export function WeatherBadge({ forecast, compact = false }: WeatherBadgeProps) {
   if (compact) {
     return (
       <span
-        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200"
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning-muted text-warning-muted-foreground border border-warning-muted-foreground/20"
         title={`Weather alert: ${reason}`}
       >
         <Icon className="h-3 w-3" />
@@ -83,11 +83,11 @@ export function WeatherBadge({ forecast, compact = false }: WeatherBadgeProps) {
   }
 
   return (
-    <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-200 bg-amber-50">
-      <Icon className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+    <div className="flex items-start gap-2 p-3 rounded-lg border border-warning-muted-foreground/20 bg-warning-muted">
+      <Icon className="h-4 w-4 text-warning-muted-foreground mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <p className="text-sm font-medium text-amber-800">Weather Alert</p>
-        <p className="text-xs text-amber-700 mt-0.5">
+        <p className="text-sm font-medium text-warning-muted-foreground">Weather Alert</p>
+        <p className="text-xs text-warning-muted-foreground mt-0.5">
           {reason}. Consider rescheduling.
         </p>
       </div>
@@ -143,7 +143,7 @@ export function WeatherDayIcon({ forecast }: { forecast: WeatherForecast }) {
 
   return (
     <Icon
-      className="h-3 w-3 text-amber-500"
+      className="h-3 w-3 text-warning-muted-foreground"
       aria-label={`Weather alert: ${forecast.condition_label}`}
     />
   );

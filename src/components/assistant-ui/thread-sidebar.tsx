@@ -20,7 +20,7 @@ export function ThreadSidebar({
   onDeleteThread,
 }: ThreadSidebarProps) {
   return (
-    <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200">
+    <div className="flex flex-col h-full bg-secondary border-r border-border">
       <div className="p-3">
         <Button
           onClick={onNewThread}
@@ -35,7 +35,7 @@ export function ThreadSidebar({
 
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
         {threads.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-4">No conversations yet</p>
+          <p className="text-xs text-muted-foreground text-center py-4">No conversations yet</p>
         )}
 
         {threads.map((thread) => (
@@ -44,26 +44,26 @@ export function ThreadSidebar({
             className={cn(
               'group flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer text-sm transition-colors',
               thread.id === activeThreadId
-                ? 'bg-white shadow-sm border border-gray-200 text-gray-900'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-card shadow-sm border border-border text-foreground'
+                : 'text-muted-foreground hover:bg-secondary'
             )}
             onClick={() => onSelectThread(thread.id)}
           >
-            <MessageSquare className="w-4 h-4 flex-shrink-0 text-gray-400" />
+            <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-medium">{thread.title}</p>
-              <p className="text-xs text-gray-400 truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {formatDistanceToNow(new Date(thread.updatedAt), { addSuffix: true })}
               </p>
             </div>
             <button
-              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 transition-opacity"
+              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-secondary transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
                 onDeleteThread(thread.id);
               }}
             >
-              <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+              <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
             </button>
           </div>
         ))}

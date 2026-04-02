@@ -43,7 +43,7 @@ export function ChatSettings({ onResetLearning, onOpenSettings }: ChatSettingsPr
           className="h-8 w-8"
           data-testid="settings-shortcut"
         >
-          <Settings className="w-4 h-4 text-gray-400" />
+          <Settings className="w-4 h-4 text-muted-foreground" />
         </Button>
       )}
 
@@ -55,7 +55,7 @@ export function ChatSettings({ onResetLearning, onOpenSettings }: ChatSettingsPr
             className="h-8 w-8"
             data-testid="reset-learning-trigger"
           >
-            <Trash2 className="w-4 h-4 text-gray-400" />
+            <Trash2 className="w-4 h-4 text-muted-foreground" />
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -72,7 +72,7 @@ export function ChatSettings({ onResetLearning, onOpenSettings }: ChatSettingsPr
             <AlertDialogAction
               onClick={handleReset}
               disabled={isResetting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
               data-testid="confirm-reset"
             >
               {isResetting ? 'Resetting...' : 'Reset'}
@@ -82,7 +82,7 @@ export function ChatSettings({ onResetLearning, onOpenSettings }: ChatSettingsPr
       </AlertDialog>
 
       {resetDone && (
-        <span data-testid="reset-success" className="text-xs text-green-600">
+        <span data-testid="reset-success" className="text-xs text-success-muted-foreground">
           Reset complete
         </span>
       )}

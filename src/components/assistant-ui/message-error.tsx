@@ -10,7 +10,7 @@ export function MessageError({ error, onRetry }: MessageErrorProps) {
   return (
     <div
       data-testid="message-error"
-      className="flex items-center gap-2 px-3 py-2 mt-1 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700"
+      className="flex items-center gap-2 px-3 py-2 mt-1 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive"
     >
       <AlertCircle className="w-4 h-4 flex-shrink-0" />
       <span className="flex-1">{error}</span>
@@ -19,7 +19,7 @@ export function MessageError({ error, onRetry }: MessageErrorProps) {
           variant="ghost"
           size="sm"
           onClick={onRetry}
-          className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-100"
+          className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
           data-testid="retry-button"
         >
           <RotateCcw className="w-3.5 h-3.5 mr-1" />

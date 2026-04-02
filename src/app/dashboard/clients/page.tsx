@@ -52,8 +52,8 @@ export default function ClientsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
-          <p className="mt-2 text-gray-600">Manage your client database</p>
+          <h1 className="text-3xl font-bold text-foreground">Clients</h1>
+          <p className="mt-2 text-muted-foreground">Manage your client database</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -80,7 +80,7 @@ export default function ClientsPage() {
                     placeholder="John"
                   />
                   {form.formState.errors.first_name && (
-                    <p className="text-sm text-red-600">
+                    <p className="text-sm text-destructive">
                       {form.formState.errors.first_name.message}
                     </p>
                   )}
@@ -94,7 +94,7 @@ export default function ClientsPage() {
                     placeholder="Doe"
                   />
                   {form.formState.errors.last_name && (
-                    <p className="text-sm text-red-600">
+                    <p className="text-sm text-destructive">
                       {form.formState.errors.last_name.message}
                     </p>
                   )}
@@ -110,7 +110,7 @@ export default function ClientsPage() {
                   placeholder="john.doe@example.com"
                 />
                 {form.formState.errors.email && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm text-destructive">
                     {form.formState.errors.email.message}
                   </p>
                 )}
@@ -124,7 +124,7 @@ export default function ClientsPage() {
                   placeholder="(555) 123-4567"
                 />
                 {form.formState.errors.phone && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm text-destructive">
                     {form.formState.errors.phone.message}
                   </p>
                 )}
@@ -138,7 +138,7 @@ export default function ClientsPage() {
                   placeholder="123 Main St, City, State 12345"
                 />
                 {form.formState.errors.address && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm text-destructive">
                     {form.formState.errors.address.message}
                   </p>
                 )}
@@ -152,7 +152,7 @@ export default function ClientsPage() {
                   rows={3}
                 />
                 {form.formState.errors.notes && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm text-destructive">
                     {form.formState.errors.notes.message}
                   </p>
                 )}
@@ -175,7 +175,7 @@ export default function ClientsPage() {
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search clients by name..."
           value={search}
@@ -213,28 +213,28 @@ export default function ClientsPage() {
                     {client.first_name} {client.last_name}
                   </CardTitle>
                   {client.scheduling_flexibility === 'flexible' && (
-                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">Flexible</Badge>
+                    <Badge className="bg-success-muted text-success-muted-foreground hover:bg-success-muted text-xs">Flexible</Badge>
                   )}
                   {client.scheduling_flexibility === 'fixed' && (
-                    <Badge variant="outline" className="text-gray-500 text-xs">Fixed</Badge>
+                    <Badge variant="outline" className="text-muted-foreground text-xs">Fixed</Badge>
                   )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {client.email && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4" />
                     <span className="truncate">{client.email}</span>
                   </div>
                 )}
                 {client.phone && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="h-4 w-4" />
                     <span>{client.phone}</span>
                   </div>
                 )}
                 {client.address && (
-                  <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <span className="line-clamp-2">{client.address}</span>
                   </div>
@@ -247,7 +247,7 @@ export default function ClientsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-gray-500" />
+              <Users className="h-5 w-5 text-muted-foreground" />
               <CardTitle>Client List</CardTitle>
             </div>
             <CardDescription>
@@ -256,8 +256,8 @@ export default function ClientsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Users className="h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-gray-600 mb-4">
+              <Users className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground mb-4">
                 {search
                   ? 'Try a different search term'
                   : "You don't have any clients yet."}

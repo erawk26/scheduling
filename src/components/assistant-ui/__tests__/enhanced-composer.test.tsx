@@ -82,7 +82,7 @@ describe('EnhancedComposer', () => {
     const input = screen.getByTestId('composer-input') as HTMLTextAreaElement
     typeIntoInput(input, 'a'.repeat(1001))
     const counter = screen.getByTestId('char-counter')
-    expect(counter.className).toContain('text-red-500')
+    expect(counter.className).toContain('text-destructive')
   })
 
   it('enables submit at exactly 1000 characters', () => {

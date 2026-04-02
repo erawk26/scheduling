@@ -15,10 +15,10 @@ export function OnboardingIntro({ isNewUser, onSelectPrompt }: OnboardingIntroPr
         <Bot className="w-7 h-7 text-primary" />
       </div>
       <div className="space-y-2 max-w-md">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-foreground">
           Hi! I&apos;m your scheduling assistant
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Let me get to know you better so I can help manage your appointments,
           clients, and schedule. I&apos;ll ask a few quick questions to get started.
         </p>

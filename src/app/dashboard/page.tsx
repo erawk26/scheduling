@@ -133,8 +133,8 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="mt-2 text-muted-foreground">
           Welcome back! Here&apos;s an overview of your business.
         </p>
       </div>
@@ -146,11 +146,11 @@ export default function DashboardPage() {
           return (
             <Card key={stat.title}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Icon className="w-4 h-4 text-blue-600" />
+                <div className="p-2 bg-info-muted rounded-lg">
+                  <Icon className="w-4 h-4 text-primary" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -171,8 +171,8 @@ export default function DashboardPage() {
           <CardContent>
             {upcomingList.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Calendar className="w-12 h-12 text-gray-300 mb-4" />
-                <p className="text-gray-500 mb-4">
+                <Calendar className="w-12 h-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4">
                   No appointments scheduled yet.
                 </p>
                 <Button asChild>
@@ -195,14 +195,14 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={appointment.id}
-                      className="flex items-start justify-between p-3 border rounded-lg hover:bg-gray-50"
+                      className="flex items-start justify-between p-3 border rounded-lg hover:bg-secondary"
                     >
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           {clientName}
                         </p>
-                        <p className="text-sm text-gray-600">{serviceName}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-sm text-muted-foreground">{serviceName}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
                           {format(parseISO(appointment.start_time), 'MMM d')} at{' '}
                           {format(parseISO(appointment.start_time), 'h:mm a')}
                         </p>
@@ -210,10 +210,10 @@ export default function DashboardPage() {
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
                           appointment.status === 'confirmed'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-success-muted text-success-muted-foreground'
                             : appointment.status === 'scheduled'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-gray-100 text-gray-700'
+                              ? 'bg-info-muted text-primary'
+                              : 'bg-secondary text-foreground'
                         }`}
                       >
                         {appointment.status}

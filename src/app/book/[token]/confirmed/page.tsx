@@ -108,7 +108,7 @@ export default async function ConfirmedPage({ params }: PageProps) {
       <Card className="max-w-md w-full">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <CheckCircle className="text-green-500 w-8 h-8 shrink-0" />
+            <CheckCircle className="text-success-muted-foreground w-8 h-8 shrink-0" />
             <CardTitle className="text-xl">You&apos;re confirmed!</CardTitle>
           </div>
         </CardHeader>

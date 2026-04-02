@@ -78,14 +78,14 @@ import type { WeatherForecast } from '@/lib/weather/types';
 
 
 const statusColors: Record<Appointment['status'], string> = {
-  draft: 'bg-amber-100 text-amber-800',
-  pending: 'bg-purple-100 text-purple-800',
-  scheduled: 'bg-blue-100 text-blue-800',
-  confirmed: 'bg-green-100 text-green-800',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-gray-100 text-gray-800',
-  cancelled: 'bg-red-100 text-red-800',
-  no_show: 'bg-orange-100 text-orange-800',
+  draft: 'bg-warning-muted text-warning-muted-foreground',
+  pending: 'bg-warning-muted text-warning-muted-foreground',
+  scheduled: 'bg-info-muted text-info-muted-foreground',
+  confirmed: 'bg-success-muted text-success-muted-foreground',
+  in_progress: 'bg-fern-pale text-primary',
+  completed: 'bg-info-muted text-info-muted-foreground',
+  cancelled: 'bg-destructive/10 text-destructive',
+  no_show: 'bg-secondary text-foreground',
 };
 
 const statusLabels: Record<Appointment['status'], string> = {
@@ -213,8 +213,8 @@ export default function AppointmentsPage() {
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Appointments</h1>
+          <p className="mt-2 text-muted-foreground">
             Manage your upcoming and past appointments
           </p>
         </div>
@@ -230,8 +230,8 @@ export default function AppointmentsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Appointments</h1>
+          <p className="mt-2 text-muted-foreground">
             Manage your upcoming and past appointments
           </p>
         </div>
@@ -243,7 +243,7 @@ export default function AppointmentsPage() {
                 size="sm"
                 onClick={handleConfirmAllDrafts}
                 disabled={isConfirmingDrafts}
-                className="border-green-300 text-green-700 hover:bg-green-50"
+                className="border-success-muted-foreground/20 text-success-muted-foreground hover:bg-success-muted"
               >
                 {isConfirmingDrafts ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -251,7 +251,7 @@ export default function AppointmentsPage() {
                   <CheckCheck className="mr-2 h-4 w-4" />
                 )}
                 Confirm All Drafts
-                <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-300">
+                <Badge className="ml-2 bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20">
                   {draftAppointments.length}
                 </Badge>
               </Button>
@@ -480,7 +480,7 @@ function AppointmentCard({
               />
             </div>
 
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 <span>
@@ -555,7 +555,7 @@ function AppointmentCard({
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 -ml-2">
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 -ml-2">
                 Cancel
               </Button>
             </AlertDialogTrigger>
@@ -570,7 +570,7 @@ function AppointmentCard({
                 <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-destructive hover:bg-destructive/90"
                 >
                   Cancel Appointment
                 </AlertDialogAction>
@@ -718,7 +718,7 @@ function AppointmentForm({
             </SelectContent>
           </Select>
           {errors.client_id && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-destructive">
               {errors.client_id.message}
             </p>
           )}
@@ -742,7 +742,7 @@ function AppointmentForm({
             </SelectContent>
           </Select>
           {errors.service_id && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-destructive">
               {errors.service_id.message}
             </p>
           )}
@@ -795,7 +795,7 @@ function AppointmentForm({
               }
             />
             {errors.start_time && (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mt-1 text-sm text-destructive">
                 {errors.start_time.message}
               </p>
             )}
@@ -823,7 +823,7 @@ function AppointmentForm({
               }}
             />
             {errors.start_time && (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mt-1 text-sm text-destructive">
                 {errors.start_time.message}
               </p>
             )}
@@ -852,7 +852,7 @@ function AppointmentForm({
             }}
           />
           {errors.end_time && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-destructive">
               {errors.end_time.message}
             </p>
           )}
@@ -878,7 +878,7 @@ function AppointmentForm({
             </SelectContent>
           </Select>
           {errors.location_type && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-destructive">
               {errors.location_type.message}
             </p>
           )}
@@ -888,7 +888,7 @@ function AppointmentForm({
           <Label htmlFor="address">Address (Optional)</Label>
           <Input id="address" {...register('address')} />
           {errors.address && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-destructive">
               {errors.address.message}
             </p>
           )}
@@ -898,7 +898,7 @@ function AppointmentForm({
           <Label htmlFor="notes">Notes (Optional)</Label>
           <Textarea id="notes" {...register('notes')} rows={3} />
           {errors.notes && (
-            <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.notes.message}</p>
           )}
         </div>
 
@@ -910,7 +910,7 @@ function AppointmentForm({
             rows={2}
           />
           {errors.internal_notes && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-destructive">
               {errors.internal_notes.message}
             </p>
           )}
@@ -934,8 +934,8 @@ function EmptyState({ message }: { message: string }) {
   return (
     <Card>
       <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-        <Calendar className="h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-gray-600">{message}</p>
+        <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">{message}</p>
       </CardContent>
     </Card>
   );

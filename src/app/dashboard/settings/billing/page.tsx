@@ -46,12 +46,12 @@ export default function BillingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Billing & Usage</h1>
-        <p className="mt-2 text-gray-600">Your current plan and AI usage this month</p>
+        <h1 className="text-3xl font-bold text-foreground">Billing & Usage</h1>
+        <p className="mt-2 text-muted-foreground">Your current plan and AI usage this month</p>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12 text-gray-500">Loading billing data...</div>
+        <div className="text-center py-12 text-muted-foreground">Loading billing data...</div>
       ) : (
         <>
           <Card>
@@ -64,27 +64,27 @@ export default function BillingPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Plan</span>
+                <span className="text-sm text-muted-foreground">Plan</span>
                 <Badge variant={tier.name === 'paid' ? 'default' : 'secondary'}>
                   {tier.name === 'paid' ? 'Pro' : 'Free'}
                 </Badge>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">AI Model</span>
-                <span className="text-sm font-mono text-gray-800">{tier.model}</span>
+                <span className="text-sm text-muted-foreground">AI Model</span>
+                <span className="text-sm font-mono text-foreground">{tier.model}</span>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Monthly token limit</span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm text-muted-foreground">Monthly token limit</span>
+                <span className="text-sm font-medium text-foreground">
                   {tier.maxTokensPerMonth.toLocaleString()}
                 </span>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Weekly email limit</span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm text-muted-foreground">Weekly email limit</span>
+                <span className="text-sm font-medium text-foreground">
                   {tier.maxEmailsPerWeek === -1 ? 'Unlimited' : tier.maxEmailsPerWeek}
                 </span>
               </div>
@@ -96,7 +96,7 @@ export default function BillingPage() {
                     <Zap className="w-4 h-4 mr-2" />
                     Upgrade to Pro
                   </Button>
-                  <p className="text-xs text-center text-gray-500">
+                  <p className="text-xs text-center text-muted-foreground">
                     Payment integration coming soon
                   </p>
                 </>
@@ -114,19 +114,19 @@ export default function BillingPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tokens used</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-muted-foreground">Tokens used</span>
+                  <span className="font-medium text-foreground">
                     {tokensUsed.toLocaleString()} / {tier.maxTokensPerMonth.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${tokenPercent >= 95 ? 'bg-red-500' : tokenPercent >= 80 ? 'bg-amber-500' : 'bg-primary'}`}
+                    className={`h-full rounded-full transition-all ${tokenPercent >= 95 ? 'bg-destructive' : tokenPercent >= 80 ? 'bg-warning-muted-foreground' : 'bg-primary'}`}
                     style={{ width: `${tokenPercent}%` }}
                   />
                 </div>
                 {tokenPercent >= 80 && (
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-warning-muted-foreground">
                     {tokenPercent >= 95
                       ? 'Budget nearly exhausted. Upgrade to continue using the AI.'
                       : `${tokenPercent}% used — running low this month.`}
@@ -136,15 +136,15 @@ export default function BillingPage() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Emails sent this week</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-muted-foreground">Emails sent this week</span>
+                  <span className="font-medium text-foreground">
                     {emailLimit === null
                       ? `${emailsSent} (unlimited)`
                       : `${emailsSent} / ${emailLimit}`}
                   </span>
                 </div>
                 {emailLimit !== null && (
-                  <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
                     <div
                       className="h-full rounded-full bg-primary transition-all"
                       style={{ width: `${emailPercent}%` }}
@@ -155,25 +155,25 @@ export default function BillingPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-gray-100 bg-gray-50">
+          <Card className="border-border bg-secondary">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-700">Plan Comparison</CardTitle>
+              <CardTitle className="text-sm font-medium text-foreground">Plan Comparison</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div />
-                <div className="text-center font-medium text-gray-700">Free</div>
-                <div className="text-center font-medium text-gray-700">Pro</div>
+                <div className="text-center font-medium text-foreground">Free</div>
+                <div className="text-center font-medium text-foreground">Pro</div>
 
-                <div className="text-gray-600">Monthly tokens</div>
+                <div className="text-muted-foreground">Monthly tokens</div>
                 <div className="text-center">{FREE_TIER.maxTokensPerMonth.toLocaleString()}</div>
                 <div className="text-center">{PAID_TIER.maxTokensPerMonth.toLocaleString()}</div>
 
-                <div className="text-gray-600">Emails / week</div>
+                <div className="text-muted-foreground">Emails / week</div>
                 <div className="text-center">{FREE_TIER.maxEmailsPerWeek}</div>
                 <div className="text-center">Unlimited</div>
 
-                <div className="text-gray-600">AI model</div>
+                <div className="text-muted-foreground">AI model</div>
                 <div className="text-center text-xs">Gemma 2 9B</div>
                 <div className="text-center text-xs">Claude 3.5</div>
               </div>

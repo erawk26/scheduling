@@ -277,7 +277,7 @@ export default function ChatPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-sm text-gray-400">Loading chat...</div>
+        <div className="text-sm text-muted-foreground">Loading chat...</div>
       </div>
     );
   }
@@ -300,13 +300,13 @@ export default function ChatPage() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {!isOnline && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200 text-amber-800 text-sm flex-shrink-0">
+          <div className="flex items-center gap-2 px-4 py-2 bg-warning-muted border-b border-warning-muted-foreground/20 text-warning-muted-foreground text-sm flex-shrink-0">
             <WifiOff className="w-4 h-4 flex-shrink-0" />
             <span>You&rsquo;re offline — messages will be sent when you reconnect</span>
           </div>
         )}
 
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -319,8 +319,8 @@ export default function ChatPage() {
             <Bot className="w-4 h-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-sm font-semibold text-gray-900 truncate">AI Scheduler</h1>
-            <p className="text-xs text-gray-500">Your scheduling assistant</p>
+            <h1 className="text-sm font-semibold text-foreground truncate">AI Scheduler</h1>
+            <p className="text-xs text-muted-foreground">Your scheduling assistant</p>
           </div>
           <div className="ml-auto">
             <TokenUsageWidget />
@@ -336,7 +336,7 @@ export default function ChatPage() {
               onFirstMessage={handleFirstMessage}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-sm text-gray-400">
+            <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
               Select a conversation
             </div>
           )}
@@ -388,16 +388,16 @@ function TokenUsageWidget() {
       <span
         className={cn(
           'text-xs font-medium tabular-nums',
-          isRed ? 'text-red-600' : isAmber ? 'text-amber-600' : 'text-gray-400'
+          isRed ? 'text-destructive' : isAmber ? 'text-warning-muted-foreground' : 'text-muted-foreground'
         )}
       >
         {formatTokens(tokensUsed)} / {formatTokens(limit)} tokens
       </span>
-      <div className="w-full h-1 rounded-full bg-gray-100 overflow-hidden">
+      <div className="w-full h-1 rounded-full bg-secondary overflow-hidden">
         <div
           className={cn(
             'h-full rounded-full transition-all',
-            isRed ? 'bg-red-500' : isAmber ? 'bg-amber-400' : 'bg-primary/40'
+            isRed ? 'bg-destructive' : isAmber ? 'bg-warning' : 'bg-primary/40'
           )}
           style={{ width: `${Math.min(ratio * 100, 100)}%` }}
         />

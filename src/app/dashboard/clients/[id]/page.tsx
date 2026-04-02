@@ -163,7 +163,7 @@ export default function ClientDetailPage() {
         </Button>
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-gray-600">Client not found</p>
+            <p className="text-muted-foreground">Client not found</p>
           </CardContent>
         </Card>
       </div>
@@ -186,10 +186,10 @@ export default function ClientDetailPage() {
                   {client.first_name} {client.last_name}
                 </CardTitle>
                 {client.scheduling_flexibility === 'flexible' && (
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Flexible</Badge>
+                  <Badge className="bg-success-muted text-success-muted-foreground hover:bg-success-muted">Flexible</Badge>
                 )}
                 {client.scheduling_flexibility === 'fixed' && (
-                  <Badge variant="outline" className="text-gray-500">Fixed</Badge>
+                  <Badge variant="outline" className="text-muted-foreground">Fixed</Badge>
                 )}
               </div>
             </div>
@@ -217,7 +217,7 @@ export default function ClientDetailPage() {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteClient}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-destructive hover:bg-destructive/90"
                     >
                       Delete
                     </AlertDialogAction>
@@ -230,26 +230,26 @@ export default function ClientDetailPage() {
         <CardContent className="space-y-4">
           {client.email && (
             <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-gray-400" />
-              <span className="text-gray-700">{client.email}</span>
+              <Mail className="h-5 w-5 text-muted-foreground" />
+              <span className="text-foreground">{client.email}</span>
             </div>
           )}
           {client.phone && (
             <div className="flex items-center gap-3">
-              <Phone className="h-5 w-5 text-gray-400" />
-              <span className="text-gray-700">{client.phone}</span>
+              <Phone className="h-5 w-5 text-muted-foreground" />
+              <span className="text-foreground">{client.phone}</span>
             </div>
           )}
           {client.address && (
             <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
-              <span className="text-gray-700">{client.address}</span>
+              <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <span className="text-foreground">{client.address}</span>
             </div>
           )}
           {client.notes && (
             <div className="pt-4 border-t">
-              <h4 className="font-medium text-gray-900 mb-2">Notes</h4>
-              <p className="text-gray-700 whitespace-pre-wrap">{client.notes}</p>
+              <h4 className="font-medium text-foreground mb-2">Notes</h4>
+              <p className="text-foreground whitespace-pre-wrap">{client.notes}</p>
             </div>
           )}
         </CardContent>
@@ -292,7 +292,7 @@ export default function ClientDetailPage() {
                       placeholder="Buddy"
                     />
                     {petForm.formState.errors.name && (
-                      <p className="text-sm text-red-600">
+                      <p className="text-sm text-destructive">
                         {petForm.formState.errors.name.message}
                       </p>
                     )}
@@ -315,7 +315,7 @@ export default function ClientDetailPage() {
                       </SelectContent>
                     </Select>
                     {petForm.formState.errors.species && (
-                      <p className="text-sm text-red-600">
+                      <p className="text-sm text-destructive">
                         {petForm.formState.errors.species.message}
                       </p>
                     )}
@@ -432,7 +432,7 @@ export default function ClientDetailPage() {
               {pets.map((pet) => (
                 <div
                   key={pet.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-4 hover:bg-secondary transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -447,7 +447,7 @@ export default function ClientDetailPage() {
                           </Badge>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                      <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                         {pet.breed && (
                           <div>
                             <span className="font-medium">Breed:</span> {pet.breed}
@@ -465,12 +465,12 @@ export default function ClientDetailPage() {
                         )}
                       </div>
                       {pet.behavior_notes && (
-                        <div className="mt-2 text-sm text-gray-600">
+                        <div className="mt-2 text-sm text-muted-foreground">
                           <span className="font-medium">Behavior:</span> {pet.behavior_notes}
                         </div>
                       )}
                       {pet.medical_notes && (
-                        <div className="mt-2 text-sm text-gray-600">
+                        <div className="mt-2 text-sm text-muted-foreground">
                           <span className="font-medium">Medical:</span> {pet.medical_notes}
                         </div>
                       )}
@@ -486,7 +486,7 @@ export default function ClientDetailPage() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4 text-red-600" />
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -500,7 +500,7 @@ export default function ClientDetailPage() {
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDeletePet(pet.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                              className="bg-destructive hover:bg-destructive/90"
                             >
                               Delete
                             </AlertDialogAction>
@@ -514,8 +514,8 @@ export default function ClientDetailPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users className="h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-gray-600 mb-4">No pets added yet</p>
+              <Users className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground mb-4">No pets added yet</p>
               <Button onClick={() => setIsAddPetDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Pet
@@ -544,7 +544,7 @@ export default function ClientDetailPage() {
                   placeholder="John"
                 />
                 {clientForm.formState.errors.first_name && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm text-destructive">
                     {clientForm.formState.errors.first_name.message}
                   </p>
                 )}
@@ -558,7 +558,7 @@ export default function ClientDetailPage() {
                   placeholder="Doe"
                 />
                 {clientForm.formState.errors.last_name && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm text-destructive">
                     {clientForm.formState.errors.last_name.message}
                   </p>
                 )}
@@ -574,7 +574,7 @@ export default function ClientDetailPage() {
                 placeholder="john.doe@example.com"
               />
               {clientForm.formState.errors.email && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-destructive">
                   {clientForm.formState.errors.email.message}
                 </p>
               )}
@@ -588,7 +588,7 @@ export default function ClientDetailPage() {
                 placeholder="(555) 123-4567"
               />
               {clientForm.formState.errors.phone && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-destructive">
                   {clientForm.formState.errors.phone.message}
                 </p>
               )}
@@ -602,7 +602,7 @@ export default function ClientDetailPage() {
                 placeholder="123 Main St, City, State 12345"
               />
               {clientForm.formState.errors.address && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-destructive">
                   {clientForm.formState.errors.address.message}
                 </p>
               )}
@@ -616,7 +616,7 @@ export default function ClientDetailPage() {
                 rows={3}
               />
               {clientForm.formState.errors.notes && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-destructive">
                   {clientForm.formState.errors.notes.message}
                 </p>
               )}
@@ -636,7 +636,7 @@ export default function ClientDetailPage() {
                   <SelectItem value="fixed">Fixed</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Flexible clients can be suggested for schedule optimization
               </p>
             </div>

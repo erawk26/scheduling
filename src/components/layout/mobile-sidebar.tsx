@@ -71,7 +71,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
         </nav>
         <div className="border-t border-border px-3 py-3 mt-auto">
           <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
-            <span className={cn('h-2 w-2 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-amber-500')} />
+            <span className={cn('h-2 w-2 rounded-full flex-shrink-0', isOnline ? 'bg-success' : 'bg-warning')} />
             {isOnline ? 'Online' : 'Offline'}
           </div>
         </div>

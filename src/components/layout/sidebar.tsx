@@ -59,7 +59,7 @@ export function Sidebar() {
           </nav>
           <div className="flex-shrink-0 border-t border-border px-3 py-3">
             <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
-              <span className={cn('h-2 w-2 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-amber-500')} />
+              <span className={cn('h-2 w-2 rounded-full flex-shrink-0', isOnline ? 'bg-success' : 'bg-warning')} />
               {statusLabel}
             </div>
           </div>

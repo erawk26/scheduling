@@ -141,8 +141,8 @@ export default function WeatherPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Weather</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">Weather</h1>
+        <p className="mt-2 text-muted-foreground">
           Weather-integrated scheduling for outdoor services
         </p>
       </div>
@@ -180,12 +180,12 @@ export default function WeatherPage() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4" />
           {lat !== null && lon !== null ? (
             <span>{locationLabel}</span>
           ) : (
-            <span className="text-amber-700">
+            <span className="text-warning-muted-foreground">
               No location available. Set your business location in Settings.
             </span>
           )}
@@ -208,9 +208,9 @@ export default function WeatherPage() {
       {isError && !isLoading && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <CloudOff className="h-12 w-12 text-gray-300 mb-4" />
-            <p className="text-gray-500 font-medium">Weather data unavailable</p>
-            <p className="text-sm text-gray-400 mt-2 max-w-md">
+            <CloudOff className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground font-medium">Weather data unavailable</p>
+            <p className="text-sm text-muted-foreground mt-2 max-w-md">
               Unable to fetch weather data. This may be because you&apos;re offline
               or the weather service is temporarily unavailable.
             </p>
@@ -232,29 +232,29 @@ export default function WeatherPage() {
               <div className="flex items-center gap-4">
                 <WeatherIcon
                   name={todayForecast.condition_icon}
-                  className="h-16 w-16 text-blue-500"
+                  className="h-16 w-16 text-primary"
                 />
                 <div>
-                  <div className="text-4xl font-bold text-gray-900">
+                  <div className="text-4xl font-bold text-foreground">
                     {todayForecast.temp_current_f}°F
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Feels like {todayForecast.feels_like_f}°F
                   </div>
-                  <div className="text-sm font-medium text-gray-700 mt-1">
+                  <div className="text-sm font-medium text-foreground mt-1">
                     {todayForecast.condition_label}
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Thermometer className="h-4 w-4" />
                   <span>
                     H: {todayForecast.temp_high_f}° / L: {todayForecast.temp_low_f}°
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Wind className="h-4 w-4" />
                   <span>
                     {todayForecast.wind_speed_mph} mph
@@ -262,25 +262,25 @@ export default function WeatherPage() {
                       ` (gusts ${todayForecast.wind_gust_mph})`}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Droplets className="h-4 w-4" />
                   <span>{todayForecast.humidity}% humidity</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <CloudRain className="h-4 w-4" />
                   <span>{todayForecast.precip_probability}% precipitation</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Eye className="h-4 w-4" />
                   <span>UV Index: {todayForecast.uv_index}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {todayForecast.is_outdoor_suitable ? (
-                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                    <Badge className="bg-success-muted text-success-muted-foreground border-success-muted-foreground/20">
                       Outdoor Suitable
                     </Badge>
                   ) : (
-                    <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                    <Badge className="bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20">
                       Not Ideal for Outdoor
                     </Badge>
                   )}
@@ -294,7 +294,7 @@ export default function WeatherPage() {
       {/* 5-Day Forecast */}
       {forecasts && forecasts.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">5-Day Forecast</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">5-Day Forecast</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             {forecasts.map((forecast) => (
               <ForecastCard key={forecast.date} forecast={forecast} />
@@ -308,7 +308,7 @@ export default function WeatherPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <AlertTriangle className="h-5 w-5 text-warning-muted-foreground" />
               <CardTitle>Weather Alerts</CardTitle>
             </div>
             <CardDescription>
@@ -323,20 +323,20 @@ export default function WeatherPage() {
                 return (
                   <div
                     key={apt.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-warning-muted-foreground/20 bg-warning-muted"
                   >
                     {forecast && (
                       <WeatherIcon
                         name={forecast.condition_icon}
-                        className="h-5 w-5 text-amber-600 shrink-0"
+                        className="h-5 w-5 text-warning-muted-foreground shrink-0"
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-amber-800">
+                      <p className="text-sm font-medium text-warning-muted-foreground">
                         {format(parseISO(apt.start_time), 'MMM d')} at{' '}
                         {format(parseISO(apt.start_time), 'h:mm a')}
                       </p>
-                      <p className="text-xs text-amber-700">
+                      <p className="text-xs text-warning-muted-foreground">
                         {forecast?.condition_label} &mdash;{' '}
                         {forecast && forecast.precip_probability >= 40
                           ? `${forecast.precip_probability}% precipitation`
@@ -345,7 +345,7 @@ export default function WeatherPage() {
                           : 'Unfavorable conditions'}
                       </p>
                     </div>
-                    <Badge className="bg-amber-100 text-amber-800 border-amber-200 shrink-0">
+                    <Badge className="bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20 shrink-0">
                       Weather Dependent
                     </Badge>
                   </div>
@@ -368,28 +368,28 @@ function ForecastCard({ forecast }: { forecast: WeatherForecast }) {
   const dateLabel = format(parseISO(forecast.date), 'MMM d');
 
   return (
-    <Card className={!forecast.is_outdoor_suitable ? 'border-amber-200' : ''}>
+    <Card className={!forecast.is_outdoor_suitable ? 'border-warning-muted-foreground/20' : ''}>
       <CardContent className="p-4 text-center">
-        <div className="text-sm font-medium text-gray-900">{dayLabel}</div>
-        <div className="text-xs text-gray-500 mb-3">{dateLabel}</div>
+        <div className="text-sm font-medium text-foreground">{dayLabel}</div>
+        <div className="text-xs text-muted-foreground mb-3">{dateLabel}</div>
 
         <WeatherIcon
           name={forecast.condition_icon}
-          className="h-10 w-10 mx-auto text-blue-500 mb-2"
+          className="h-10 w-10 mx-auto text-primary mb-2"
         />
 
-        <div className="text-sm font-medium text-gray-700 mb-2">
+        <div className="text-sm font-medium text-foreground mb-2">
           {forecast.condition_label}
         </div>
 
-        <div className="text-lg font-bold text-gray-900">
+        <div className="text-lg font-bold text-foreground">
           {forecast.temp_high_f}°
-          <span className="text-sm font-normal text-gray-500 ml-1">
+          <span className="text-sm font-normal text-muted-foreground ml-1">
             / {forecast.temp_low_f}°
           </span>
         </div>
 
-        <div className="mt-3 space-y-1 text-xs text-gray-500">
+        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
           <div className="flex items-center justify-center gap-1">
             <Droplets className="h-3 w-3" />
             {forecast.precip_probability}%
@@ -401,7 +401,7 @@ function ForecastCard({ forecast }: { forecast: WeatherForecast }) {
         </div>
 
         {!forecast.is_outdoor_suitable && (
-          <Badge className="mt-3 bg-amber-100 text-amber-800 border-amber-200 text-xs">
+          <Badge className="mt-3 bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20 text-xs">
             Not Outdoor Safe
           </Badge>
         )}

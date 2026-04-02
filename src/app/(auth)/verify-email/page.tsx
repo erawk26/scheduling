@@ -16,7 +16,7 @@ export default function VerifyEmailPage() {
           Please check your inbox and click the link to verify your account.
         </CardDescription>
       </CardHeader>
-      <CardContent className="text-center text-sm text-gray-500">
+      <CardContent className="text-center text-sm text-muted-foreground">
         <p>Didn&apos;t receive the email? Check your spam folder or try signing up again.</p>
       </CardContent>
       <CardFooter className="flex justify-center">

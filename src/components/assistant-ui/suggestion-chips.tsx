@@ -40,7 +40,7 @@ export function SuggestionChips({
           variant="outline"
           size="sm"
           onClick={() => onSelect(suggestion.query)}
-          className="rounded-full text-xs h-8 gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300"
+          className="rounded-full text-xs h-8 gap-1.5 border-border text-muted-foreground hover:text-foreground hover:border-border"
           data-testid="suggestion-chip"
         >
           {suggestion.icon}

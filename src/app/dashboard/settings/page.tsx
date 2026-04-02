@@ -158,8 +158,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+        <p className="mt-2 text-muted-foreground">
           Manage your account and application preferences
         </p>
       </div>
@@ -195,12 +195,12 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center space-x-4">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-semibold">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-fern-light flex items-center justify-center text-primary-foreground text-2xl font-semibold">
                   {session?.user?.name?.charAt(0).toUpperCase() || session?.user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Profile Picture</p>
-                  <p className="text-xs text-gray-500 mt-1">Avatar placeholder</p>
+                  <p className="text-sm font-medium text-foreground">Profile Picture</p>
+                  <p className="text-xs text-muted-foreground mt-1">Avatar placeholder</p>
                 </div>
               </div>
 
@@ -218,11 +218,11 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input value={session?.user?.email || 'Not authenticated'} readOnly disabled className="bg-gray-50" />
+                  <Input value={session?.user?.email || 'Not authenticated'} readOnly disabled className="bg-secondary" />
                 </div>
                 <div className="space-y-2">
                   <Label>Email Verified</Label>
-                  <Input value={session?.user?.emailVerified ? 'Yes' : 'No'} readOnly disabled className="bg-gray-50" />
+                  <Input value={session?.user?.emailVerified ? 'Yes' : 'No'} readOnly disabled className="bg-secondary" />
                 </div>
                 <div className="space-y-2">
                   <Label>Account Created</Label>
@@ -230,7 +230,7 @@ export default function SettingsPage() {
                     value={session?.user?.createdAt ? new Date(session.user.createdAt).toLocaleDateString() : 'N/A'}
                     readOnly
                     disabled
-                    className="bg-gray-50"
+                    className="bg-secondary"
                   />
                 </div>
               </div>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                   {isSavingProfile ? 'Saving...' : 'Save Profile'}
                 </Button>
                 {profileMessage && (
-                  <p className={`text-sm text-center ${profileMessage.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-sm text-center ${profileMessage.includes('success') ? 'text-success-muted-foreground' : 'text-destructive'}`}>
                     {profileMessage}
                   </p>
                 )}
@@ -262,7 +262,7 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {isLoading ? (
-                <div className="text-center py-8 text-gray-500">Loading settings...</div>
+                <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
               ) : (
                 <>
                   <div className="space-y-4">
@@ -315,7 +315,7 @@ export default function SettingsPage() {
                         value={serviceAreaMiles}
                         onChange={(e) => setServiceAreaMiles(Number(e.target.value))}
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Maximum distance you will travel for appointments
                       </p>
                     </div>
@@ -326,7 +326,7 @@ export default function SettingsPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <Label>Business Location</Label>
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             Used for weather forecasts when a client has no address
                           </p>
                         </div>
@@ -378,7 +378,7 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       {businessLat && businessLon && (
-                        <p className="text-xs text-green-600">
+                        <p className="text-xs text-success-muted-foreground">
                           Location set: {businessLat}, {businessLon}
                         </p>
                       )}
@@ -392,7 +392,7 @@ export default function SettingsPage() {
                       {isSaving ? 'Saving...' : 'Save Business Settings'}
                     </Button>
                     {saveMessage && (
-                      <p className={`text-sm text-center ${saveMessage.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`text-sm text-center ${saveMessage.includes('success') ? 'text-success-muted-foreground' : 'text-destructive'}`}>
                         {saveMessage}
                       </p>
                     )}
@@ -425,15 +425,15 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Status</span>
-                <span className={`text-sm font-medium ${syncStatus === 'syncing' ? 'text-blue-600' : 'text-green-600'}`}>
+                <span className="text-sm text-muted-foreground">Status</span>
+                <span className={`text-sm font-medium ${syncStatus === 'syncing' ? 'text-primary' : 'text-success-muted-foreground'}`}>
                   {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'error' ? 'Error' : 'Ready'}
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Last Sync</span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm text-muted-foreground">Last Sync</span>
+                <span className="text-sm font-medium text-foreground">
                   {lastSyncAt ? new Date(lastSyncAt).toLocaleString() : 'Never'}
                 </span>
               </div>
@@ -448,28 +448,28 @@ export default function SettingsPage() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">App Version</span>
-                  <span className="text-sm font-medium text-gray-900">3.0.0</span>
+                  <span className="text-sm text-muted-foreground">App Version</span>
+                  <span className="text-sm font-medium text-foreground">3.0.0</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Build</span>
-                  <span className="text-sm font-medium text-gray-900">OfflineKit</span>
+                  <span className="text-sm text-muted-foreground">Build</span>
+                  <span className="text-sm font-medium text-foreground">OfflineKit</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-red-200">
+          <Card className="border-destructive/20">
             <CardHeader>
-              <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
               <CardDescription>Irreversible and destructive actions</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="destructive" disabled className="w-full">
                 Delete Account
               </Button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
+              <p className="text-xs text-muted-foreground mt-2 text-center">
                 Account deletion is not yet implemented
               </p>
             </CardContent>
@@ -542,11 +542,11 @@ function SeedDataButton() {
         </Button>
       </div>
       {result && (
-        <p className={`text-sm ${result.startsWith('Failed') ? 'text-red-600' : 'text-green-600'}`}>
+        <p className={`text-sm ${result.startsWith('Failed') ? 'text-destructive' : 'text-success-muted-foreground'}`}>
           {result}
         </p>
       )}
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-muted-foreground">
         Seed creates 5 clients, 8 pets, 4 services, and 13 appointments in the Portland area.
         Clear removes only seeded records (identified by UUID prefix) — your real data is safe.
       </p>

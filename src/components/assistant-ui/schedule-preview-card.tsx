@@ -15,9 +15,9 @@ interface SchedulePreviewCardProps {
 }
 
 const ACTION_CONFIG: Record<ScheduleAction, { label: string; color: string }> = {
-  book: { label: 'New Booking', color: 'bg-green-100 text-green-700' },
-  reschedule: { label: 'Reschedule', color: 'bg-blue-100 text-blue-700' },
-  cancel: { label: 'Cancel', color: 'bg-red-100 text-red-700' },
+  book: { label: 'New Booking', color: 'bg-success-muted text-success-muted-foreground' },
+  reschedule: { label: 'Reschedule', color: 'bg-info-muted text-info-muted-foreground' },
+  cancel: { label: 'Cancel', color: 'bg-destructive/10 text-destructive' },
 }
 
 export function SchedulePreviewCard({
@@ -36,11 +36,11 @@ export function SchedulePreviewCard({
   return (
     <div
       data-testid="schedule-preview-card"
-      className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden max-w-sm"
+      className="border border-border rounded-xl bg-card shadow-sm overflow-hidden max-w-sm"
     >
-      <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100">
-        <Calendar className="w-4 h-4 text-gray-400" />
-        <span className="text-xs font-medium text-gray-600">Schedule Action</span>
+      <div className="flex items-center gap-2 px-4 py-2 bg-secondary border-b border-border">
+        <Calendar className="w-4 h-4 text-muted-foreground" />
+        <span className="text-xs font-medium text-muted-foreground">Schedule Action</span>
         <span
           data-testid="action-badge"
           className={cn('ml-auto text-xs font-medium px-2 py-0.5 rounded-full', config.color)}
@@ -51,17 +51,17 @@ export function SchedulePreviewCard({
 
       <div className="px-4 py-3 space-y-2">
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-medium text-gray-900">{clientName}</span>
+          <User className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">{clientName}</span>
         </div>
-        <div className="text-sm text-gray-600">{serviceName}</div>
-        <div data-testid="preview-datetime" className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="text-sm text-muted-foreground">{serviceName}</div>
+        <div data-testid="preview-datetime" className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="w-3.5 h-3.5" />
           <span>{formattedDate} at {formattedTime}</span>
         </div>
       </div>
 
-      <div className="flex gap-2 px-4 py-3 bg-gray-50 border-t border-gray-100">
+      <div className="flex gap-2 px-4 py-3 bg-secondary border-t border-border">
         <Button
           data-testid="accept-button"
           size="sm"

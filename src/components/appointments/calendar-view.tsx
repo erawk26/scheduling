@@ -56,14 +56,14 @@ const WEEK_DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7am–8pm
 
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
-  draft: 'bg-amber-50 text-amber-800 border-amber-300',
-  pending: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
-  confirmed: 'bg-green-100 text-green-800 border-green-200',
-  in_progress: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  completed: 'bg-gray-100 text-gray-800 border-gray-200',
-  cancelled: 'bg-red-100 text-red-800 border-red-200',
-  no_show: 'bg-orange-100 text-orange-800 border-orange-200',
+  draft: 'bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20',
+  pending: 'bg-warning-muted text-warning-muted-foreground border-warning-muted-foreground/20',
+  scheduled: 'bg-info-muted text-info-muted-foreground border-info-muted-foreground/20',
+  confirmed: 'bg-success-muted text-success-muted-foreground border-success-muted-foreground/20',
+  in_progress: 'bg-fern-pale text-primary border-primary/20',
+  completed: 'bg-info-muted text-info-muted-foreground border-info-muted-foreground/20',
+  cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
+  no_show: 'bg-secondary text-foreground border-border',
 };
 
 // Height of one hour slot in pixels (used for week/day time positioning)
@@ -136,7 +136,7 @@ function AppointmentPill({ appointment, clientsMap, onClick, className }: Appoin
       aria-label={`Appointment: ${getAppointmentLabel(appointment, clientsMap)}${isDraft ? ' (Draft)' : ''}`}
       className={cn(
         'text-xs px-1 py-0.5 rounded border cursor-pointer select-none flex items-center gap-0.5 overflow-hidden',
-        'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500',
+        'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
         isDraft && 'border-dashed opacity-70',
         STATUS_COLORS[appointment.status],
         className
@@ -187,7 +187,7 @@ function MonthView({ currentDate, appointments, clientsMap, forecastByDate, onDa
         {WEEK_DAY_LABELS.map((label) => (
           <div
             key={label}
-            className="py-2 text-xs font-medium text-gray-500 text-center border-r last:border-r-0"
+            className="py-2 text-xs font-medium text-muted-foreground text-center border-r last:border-r-0"
           >
             {label}
           </div>
@@ -210,10 +210,10 @@ function MonthView({ currentDate, appointments, clientsMap, forecastByDate, onDa
               aria-label={format(day, 'MMMM d, yyyy')}
               className={cn(
                 'min-h-[100px] p-2 border-r border-b last:border-r-0 cursor-pointer',
-                'focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-blue-400',
-                !isCurrentMonth && 'bg-gray-50',
-                isTodayDay && 'bg-blue-50',
-                isCurrentMonth && !isTodayDay && 'hover:bg-gray-50',
+                'focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-ring',
+                !isCurrentMonth && 'bg-secondary',
+                isTodayDay && 'bg-info-muted',
+                isCurrentMonth && !isTodayDay && 'hover:bg-secondary',
               )}
               onClick={() => onDateSelect?.(day)}
               onKeyDown={(e) => {
@@ -229,10 +229,10 @@ function MonthView({ currentDate, appointments, clientsMap, forecastByDate, onDa
                   className={cn(
                     'text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full',
                     isTodayDay
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-primary-foreground'
                       : isCurrentMonth
-                      ? 'text-gray-900'
-                      : 'text-gray-400'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground'
                   )}
                 >
                   {format(day, 'd')}
@@ -255,7 +255,7 @@ function MonthView({ currentDate, appointments, clientsMap, forecastByDate, onDa
                   />
                 ))}
                 {overflow > 0 && (
-                  <div className="text-xs text-gray-500 pl-1">+{overflow} more</div>
+                  <div className="text-xs text-muted-foreground pl-1">+{overflow} more</div>
                 )}
               </div>
             </div>
@@ -293,14 +293,14 @@ function WeekView({ currentDate, appointments, clientsMap, onDateSelect, onAppoi
             key={day.toISOString()}
             className={cn(
               'py-2 text-center border-r last:border-r-0',
-              isToday(day) && 'bg-blue-50'
+              isToday(day) && 'bg-info-muted'
             )}
           >
-            <div className="text-xs text-gray-500">{format(day, 'EEE')}</div>
+            <div className="text-xs text-muted-foreground">{format(day, 'EEE')}</div>
             <div
               className={cn(
                 'mx-auto mt-0.5 w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold',
-                isToday(day) ? 'bg-blue-600 text-white' : 'text-gray-900'
+                isToday(day) ? 'bg-primary text-primary-foreground' : 'text-foreground'
               )}
             >
               {format(day, 'd')}
@@ -320,7 +320,7 @@ function WeekView({ currentDate, appointments, clientsMap, onDateSelect, onAppoi
                 className="absolute w-full flex items-start justify-end pr-2"
                 style={{ top: idx * HOUR_HEIGHT, height: HOUR_HEIGHT }}
               >
-                <span className="text-xs text-gray-400 -mt-2">{formatHour(hour)}</span>
+                <span className="text-xs text-muted-foreground -mt-2">{formatHour(hour)}</span>
               </div>
             ))}
           </div>
@@ -336,8 +336,8 @@ function WeekView({ currentDate, appointments, clientsMap, onDateSelect, onAppoi
                 aria-label={`Schedule for ${format(day, 'EEEE, MMMM d')}`}
                 className={cn(
                   'relative border-r last:border-r-0 cursor-pointer',
-                  'focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-blue-400',
-                  isToday(day) && 'bg-blue-50/40'
+                  'focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-ring',
+                  isToday(day) && 'bg-info-muted/40'
                 )}
                 style={{ height: totalHeight }}
                 onClick={() => onDateSelect?.(day)}
@@ -352,7 +352,7 @@ function WeekView({ currentDate, appointments, clientsMap, onDateSelect, onAppoi
                 {DAY_HOURS.map((_, idx) => (
                   <div
                     key={idx}
-                    className="absolute w-full border-t border-gray-100"
+                    className="absolute w-full border-t border-border"
                     style={{ top: idx * HOUR_HEIGHT }}
                   />
                 ))}
@@ -373,7 +373,7 @@ function WeekView({ currentDate, appointments, clientsMap, onDateSelect, onAppoi
                       aria-label={`Appointment with ${clientName}${isDraft ? ' (Draft)' : ''}`}
                       className={cn(
                         'absolute left-0.5 right-0.5 rounded border px-1 py-0.5 overflow-hidden cursor-pointer',
-                        'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500',
+                        'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
                         isDraft && 'border-dashed opacity-70',
                         STATUS_COLORS[apt.status]
                       )}
@@ -433,15 +433,15 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
       <div
         className={cn(
           'flex items-center justify-center py-3 border-b',
-          isToday(currentDate) && 'bg-blue-50'
+          isToday(currentDate) && 'bg-info-muted'
         )}
       >
         <div className="text-center">
-          <div className="text-xs text-gray-500">{format(currentDate, 'EEEE')}</div>
+          <div className="text-xs text-muted-foreground">{format(currentDate, 'EEEE')}</div>
           <div
             className={cn(
               'mx-auto mt-0.5 w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold',
-              isToday(currentDate) ? 'bg-blue-600 text-white' : 'text-gray-900'
+              isToday(currentDate) ? 'bg-primary text-primary-foreground' : 'text-foreground'
             )}
           >
             {format(currentDate, 'd')}
@@ -460,7 +460,7 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
                 className="absolute w-full flex items-start justify-end pr-2"
                 style={{ top: idx * HOUR_HEIGHT, height: HOUR_HEIGHT }}
               >
-                <span className="text-xs text-gray-400 -mt-2">{formatHour(hour)}</span>
+                <span className="text-xs text-muted-foreground -mt-2">{formatHour(hour)}</span>
               </div>
             ))}
           </div>
@@ -471,7 +471,7 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
             {DAY_HOURS.map((_, idx) => (
               <div
                 key={idx}
-                className="absolute w-full border-t border-gray-100"
+                className="absolute w-full border-t border-border"
                 style={{ top: idx * HOUR_HEIGHT }}
               />
             ))}
@@ -495,7 +495,7 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
                   aria-label={`${clientName} — ${serviceName}${isDraft ? ' (Draft)' : ''}`}
                   className={cn(
                     'absolute left-1 right-1 rounded border px-2 py-1 overflow-hidden cursor-pointer',
-                    'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500',
+                    'transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
                     isDraft && 'border-dashed opacity-70',
                     STATUS_COLORS[apt.status]
                   )}
@@ -509,7 +509,7 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
                   }}
                 >
                   {isDraft && (
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-wide border border-dashed border-amber-400 rounded px-1 leading-4 mb-0.5 bg-amber-100 text-amber-800">
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-wide border border-dashed border-warning-muted-foreground/20 rounded px-1 leading-4 mb-0.5 bg-warning-muted text-warning-muted-foreground">
                       DRAFT
                     </span>
                   )}
@@ -534,7 +534,7 @@ function DayView({ currentDate, appointments, clientsMap, servicesMap, onAppoint
             {/* Empty state */}
             {dayAppointments.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <p className="text-sm text-gray-400">No appointments</p>
+                <p className="text-sm text-muted-foreground">No appointments</p>
               </div>
             )}
           </div>
@@ -617,7 +617,7 @@ export function CalendarView({
               <ChevronLeft className="w-4 h-4" />
             </Button>
 
-            <h2 className="text-base font-semibold text-gray-900 min-w-[180px] text-center">
+            <h2 className="text-base font-semibold text-foreground min-w-[180px] text-center">
               {periodLabel}
             </h2>
 

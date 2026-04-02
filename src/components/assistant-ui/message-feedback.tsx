@@ -12,7 +12,7 @@ export function MessageFeedback({ messageId, onFeedback }: MessageFeedbackProps)
 
   if (submitted) {
     return (
-      <span data-testid="feedback-thanks" className="text-xs text-gray-400">
+      <span data-testid="feedback-thanks" className="text-xs text-muted-foreground">
         Thanks for the feedback
       </span>
     )
@@ -26,7 +26,7 @@ export function MessageFeedback({ messageId, onFeedback }: MessageFeedbackProps)
         onFeedback(messageId, 'wrong')
         setSubmitted(true)
       }}
-      className="h-6 px-2 text-xs text-gray-400 hover:text-gray-600"
+      className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
       data-testid="feedback-button"
     >
       <ThumbsDown className="w-3 h-3 mr-1" />

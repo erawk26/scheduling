@@ -50,8 +50,8 @@ export function Thread() {
               <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
                 <Bot className="w-7 h-7 text-primary" />
               </div>
-              <p className="text-sm font-medium text-gray-700">How can I help with your schedule?</p>
-              <p className="text-xs text-gray-500 max-w-xs">
+              <p className="text-sm font-medium text-foreground">How can I help with your schedule?</p>
+              <p className="text-xs text-muted-foreground max-w-xs">
                 Try: &ldquo;What appointments do I have this week?&rdquo; or &ldquo;Move Sarah to Tuesday&rdquo;
               </p>
             </div>
@@ -79,7 +79,7 @@ export function Thread() {
 
           <ThreadPrimitive.ViewportFooter className="sticky bottom-0 pt-2">
             <EnhancedComposer />
-            <p className="text-center text-xs text-gray-400 mt-2">
+            <p className="text-center text-xs text-muted-foreground mt-2">
               Press Enter to send · Shift+Enter for new line
             </p>
           </ThreadPrimitive.ViewportFooter>
@@ -116,11 +116,11 @@ function AssistantMessage() {
   const timestamp = new Date().toISOString();
   return (
     <MessagePrimitive.Root className={cn('flex items-end gap-2 flex-row')}>
-      <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 flex-shrink-0">
-        <Bot className="w-4 h-4 text-gray-600" />
+      <div className="flex items-center justify-center w-7 h-7 rounded-full bg-secondary flex-shrink-0">
+        <Bot className="w-4 h-4 text-muted-foreground" />
       </div>
       <div data-testid="assistant-message-root" className="flex flex-col gap-1 max-w-[75%] items-start">
-        <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-gray-100 text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">
+        <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-secondary text-foreground text-sm leading-relaxed whitespace-pre-wrap">
           <MessagePrimitive.Parts />
         </div>
         <MessageTimestamp timestamp={timestamp} />

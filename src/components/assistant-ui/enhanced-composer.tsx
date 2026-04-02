@@ -22,7 +22,7 @@ export function EnhancedComposer() {
   }, [])
 
   return (
-    <ComposerPrimitive.Root className="relative flex items-end gap-2 max-w-3xl mx-auto w-full border border-gray-200 bg-white rounded-2xl px-4 py-3">
+    <ComposerPrimitive.Root className="relative flex items-end gap-2 max-w-3xl mx-auto w-full border border-border bg-card rounded-2xl px-4 py-3">
       <ComposerPrimitive.Input
         placeholder="Message your AI scheduler..."
         className="flex-1 min-h-[44px] max-h-[6rem] resize-none bg-transparent text-sm focus:outline-none overflow-y-auto"
@@ -36,7 +36,7 @@ export function EnhancedComposer() {
           data-testid="char-counter"
           className={cn(
             'absolute right-16 bottom-4 text-xs tabular-nums',
-            isOverLimit ? 'text-red-500 font-medium' : 'text-gray-400',
+            isOverLimit ? 'text-destructive font-medium' : 'text-muted-foreground',
           )}
         >
           {charCount}/{CHAR_LIMIT}

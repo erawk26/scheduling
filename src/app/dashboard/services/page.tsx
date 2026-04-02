@@ -115,8 +115,8 @@ export default function ServicesPage() {
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Services</h1>
-          <p className="mt-2 text-gray-600">Manage services you offer</p>
+          <h1 className="text-3xl font-bold text-foreground">Services</h1>
+          <p className="mt-2 text-muted-foreground">Manage services you offer</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
@@ -139,8 +139,8 @@ export default function ServicesPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Services</h1>
-          <p className="mt-2 text-gray-600">Manage services you offer</p>
+          <h1 className="text-3xl font-bold text-foreground">Services</h1>
+          <p className="mt-2 text-muted-foreground">Manage services you offer</p>
         </div>
         <Button onClick={() => handleOpenDialog()}>
           <Plus className="w-4 h-4 mr-2" />
@@ -152,8 +152,8 @@ export default function ServicesPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Briefcase className="h-12 w-12 text-gray-300 mb-4" />
-              <p className="text-gray-500 mb-4">
+              <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground mb-4">
                 Add the services you offer to start scheduling appointments.
               </p>
               <Button onClick={() => handleOpenDialog()}>
@@ -176,20 +176,20 @@ export default function ServicesPage() {
                     )}
                   </div>
                   {service.weather_dependent && (
-                    <CloudRain className="h-4 w-4 text-blue-500 ml-2" />
+                    <CloudRain className="h-4 w-4 text-primary ml-2" />
                   )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4" />
                   <span>{service.duration_minutes} minutes</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <DollarSign className="h-4 w-4" />
                   <span>{formatPrice(service.price_cents)}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   <span>{formatLocationLabel(service.location_type)}</span>
                 </div>
@@ -235,7 +235,7 @@ export default function ServicesPage() {
                   placeholder="e.g., Full Grooming"
                 />
                 {form.formState.errors.name && (
-                  <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+                  <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
                 )}
               </div>
 
@@ -247,7 +247,7 @@ export default function ServicesPage() {
                   placeholder="Brief description of the service"
                 />
                 {form.formState.errors.description && (
-                  <p className="text-sm text-red-500">{form.formState.errors.description.message}</p>
+                  <p className="text-sm text-destructive">{form.formState.errors.description.message}</p>
                 )}
               </div>
 
@@ -261,7 +261,7 @@ export default function ServicesPage() {
                     {...form.register('duration_minutes', { valueAsNumber: true })}
                   />
                   {form.formState.errors.duration_minutes && (
-                    <p className="text-sm text-red-500">{form.formState.errors.duration_minutes.message}</p>
+                    <p className="text-sm text-destructive">{form.formState.errors.duration_minutes.message}</p>
                   )}
                 </div>
 
@@ -285,7 +285,7 @@ export default function ServicesPage() {
                     }}
                   />
                   {form.formState.errors.price_cents && (
-                    <p className="text-sm text-red-500">{form.formState.errors.price_cents.message}</p>
+                    <p className="text-sm text-destructive">{form.formState.errors.price_cents.message}</p>
                   )}
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function ServicesPage() {
                   </SelectContent>
                 </Select>
                 {form.formState.errors.location_type && (
-                  <p className="text-sm text-red-500">{form.formState.errors.location_type.message}</p>
+                  <p className="text-sm text-destructive">{form.formState.errors.location_type.message}</p>
                 )}
               </div>
 
@@ -341,7 +341,7 @@ export default function ServicesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

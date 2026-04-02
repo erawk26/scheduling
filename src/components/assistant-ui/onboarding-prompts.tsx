@@ -17,7 +17,7 @@ const EXAMPLE_PROMPTS = [
 export function OnboardingPrompts({ onSelect }: OnboardingPromptsProps) {
   return (
     <div data-testid="onboarding-prompts" className="space-y-3">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Sparkles className="w-4 h-4" />
         <span>Try asking me:</span>
       </div>
@@ -28,7 +28,7 @@ export function OnboardingPrompts({ onSelect }: OnboardingPromptsProps) {
             variant="outline"
             size="sm"
             onClick={() => onSelect(prompt)}
-            className="rounded-full text-xs h-8 px-3 border-gray-200 text-gray-600 hover:text-primary hover:border-primary/30"
+            className="rounded-full text-xs h-8 px-3 border-border text-muted-foreground hover:text-primary hover:border-primary/30"
             data-testid="onboarding-prompt"
           >
             {prompt}
