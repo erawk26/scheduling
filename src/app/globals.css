@@ -3,48 +3,72 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    /* Botanical Garden DMO Theme - Light */
+    --background: 40 27% 95%;          /* #f5f3ed cream */
+    --foreground: 140 24% 15%;         /* #1c2e22 dark forest */
+    --card: 0 0% 100%;                 /* #ffffff */
+    --card-foreground: 140 24% 15%;    /* #1c2e22 */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 9% 25%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 60%;
-    --radius: 0.5rem;
+    --popover-foreground: 140 24% 15%;
+    --primary: 139 34% 27%;            /* #2d5c3c fern */
+    --primary-foreground: 40 27% 95%;  /* cream text on fern */
+    --secondary: 30 10% 93%;           /* #eeecea surface-2 */
+    --secondary-foreground: 137 21% 29%; /* #3a5943 */
+    --muted: 30 10% 93%;              /* #eeecea */
+    --muted-foreground: 136 14% 41%;   /* #5a7862 */
+    --accent: 37 95% 55%;             /* #f9a620 marigold vivid */
+    --accent-foreground: 37 100% 15%;  /* dark text on marigold */
+    --destructive: 12 63% 34%;        /* #8c3520 terracotta */
+    --destructive-foreground: 17 84% 95%; /* #fdeee8 terracotta pale */
+    --border: 139 25% 75%;            /* botanical green-tinted border */
+    --input: 139 25% 70%;             /* slightly stronger for inputs */
+    --ring: 139 34% 27%;              /* fern focus ring */
+    --radius: 0.375rem;
+
+    /* Extended botanical palette */
+    --fern: 139 34% 27%;
+    --fern-light: 139 26% 39%;        /* #4a7c59 */
+    --fern-pale: 141 40% 91%;         /* #dff0e5 */
+    --marigold: 37 100% 24%;          /* #7a4c00 text-safe */
+    --marigold-vivid: 37 95% 55%;     /* #f9a620 */
+    --marigold-pale: 43 100% 92%;     /* #fff3d6 */
+    --terracotta: 12 63% 34%;         /* #8c3520 */
+    --terracotta-mid: 12 62% 44%;     /* #b7472a */
+    --terracotta-pale: 17 84% 95%;    /* #fdeee8 */
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 0 0% 95%;
-    --card: 222 47% 15%;
-    --card-foreground: 0 0% 95%;
-    --popover: 222 47% 15%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 217 91% 60%;
+    /* Botanical Garden DMO Theme - Dark */
+    --background: 136 27% 8%;          /* #0f1a12 */
+    --foreground: 42 24% 88%;          /* #e8e4db */
+    --card: 139 24% 13%;               /* #19291e */
+    --card-foreground: 42 24% 88%;
+    --popover: 139 24% 13%;
+    --popover-foreground: 42 24% 88%;
+    --primary: 137 36% 63%;            /* #7ec492 light fern */
+    --primary-foreground: 136 27% 8%;  /* dark bg text on light fern */
+    --secondary: 143 25% 17%;          /* #203528 */
+    --secondary-foreground: 137 19% 71%; /* #a8c4b0 */
+    --muted: 143 25% 17%;
+    --muted-foreground: 137 15% 51%;   /* #6e9479 */
+    --accent: 37 95% 55%;             /* #f9a620 full vivid OK on dark */
+    --accent-foreground: 136 27% 8%;
+    --destructive: 10 75% 63%;        /* #e8725a */
+    --destructive-foreground: 42 24% 88%;
+    --border: 137 20% 25%;
+    --input: 137 20% 30%;
+    --ring: 137 36% 63%;
+
+    /* Extended botanical palette - dark */
+    --fern: 137 36% 63%;
+    --fern-light: 139 30% 51%;
+    --fern-pale: 140 25% 15%;
+    --marigold: 37 95% 55%;
+    --marigold-vivid: 37 95% 55%;
+    --marigold-pale: 40 60% 10%;
+    --terracotta: 10 75% 63%;
+    --terracotta-mid: 10 58% 53%;
+    --terracotta-pale: 10 50% 11%;
   }
 }
 
@@ -55,6 +79,11 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    font-family: 'DM Sans', system-ui, sans-serif;
+    line-height: 1.7;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, .display {
+    font-family: 'Cormorant Garamond', Georgia, serif;
   }
 }

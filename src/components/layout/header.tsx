@@ -35,7 +35,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const userInitial = userName.charAt(0).toUpperCase()
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header className="bg-card border-b border-border sticky top-0 z-40">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
         {/* Mobile menu button */}
         <Button
@@ -49,7 +49,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Logo for mobile */}
         <div className="flex items-center md:hidden">
-          <span className="text-lg font-bold text-gray-900">KE Agenda</span>
+          <span className="text-lg font-display font-semibold text-foreground">KE Agenda</span>
         </div>
 
         {/* Right side */}
@@ -58,8 +58,8 @@ export function Header({ onMenuClick }: HeaderProps) {
           <div
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
               isOnline
-                ? 'bg-green-100 text-green-700'
-                : 'bg-amber-100 text-amber-700'
+                ? 'bg-fern-pale text-fern'
+                : 'bg-marigold-pale text-marigold'
             }`}
           >
             {isOnline ? (
@@ -76,7 +76,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-fern to-fern-light rounded-full flex items-center justify-center">
                   <span className="text-sm font-semibold text-white">{userInitial}</span>
                 </div>
                 <span className="hidden sm:inline text-sm font-medium">

@@ -16,6 +16,11 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["'Cormorant Garamond'", 'Georgia', 'serif'],
+        body: ["'DM Sans'", 'system-ui', 'sans-serif'],
+        sans: ["'DM Sans'", 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -49,6 +54,21 @@ const config: Config = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+        fern: {
+          DEFAULT: 'hsl(var(--fern))',
+          light: 'hsl(var(--fern-light))',
+          pale: 'hsl(var(--fern-pale))',
+        },
+        marigold: {
+          DEFAULT: 'hsl(var(--marigold))',
+          vivid: 'hsl(var(--marigold-vivid))',
+          pale: 'hsl(var(--marigold-pale))',
+        },
+        terracotta: {
+          DEFAULT: 'hsl(var(--terracotta))',
+          mid: 'hsl(var(--terracotta-mid))',
+          pale: 'hsl(var(--terracotta-pale))',
         },
       },
       borderRadius: {

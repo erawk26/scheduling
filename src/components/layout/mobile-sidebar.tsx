@@ -33,10 +33,10 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-64 p-0 flex flex-col">
-        <SheetHeader className="px-6 py-5 border-b border-gray-200">
+        <SheetHeader className="px-6 py-5 border-b border-border">
           <SheetTitle className="flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-primary" />
-            <span className="text-xl font-bold text-gray-900">KE Agenda</span>
+            <Calendar className="w-8 h-8 text-fern" />
+            <span className="text-xl font-display font-semibold text-foreground">KE Agenda</span>
           </SheetTitle>
         </SheetHeader>
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -54,14 +54,14 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                 className={cn(
                   'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
                   isActive
-                    ? 'bg-primary text-white'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-secondary-foreground hover:bg-fern-pale hover:text-foreground'
                 )}
               >
                 <item.icon
                   className={cn(
                     'mr-3 h-5 w-5 flex-shrink-0',
-                    isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
+                    isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
                 {item.name}
@@ -69,8 +69,8 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             )
           })}
         </nav>
-        <div className="border-t border-gray-200 px-3 py-3 mt-auto">
-          <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500">
+        <div className="border-t border-border px-3 py-3 mt-auto">
+          <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
             <span className={cn('h-2 w-2 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-amber-500')} />
             {isOnline ? 'Online' : 'Offline'}
           </div>

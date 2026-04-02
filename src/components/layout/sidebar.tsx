@@ -23,10 +23,10 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64">
-        <div className="flex flex-col flex-grow border-r border-gray-200 bg-white overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-6 py-5 border-b border-gray-200">
-            <Calendar className="w-8 h-8 text-primary" />
-            <span className="ml-3 text-xl font-bold text-gray-900">KE Agenda</span>
+        <div className="flex flex-col flex-grow border-r border-border bg-card overflow-y-auto">
+          <div className="flex items-center flex-shrink-0 px-6 py-5 border-b border-border">
+            <Calendar className="w-8 h-8 text-fern" />
+            <span className="ml-3 text-xl font-display font-semibold text-foreground">KE Agenda</span>
           </div>
           <nav className="flex-1 px-3 py-4 space-y-1">
             {navigation.map((item) => {
@@ -42,14 +42,14 @@ export function Sidebar() {
                   className={cn(
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
                     isActive
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-secondary-foreground hover:bg-fern-pale hover:text-foreground'
                   )}
                 >
                   <item.icon
                     className={cn(
                       'mr-3 h-5 w-5 flex-shrink-0',
-                      isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
+                      isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
                     )}
                   />
                   {item.name}
@@ -57,8 +57,8 @@ export function Sidebar() {
               )
             })}
           </nav>
-          <div className="flex-shrink-0 border-t border-gray-200 px-3 py-3">
-            <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500">
+          <div className="flex-shrink-0 border-t border-border px-3 py-3">
+            <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
               <span className={cn('h-2 w-2 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-amber-500')} />
               {statusLabel}
             </div>
