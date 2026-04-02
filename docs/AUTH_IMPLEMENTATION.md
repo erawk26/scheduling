@@ -44,7 +44,7 @@ This document describes the Better Auth integration for KE Agenda V3, following 
 Required in `.env.local`:
 ```bash
 BETTER_AUTH_SECRET="your-secret-key"
-BETTER_AUTH_URL="http://localhost:3000"
+BETTER_AUTH_URL="http://localhost:3025"
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
 APPLE_CLIENT_ID="your-apple-client-id"

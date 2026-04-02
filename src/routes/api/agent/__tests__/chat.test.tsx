@@ -46,7 +46,7 @@ async function getHandler() {
 // ---------------------------------------------------------------------------
 
 function buildRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/agent/chat', {
+  return new Request('http://localhost:3025/api/agent/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

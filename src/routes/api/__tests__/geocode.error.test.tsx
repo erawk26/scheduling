@@ -35,7 +35,7 @@ async function getHandler() {
 }
 
 function buildRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/geocode', {
+  return new Request('http://localhost:3025/api/geocode', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -70,7 +70,7 @@ describe('POST /api/geocode', () => {
     process.env.GRAPHHOPPER_API_KEY = 'test-key'
 
     const handler = await getHandler()
-    const request = new Request('http://localhost:3000/api/geocode', {
+    const request = new Request('http://localhost:3025/api/geocode', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'invalid json{{{',

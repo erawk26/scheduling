@@ -4,4 +4,4 @@ metadata_directory: metadata
 migrations_directory: migrations
 actions:
   kind: synchronous
-  handler_webhook_baseurl: http://localhost:3000
+  handler_webhook_baseurl: http://localhost:3025

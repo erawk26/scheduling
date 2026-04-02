@@ -1457,7 +1457,7 @@ GOOGLE_MAPS_API_KEY="your_google_maps_api_key"
 RESEND_API_KEY="your_resend_api_key"
 
 # App Config
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3025"
 NEXT_PUBLIC_HASURA_URL="http://localhost:8080/v1/graphql"
 NODE_ENV="development"
 ```
@@ -1925,8 +1925,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3000
-ENV PORT 3000
+EXPOSE 3025
+ENV PORT 3025
 
 CMD ["node", "server.js"]
 ```

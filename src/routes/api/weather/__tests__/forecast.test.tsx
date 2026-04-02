@@ -33,7 +33,7 @@ async function getHandler() {
 }
 
 function buildRequest(queryString: string): Request {
-  return new Request(`http://localhost:3000/api/weather/forecast?${queryString}`, {
+  return new Request(`http://localhost:3025/api/weather/forecast?${queryString}`, {
     method: 'GET',
   })
 }

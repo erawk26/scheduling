@@ -39,7 +39,7 @@ async function getHandler() {
 }
 
 function buildRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/email/send', {
+  return new Request('http://localhost:3025/api/email/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -74,7 +74,7 @@ describe('POST /api/email/send', () => {
     process.env.RESEND_API_KEY = 'test-resend-key'
 
     const handler = await getHandler()
-    const invalidJsonRequest = new Request('http://localhost:3000/api/email/send', {
+    const invalidJsonRequest = new Request('http://localhost:3025/api/email/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'invalid json',

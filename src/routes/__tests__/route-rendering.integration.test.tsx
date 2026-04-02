@@ -11,7 +11,7 @@ import { describe, it, expect } from 'vitest'
 
 // Environment setup
 process.env.BETTER_AUTH_SECRET = 'test-secret-key-for-testing-only'
-process.env.BETTER_AUTH_URL = 'http://localhost:3000'
+process.env.BETTER_AUTH_URL = 'http://localhost:3025'
 process.env.GOOGLE_CLIENT_ID = 'test-google-client-id'
 process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret'
 process.env.APPLE_CLIENT_ID = 'test-apple-client-id'

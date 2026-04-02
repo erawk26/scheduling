@@ -35,12 +35,12 @@ async function getHandler() {
 }
 
 function buildRequest(lat: number, lon: number): Request {
-  const url = `http://localhost:3000/api/weather/forecast?lat=${lat}&lon=${lon}`
+  const url = `http://localhost:3025/api/weather/forecast?lat=${lat}&lon=${lon}`
   return new Request(url, { method: 'GET' })
 }
 
 function buildRequestMissing(): Request {
-  return new Request('http://localhost:3000/api/weather/forecast', { method: 'GET' })
+  return new Request('http://localhost:3025/api/weather/forecast', { method: 'GET' })
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ describe('GET /api/weather/forecast', () => {
     process.env.TOMORROW_IO_API_KEY = 'test-key'
 
     const handler = await getHandler()
-    const url = 'http://localhost:3000/api/weather/forecast?lat=40.7128'
+    const url = 'http://localhost:3025/api/weather/forecast?lat=40.7128'
     const request = new Request(url, { method: 'GET' })
 
     const response = await handler({ request })
@@ -136,7 +136,7 @@ describe('GET /api/weather/forecast', () => {
     process.env.TOMORROW_IO_API_KEY = 'test-key'
 
     const handler = await getHandler()
-    const url = 'http://localhost:3000/api/weather/forecast?lat=invalid&lon=-74.006'
+    const url = 'http://localhost:3025/api/weather/forecast?lat=invalid&lon=-74.006'
     const request = new Request(url, { method: 'GET' })
 
     const response = await handler({ request })

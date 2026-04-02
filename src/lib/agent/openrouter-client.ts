@@ -24,7 +24,7 @@ function getHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${apiKey}`,
-    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3025',
     'X-Title': 'KE Agenda AI Scheduler',
   };
 }

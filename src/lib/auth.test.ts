@@ -20,7 +20,7 @@ describe('Auth Configuration', () => {
     process.chdir(tmpDir);
 
     process.env.BETTER_AUTH_SECRET = 'test-secret-at-least-32-characters-long!!';
-    process.env.BETTER_AUTH_URL = 'http://localhost:3000';
+    process.env.BETTER_AUTH_URL = 'http://localhost:3025';
     // Leave Google/Apple unset so socialProviders stays empty
     delete process.env.GOOGLE_CLIENT_ID;
     delete process.env.GOOGLE_CLIENT_SECRET;

@@ -7,7 +7,7 @@
  *
  * Environment variables (auto-read by Better Auth):
  * - BETTER_AUTH_SECRET - Encryption secret (min 32 chars)
- * - BETTER_AUTH_URL - Base URL (e.g., http://localhost:3000)
+ * - BETTER_AUTH_URL - Base URL (e.g., http://localhost:3025)
  */
 
 import { betterAuth } from "better-auth"
@@ -82,8 +82,8 @@ export const auth = betterAuth({
         },
       },
       jwt: {
-        issuer: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-        audience: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+        issuer: process.env.BETTER_AUTH_URL || "http://localhost:3025",
+        audience: process.env.BETTER_AUTH_URL || "http://localhost:3025",
         expirationTime: "1h",
         definePayload: (user) => ({
           sub: user.user.id,

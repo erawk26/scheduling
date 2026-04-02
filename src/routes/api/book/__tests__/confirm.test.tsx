@@ -38,7 +38,7 @@ async function getHandler() {
 }
 
 function buildRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/book/confirm', {
+  return new Request('http://localhost:3025/api/book/confirm', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -55,7 +55,7 @@ describe('POST /api/book/confirm', () => {
 
   it('returns 400 when request body is invalid JSON', async () => {
     const handler = await getHandler()
-    const invalidJsonRequest = new Request('http://localhost:3000/api/book/confirm', {
+    const invalidJsonRequest = new Request('http://localhost:3025/api/book/confirm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'invalid json',

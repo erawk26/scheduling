@@ -41,7 +41,7 @@ describe('GET /api/credits', () => {
     const mockUsage = { used: 250.5, limit: 500, remaining: 249.5, isWarning: false }
     ;(creditTracker.getUsage as ReturnType<typeof vi.fn>).mockReturnValue(mockUsage)
 
-    const response = await handler({ request: new Request('http://localhost:3000/api/credits') })
+    const response = await handler({ request: new Request('http://localhost:3025/api/credits') })
 
     expect(response.status).toBe(200)
     expect(response.headers.get('Content-Type')).toContain('application/json')
@@ -58,7 +58,7 @@ describe('GET /api/credits', () => {
     const mockUsage = { used: 450, limit: 500, remaining: 50, isWarning: true }
     ;(creditTracker.getUsage as ReturnType<typeof vi.fn>).mockReturnValue(mockUsage)
 
-    const response = await handler({ request: new Request('http://localhost:3000/api/credits') })
+    const response = await handler({ request: new Request('http://localhost:3025/api/credits') })
 
     expect(response.status).toBe(200)
     const json = (await response.json()) as typeof mockUsage
@@ -72,7 +72,7 @@ describe('GET /api/credits', () => {
     const mockUsage = { used: 0, limit: 500, remaining: 500, isWarning: false }
     ;(creditTracker.getUsage as ReturnType<typeof vi.fn>).mockReturnValue(mockUsage)
 
-    const response = await handler({ request: new Request('http://localhost:3000/api/credits') })
+    const response = await handler({ request: new Request('http://localhost:3025/api/credits') })
 
     expect(response.status).toBe(200)
     const json = (await response.json()) as typeof mockUsage

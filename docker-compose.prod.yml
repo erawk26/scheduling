@@ -53,7 +53,7 @@ services:
     container_name: ke-agenda-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3025:3025"
     depends_on:
       hasura:
         condition: service_healthy

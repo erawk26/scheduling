@@ -53,7 +53,7 @@ async function getHandler() {
 }
 
 function buildRequest(body: Record<string, unknown>, platform: string = 'telegram'): Request {
-  const url = `http://localhost:3000/api/messaging/webhook?platform=${platform}`
+  const url = `http://localhost:3025/api/messaging/webhook?platform=${platform}`
   return new Request(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ describe('POST /api/messaging/webhook', () => {
 
   it('returns 200 when platform parameter is missing', async () => {
     const handler = await getHandler()
-    const response = await handler({ request: new Request('http://localhost:3000/api/messaging/webhook') })
+    const response = await handler({ request: new Request('http://localhost:3025/api/messaging/webhook') })
 
     expect(response.status).toBe(200)
     const json = (await response.json()) as { ok: boolean; error?: string }
@@ -86,7 +86,7 @@ describe('POST /api/messaging/webhook', () => {
 
   it('returns 200 when request body is invalid JSON', async () => {
     const handler = await getHandler()
-    const invalidJsonRequest = new Request('http://localhost:3000/api/messaging/webhook?platform=telegram', {
+    const invalidJsonRequest = new Request('http://localhost:3025/api/messaging/webhook?platform=telegram', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'invalid json',

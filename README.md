@@ -15,7 +15,7 @@ npm install
 ./stop.sh
 ```
 
-That's it! The app will be running at http://localhost:3000
+That's it! The app will be running at http://localhost:3025
 
 ## What `./dev.sh` Does
 

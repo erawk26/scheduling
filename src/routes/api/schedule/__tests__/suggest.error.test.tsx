@@ -37,7 +37,7 @@ async function getHandler() {
 }
 
 function buildRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/schedule/suggest', {
+  return new Request('http://localhost:3025/api/schedule/suggest', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -60,7 +60,7 @@ describe('POST /api/schedule/suggest', () => {
 
   it('returns 400 when request body is malformed JSON', async () => {
     const handler = await getHandler()
-    const request = new Request('http://localhost:3000/api/schedule/suggest', {
+    const request = new Request('http://localhost:3025/api/schedule/suggest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'invalid json{{{',

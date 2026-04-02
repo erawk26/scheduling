@@ -28,7 +28,7 @@ async function getHandler() {
 }
 
 function buildRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/schedule/suggest', {
+  return new Request('http://localhost:3025/api/schedule/suggest', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
