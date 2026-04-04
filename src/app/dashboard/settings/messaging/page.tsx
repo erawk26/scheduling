@@ -8,18 +8,24 @@ import { Separator } from '@/components/ui/separator'
 import { Copy, Check, MessageSquare } from 'lucide-react'
 
 const STORAGE_KEY = 'messaging_telegram_bot_token'
+const CHAT_ID_KEY = 'messaging_telegram_chat_id'
 
 export default function MessagingSettingsPage() {
   const [botToken, setBotToken] = useState('')
+  const [chatId, setChatId] = useState('')
   const [webhookUrl, setWebhookUrl] = useState('')
   const [copied, setCopied] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const [isTesting, setIsTesting] = useState(false)
+  const [testMessage, setTestMessage] = useState('')
 
   useEffect(() => {
     setWebhookUrl(`${window.location.origin}/api/messaging/webhook?platform=telegram`)
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) setBotToken(saved)
+    const savedToken = localStorage.getItem(STORAGE_KEY)
+    const savedChatId = localStorage.getItem(CHAT_ID_KEY)
+    if (savedToken) setBotToken(savedToken)
+    if (savedChatId) setChatId(savedChatId)
   }, [])
 
   const handleSave = async () => {
@@ -27,6 +33,7 @@ export default function MessagingSettingsPage() {
     setSaveMessage('')
     try {
       localStorage.setItem(STORAGE_KEY, botToken)
+      localStorage.setItem(CHAT_ID_KEY, chatId)
 
       // Register webhook with Telegram
       const res = await fetch('/api/messaging/telegram/setup', {
@@ -42,9 +49,15 @@ export default function MessagingSettingsPage() {
       if (data.success) {
         setSaveMessage('Token saved and webhook registered with Telegram.')
       } else {
-        setSaveMessage(`Token saved locally, but webhook setup failed: ${data.error ?? 'Unknown error'}`)
+        const errorMsg = data.error || 'Unknown error'
+        // Provide helpful guidance for common HTTPS requirement issue
+        const isHttpsError = errorMsg.includes('HTTPS') || errorMsg.includes('https')
+        const message = isHttpsError
+          ? `Token saved. Webhook requires HTTPS URL. Use a tunnel (ngrok/Cloudflare) or deploy to production.`
+          : `Token saved, but webhook setup failed: ${errorMsg}`
+        setSaveMessage(message)
       }
-      setTimeout(() => setSaveMessage(''), 5000)
+      setTimeout(() => setSaveMessage(''), 8000)
     } catch {
       setSaveMessage('Failed to save. Please try again.')
     } finally {
@@ -59,6 +72,30 @@ export default function MessagingSettingsPage() {
       setTimeout(() => setCopied(false), 2000)
     } catch {
       // Fallback: user can manually copy
+    }
+  }
+
+  const handleTest = async () => {
+    setIsTesting(true)
+    setTestMessage('')
+    try {
+      const res = await fetch('/api/messaging/telegram/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setTestMessage('✅ Test message sent! Check your Telegram.')
+      } else {
+        setTestMessage(`❌ Failed: ${data.error ?? 'Unknown error'}`)
+      }
+      setTimeout(() => setTestMessage(''), 5000)
+    } catch {
+      setTestMessage('❌ Failed to send test message.')
+      setTimeout(() => setTestMessage(''), 5000)
+    } finally {
+      setIsTesting(false)
     }
   }
 
@@ -120,6 +157,36 @@ export default function MessagingSettingsPage() {
           <Separator />
 
           <div className="space-y-2">
+            <Label>Test Connection</Label>
+            <p className="text-xs text-muted-foreground">
+              Send a test message to verify the bot is reachable. Requires the token to be saved and the webhook configured.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                id="chatId"
+                type="text"
+                value={chatId}
+                onChange={(e) => setChatId(e.target.value)}
+                placeholder="Your Telegram chat ID (e.g., 123456789)"
+                className="flex-1"
+              />
+              <Button
+                variant="outline"
+                onClick={handleTest}
+                disabled={isTesting || !chatId.trim()}
+                className="flex-shrink-0"
+              >
+                {isTesting ? 'Sending...' : 'Send Test'}
+              </Button>
+            </div>
+            {testMessage && (
+              <p className={`text-sm text-center ${testMessage.includes('✅') ? 'text-success-muted-foreground' : 'text-destructive'}`}>
+                {testMessage}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <Label>Webhook URL</Label>
             <p className="text-xs text-muted-foreground">
               Paste this URL into BotFather using{' '}
@@ -143,17 +210,6 @@ export default function MessagingSettingsPage() {
             </div>
           </div>
 
-          <Separator />
-
-          <div className="space-y-2">
-            <Label>Test Connection</Label>
-            <p className="text-xs text-muted-foreground">
-              Send a test message to verify the bot is reachable. Requires the token to be saved and the webhook configured.
-            </p>
-            <Button variant="outline" disabled className="w-full">
-              Test Connection (coming soon)
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

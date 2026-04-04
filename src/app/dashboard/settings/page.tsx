@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { User, Building, Shield, LogOut, MapPin, Database } from 'lucide-react'
+import { User, Building, Shield, LogOut, MapPin, Database, Download } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { seedDemoData, clearDemoData } from '@/lib/seed-data'
 
@@ -480,6 +480,18 @@ export default function SettingsPage() {
         <TabsContent value="developer" className="space-y-4">
           <Card>
             <CardHeader>
+              <CardTitle>Export Data</CardTitle>
+              <CardDescription>
+                Download a full JSON backup of all your local data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ExportDataButton />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Demo Data</CardTitle>
               <CardDescription>
                 Seed the app with sample clients, pets, services, and appointments for testing.
@@ -491,6 +503,77 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+function ExportDataButton() {
+  const [exporting, setExporting] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+
+  async function handleExport() {
+    setExporting(true)
+    setResult(null)
+    try {
+      const [clients, pets, services, appointments, businessProfile, agentNotes, agentProfile, agentMemories, agentConversations] =
+        await Promise.all([
+          app.clients.findMany(),
+          app.pets.findMany(),
+          app.services.findMany(),
+          app.appointments.findMany(),
+          app.businessProfile.findMany(),
+          app.agentNotes.findMany(),
+          app.agentProfile.findMany(),
+          app.agentMemories.findMany(),
+          app.agentConversations.findMany(),
+        ])
+
+      const payload = {
+        collections: {
+          clients,
+          pets,
+          services,
+          appointments,
+          businessProfile,
+          agentNotes,
+          agentProfile,
+          agentMemories,
+          agentConversations,
+        },
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+      }
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ke-agenda-export-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      setResult('Export downloaded successfully.')
+      setTimeout(() => setResult(null), 4000)
+    } catch (err) {
+      setResult(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <Button onClick={handleExport} disabled={exporting} variant="outline">
+        <Download className="w-4 h-4 mr-2" />
+        {exporting ? 'Exporting...' : 'Export All Data'}
+      </Button>
+      {result && (
+        <p className={`text-sm ${result.startsWith('Failed') ? 'text-destructive' : 'text-success-muted-foreground'}`}>
+          {result}
+        </p>
+      )}
+      <p className="text-xs text-muted-foreground">
+        Exports all 9 collections as a JSON file you can save as a backup or migrate to another device.
+      </p>
     </div>
   )
 }

@@ -40,6 +40,7 @@ import { Route as ApiEmailSendRouteImport } from './routes/api/email/send'
 import { Route as ApiBookConfirmRouteImport } from './routes/api/book/confirm'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAgentChatRouteImport } from './routes/api/agent/chat'
+import { Route as ApiMessagingTelegramTestRouteImport } from './routes/api/messaging/telegram/test'
 import { Route as ApiMessagingTelegramSetupRouteImport } from './routes/api/messaging/telegram/setup'
 
 const OfflineRoute = OfflineRouteImport.update({
@@ -199,6 +200,12 @@ const ApiAgentChatRoute = ApiAgentChatRouteImport.update({
   path: '/api/agent/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMessagingTelegramTestRoute =
+  ApiMessagingTelegramTestRouteImport.update({
+    id: '/api/messaging/telegram/test',
+    path: '/api/messaging/telegram/test',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiMessagingTelegramSetupRoute =
   ApiMessagingTelegramSetupRouteImport.update({
     id: '/api/messaging/telegram/setup',
@@ -238,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/clients/': typeof DashboardClientsIndexRoute
   '/dashboard/settings/': typeof DashboardSettingsIndexRoute
   '/api/messaging/telegram/setup': typeof ApiMessagingTelegramSetupRoute
+  '/api/messaging/telegram/test': typeof ApiMessagingTelegramTestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -270,6 +278,7 @@ export interface FileRoutesByTo {
   '/dashboard/clients': typeof DashboardClientsIndexRoute
   '/dashboard/settings': typeof DashboardSettingsIndexRoute
   '/api/messaging/telegram/setup': typeof ApiMessagingTelegramSetupRoute
+  '/api/messaging/telegram/test': typeof ApiMessagingTelegramTestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -305,6 +314,7 @@ export interface FileRoutesById {
   '/dashboard/clients/': typeof DashboardClientsIndexRoute
   '/dashboard/settings/': typeof DashboardSettingsIndexRoute
   '/api/messaging/telegram/setup': typeof ApiMessagingTelegramSetupRoute
+  '/api/messaging/telegram/test': typeof ApiMessagingTelegramTestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/dashboard/clients/'
     | '/dashboard/settings/'
     | '/api/messaging/telegram/setup'
+    | '/api/messaging/telegram/test'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -372,6 +383,7 @@ export interface FileRouteTypes {
     | '/dashboard/clients'
     | '/dashboard/settings'
     | '/api/messaging/telegram/setup'
+    | '/api/messaging/telegram/test'
   id:
     | '__root__'
     | '/'
@@ -406,6 +418,7 @@ export interface FileRouteTypes {
     | '/dashboard/clients/'
     | '/dashboard/settings/'
     | '/api/messaging/telegram/setup'
+    | '/api/messaging/telegram/test'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -426,6 +439,7 @@ export interface RootRouteChildren {
   BookTokenConfirmedRoute: typeof BookTokenConfirmedRoute
   BookTokenIndexRoute: typeof BookTokenIndexRoute
   ApiMessagingTelegramSetupRoute: typeof ApiMessagingTelegramSetupRoute
+  ApiMessagingTelegramTestRoute: typeof ApiMessagingTelegramTestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -647,6 +661,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAgentChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/messaging/telegram/test': {
+      id: '/api/messaging/telegram/test'
+      path: '/api/messaging/telegram/test'
+      fullPath: '/api/messaging/telegram/test'
+      preLoaderRoute: typeof ApiMessagingTelegramTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/messaging/telegram/setup': {
       id: '/api/messaging/telegram/setup'
       path: '/api/messaging/telegram/setup'
@@ -723,6 +744,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookTokenConfirmedRoute: BookTokenConfirmedRoute,
   BookTokenIndexRoute: BookTokenIndexRoute,
   ApiMessagingTelegramSetupRoute: ApiMessagingTelegramSetupRoute,
+  ApiMessagingTelegramTestRoute: ApiMessagingTelegramTestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
