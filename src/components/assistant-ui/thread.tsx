@@ -2,6 +2,8 @@ import {
   AuiIf,
   ThreadPrimitive,
   MessagePrimitive,
+  useMessage,
+  useThreadRuntime,
 } from '@assistant-ui/react';
 import { Bot, User } from 'lucide-react';
 import { useRef, useState, useCallback } from 'react';
@@ -10,6 +12,8 @@ import { TypingIndicator } from './typing-indicator';
 import { EnhancedComposer } from './enhanced-composer';
 import { MessageTimestamp } from './message-timestamp';
 import { NewMessageBadge } from './new-message-badge';
+import { SchedulePreviewCard } from './schedule-preview-card';
+import { parseScheduleAction } from '@/lib/agent/schedule-action-parser';
 
 export function Thread() {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -113,18 +117,74 @@ function UserMessage() {
 }
 
 function AssistantMessage() {
-  const timestamp = new Date().toISOString();
   return (
     <MessagePrimitive.Root className={cn('flex items-end gap-2 flex-row')}>
       <div className="flex items-center justify-center w-7 h-7 rounded-full bg-secondary flex-shrink-0">
         <Bot className="w-4 h-4 text-muted-foreground" />
       </div>
-      <div data-testid="assistant-message-root" className="flex flex-col gap-1 max-w-[75%] items-start">
-        <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-secondary text-foreground text-sm leading-relaxed whitespace-pre-wrap">
-          <MessagePrimitive.Parts />
-        </div>
-        <MessageTimestamp timestamp={timestamp} />
-      </div>
+      {/* Inner component placed inside MessagePrimitive.Root to access useMessage() */}
+      <AssistantMessageInner />
     </MessagePrimitive.Root>
+  );
+}
+
+/**
+ * Renders assistant message content.
+ * Must be a child of MessagePrimitive.Root to use useMessage().
+ * Detects embedded <schedule-action> blocks and renders SchedulePreviewCard
+ * alongside the clean message text.
+ */
+function AssistantMessageInner() {
+  const message = useMessage();
+  const threadRuntime = useThreadRuntime();
+  const timestamp = new Date().toISOString();
+
+  const textContent = (message.content as Array<{ type: string; text?: string }>)
+    .filter((p) => p.type === 'text' && typeof p.text === 'string')
+    .map((p) => p.text as string)
+    .join('');
+
+  const { scheduleAction, cleanText } = parseScheduleAction(textContent);
+
+  const handleAccept = useCallback(() => {
+    threadRuntime.append({
+      role: 'user',
+      content: [{ type: 'text', text: 'Yes, please confirm that change.' }],
+    });
+  }, [threadRuntime]);
+
+  const handleDecline = useCallback(() => {
+    threadRuntime.append({
+      role: 'user',
+      content: [{ type: 'text', text: 'No, please cancel that change.' }],
+    });
+  }, [threadRuntime]);
+
+  return (
+    <div data-testid="assistant-message-root" className="flex flex-col gap-2 max-w-[75%] items-start">
+      {/* Text bubble — show clean text (block stripped) when action detected, otherwise normal parts */}
+      {(scheduleAction ? cleanText : textContent) && (
+        <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-secondary text-foreground text-sm leading-relaxed whitespace-pre-wrap">
+          {scheduleAction ? cleanText : <MessagePrimitive.Parts />}
+        </div>
+      )}
+
+      {/* Schedule change preview card */}
+      {scheduleAction && (
+        <SchedulePreviewCard
+          action={scheduleAction.action}
+          clientName={scheduleAction.clientName}
+          serviceName={scheduleAction.serviceName}
+          datetime={scheduleAction.datetime}
+          beforeDatetime={scheduleAction.beforeDatetime}
+          location={scheduleAction.location}
+          swapWith={scheduleAction.swapWith}
+          onAccept={handleAccept}
+          onDecline={handleDecline}
+        />
+      )}
+
+      <MessageTimestamp timestamp={timestamp} />
+    </div>
   );
 }

@@ -102,10 +102,12 @@ describe('TieredContextProvider', () => {
   })
 
   describe('L0: Always include recent appointments', () => {
-    it('always returns appointments within last 7 days regardless of query', async () => {
+    it('always returns appointments within last 14 days regardless of query', async () => {
+      // NOW = 2026-03-29, so -14 days = 2026-03-15
       const recentApt = makeAppointment({ id: 'apt-recent', start_time: '2026-03-25T09:00:00', end_time: '2026-03-25T10:00:00' })
+      const twoWeeksAgoApt = makeAppointment({ id: 'apt-twoweeks', start_time: '2026-03-16T09:00:00', end_time: '2026-03-16T10:00:00' })
       const oldApt = makeAppointment({ id: 'apt-old', start_time: '2026-01-01T09:00:00', end_time: '2026-01-01T10:00:00' })
-      mockApp.appointments.findMany.mockResolvedValue([recentApt, oldApt])
+      mockApp.appointments.findMany.mockResolvedValue([recentApt, twoWeeksAgoApt, oldApt])
       mockApp.clients.findMany.mockResolvedValue([makeClient()])
       mockApp.services.findMany.mockResolvedValue([makeService()])
       const index = new AgentSearchIndex()
@@ -116,14 +118,18 @@ describe('TieredContextProvider', () => {
       expect(ctx.schedule).toBeDefined()
       const ids = ctx.schedule!.appointments.map((a) => a.id)
       expect(ids).toContain('apt-recent')
+      expect(ids).toContain('apt-twoweeks')
       expect(ids).not.toContain('apt-old')
     })
 
-    it('includes appointments up to 14 days in the future', async () => {
-      const futureApt = makeAppointment({ id: 'apt-future', start_time: '2026-04-04T09:00:00', end_time: '2026-04-04T10:00:00' })
+    it('includes appointments up to 30 days in the future', async () => {
+      // NOW = 2026-03-29, so +30 days = 2026-04-28
       const nextWeekApt = makeAppointment({ id: 'apt-nextweek', start_time: '2026-04-10T09:00:00', end_time: '2026-04-10T10:00:00' })
-      const farFutureApt = makeAppointment({ id: 'apt-far', start_time: '2026-05-01T09:00:00', end_time: '2026-05-01T10:00:00' })
-      mockApp.appointments.findMany.mockResolvedValue([futureApt, nextWeekApt, farFutureApt])
+      // 28 days out — was excluded by old +14 range, now included with +30
+      const threeWeeksApt = makeAppointment({ id: 'apt-threeweeks', start_time: '2026-04-26T09:00:00', end_time: '2026-04-26T10:00:00' })
+      // 32 days out — beyond +30 range, excluded
+      const farFutureApt = makeAppointment({ id: 'apt-far', start_time: '2026-04-30T09:00:00', end_time: '2026-04-30T10:00:00' })
+      mockApp.appointments.findMany.mockResolvedValue([nextWeekApt, threeWeeksApt, farFutureApt])
       mockApp.clients.findMany.mockResolvedValue([makeClient()])
       mockApp.services.findMany.mockResolvedValue([makeService()])
       const index = new AgentSearchIndex()
@@ -132,8 +138,8 @@ describe('TieredContextProvider', () => {
       const ctx = await provider.getFullContext('what is on my schedule')
 
       const ids = ctx.schedule!.appointments.map((a) => a.id)
-      expect(ids).toContain('apt-future')
       expect(ids).toContain('apt-nextweek')
+      expect(ids).toContain('apt-threeweeks')
       expect(ids).not.toContain('apt-far')
     })
 

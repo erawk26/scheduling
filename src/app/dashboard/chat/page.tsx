@@ -48,7 +48,14 @@ export function createChatModelAdapter(threadId: string, onFirstMessage: (text: 
       }
 
       // Build system prompt with context
-      let system = 'You are a helpful scheduling assistant for a mobile service professional. Help them manage their appointments, clients, and schedule efficiently. Be concise and friendly.';
+      let system = `You are a helpful scheduling assistant for a mobile service professional. Help them manage their appointments, clients, and schedule efficiently. Be concise and friendly.
+
+When you propose a schedule change (reschedule, cancel, new booking, or swap), include a <schedule-action> block at the END of your response with this JSON format:
+- Reschedule: <schedule-action>{"action":"reschedule","clientName":"<name>","serviceName":"<service>","datetime":"<newISO>","beforeDatetime":"<oldISO>"}</schedule-action>
+- Cancel: <schedule-action>{"action":"cancel","clientName":"<name>","serviceName":"<service>","datetime":"<currentISO>"}</schedule-action>
+- New booking: <schedule-action>{"action":"book","clientName":"<name>","serviceName":"<service>","datetime":"<ISO>"}</schedule-action>
+- Swap: <schedule-action>{"action":"swap","clientName":"<nameA>","serviceName":"<serviceA>","datetime":"<newTimeA>","beforeDatetime":"<oldTimeA>","swapWith":{"clientName":"<nameB>","serviceName":"<serviceB>","beforeDatetime":"<oldTimeB>","afterDatetime":"<newTimeB>"}}</schedule-action>
+Use ISO format without Z suffix (e.g. 2026-04-05T09:00:00). Only include the block when proposing a specific change, not for questions or general discussion.`;
 
       if (userText) {
         const ctx = await contextProvider.getFullContext(userText).catch(() => null);

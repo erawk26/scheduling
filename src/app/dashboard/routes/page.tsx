@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy } from 'react';
 
 import { format, parseISO } from 'date-fns';
-import { Navigation, MapPin, Clock, Route, Car, Calendar } from 'lucide-react';
+import { Navigation, MapPin, Clock, Route, Car, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,17 +47,23 @@ function buildMapsUrl(address: string): string {
 function SummaryCard({
   stopCount,
   distanceKm,
+  totalDrivingTimeS,
   skippedCount,
 }: {
   stopCount: number;
   distanceKm: number;
+  totalDrivingTimeS?: number;
   skippedCount: number;
 }) {
-  const driveMin = estimateDriveMinutes(distanceKm);
-  const driveHours = Math.floor(driveMin / 60);
-  const driveRem = driveMin % 60;
-  const driveLabel =
-    driveHours > 0 ? `${driveHours}h ${driveRem}m` : `${driveRem}m`;
+  let driveLabel: string;
+  if (totalDrivingTimeS != null && totalDrivingTimeS > 0) {
+    driveLabel = formatDriveTime(totalDrivingTimeS);
+  } else {
+    const driveMin = estimateDriveMinutes(distanceKm);
+    const driveHours = Math.floor(driveMin / 60);
+    const driveRem = driveMin % 60;
+    driveLabel = driveHours > 0 ? `${driveHours}h ${driveRem}m` : `${driveRem}m`;
+  }
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -77,7 +83,7 @@ function SummaryCard({
         </div>
         <div>
           <p className="text-2xl font-bold text-foreground">{toMiles(distanceKm)}</p>
-          <p className="text-xs text-muted-foreground">Est. miles</p>
+          <p className="text-xs text-muted-foreground">{totalDrivingTimeS ? 'Road miles' : 'Est. miles'}</p>
         </div>
       </div>
 
@@ -87,7 +93,7 @@ function SummaryCard({
         </div>
         <div>
           <p className="text-2xl font-bold text-foreground">{driveLabel}</p>
-          <p className="text-xs text-muted-foreground">Est. drive time</p>
+          <p className="text-xs text-muted-foreground">{totalDrivingTimeS ? 'Drive time' : 'Est. drive time'}</p>
         </div>
       </div>
 
@@ -285,7 +291,7 @@ export default function RoutesPage() {
                 <Route className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <CardTitle>Optimized Route</CardTitle>
                   {data.source === 'graphhopper' ? (
                     <Badge className="bg-success-muted text-success-muted-foreground border-success-muted-foreground/20 text-xs">
@@ -294,6 +300,12 @@ export default function RoutesPage() {
                   ) : (
                     <Badge className="bg-secondary text-muted-foreground border-border text-xs">
                       Estimated
+                    </Badge>
+                  )}
+                  {data.efficiencyScore != null && data.efficiencyScore > 0 && (
+                    <Badge className="bg-fern-pale text-primary border-primary/20 text-xs flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3" />
+                      {data.efficiencyScore}% shorter
                     </Badge>
                   )}
                 </div>
@@ -307,6 +319,7 @@ export default function RoutesPage() {
             <SummaryCard
               stopCount={data.stops.length}
               distanceKm={data.totalDistanceKm}
+              totalDrivingTimeS={data.legDrivingTimesS.reduce((a, b) => a + b, 0) || undefined}
               skippedCount={data.skippedCount}
             />
 
@@ -320,20 +333,28 @@ export default function RoutesPage() {
                 sublabel: `${stop.service.name} - ${format(parseISO(stop.appointment.start_time), 'h:mm a')}`,
               }))}
               polyline={data.polyline}
+              legDrivingTimesS={data.legDrivingTimesS}
+              legDistancesM={data.legDistancesM}
               className="h-[400px] w-full"
             />
 
             <div className="space-y-0">
               {data.stops.map((stop, i) => (
                 <div key={stop.appointment.id}>
-                  {i > 0 && data.legDrivingTimesS[i] != null && data.legDrivingTimesS[i]! > 0 && (
+                  {i > 0 && (data.legDrivingTimesS[i] ?? 0) > 0 && (
                     <div className="flex items-center gap-2 py-2 pl-5 text-xs text-muted-foreground">
                       <Car className="h-3 w-3 flex-shrink-0" />
-                      <span>{formatDriveTime(data.legDrivingTimesS[i]!)} drive</span>
+                      <span>{formatDriveTime(data.legDrivingTimesS[i]!)}</span>
+                      {(data.legDistancesM[i] ?? 0) > 0 && (
+                        <>
+                          <span>·</span>
+                          <span>{((data.legDistancesM[i]! / 1000) * 0.621371).toFixed(1)} mi</span>
+                        </>
+                      )}
                       <div className="flex-1 border-t border-dashed border-border" />
                     </div>
                   )}
-                  {i > 0 && (!data.legDrivingTimesS[i] || data.legDrivingTimesS[i] === 0) && (
+                  {i > 0 && (data.legDrivingTimesS[i] ?? 0) === 0 && (
                     <div className="py-1" />
                   )}
                   <StopCard

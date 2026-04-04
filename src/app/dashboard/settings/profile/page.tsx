@@ -252,7 +252,7 @@ function WorkScheduleSection({ existing }: { existing: AgentProfileDoc | undefin
     build_day: (existing?.content?.build_day as string) ?? 'Friday',
   }
 
-  const form = useForm<WorkScheduleValues>({ resolver: zodResolver(workScheduleSchema as any), defaultValues })
+  const form = useForm<WorkScheduleValues>({ resolver: zodResolver(workScheduleSchema), defaultValues })
   const days = form.watch('days_of_week')
   const startHour = form.watch('start_hour')
   const endHour = form.watch('end_hour')
@@ -374,7 +374,7 @@ function ServiceAreaSection({ existing }: { existing: AgentProfileDoc | undefine
   const [message, setMessage] = useState('')
 
   const form = useForm<ServiceAreaValues>({
-    resolver: zodResolver(serviceAreaSchema as any),
+    resolver: zodResolver(serviceAreaSchema),
     defaultValues: {
       towns: (existing?.content?.towns as string) ?? '',
       day_area_notes: (existing?.content?.day_area_notes as string) ?? '',
@@ -443,7 +443,7 @@ function TravelRulesSection({ existing }: { existing: AgentProfileDoc | undefine
   const [message, setMessage] = useState('')
 
   const form = useForm<TravelRulesValues>({
-    resolver: zodResolver(travelRulesSchema as any),
+    resolver: zodResolver(travelRulesSchema),
     defaultValues: {
       max_drive_minutes: (existing?.content?.max_drive_minutes as number) ?? 30,
       start_location: (existing?.content?.start_location as string) ?? '',
@@ -510,7 +510,7 @@ function ClientRulesSection({ existing }: { existing: AgentProfileDoc | undefine
   const [message, setMessage] = useState('')
 
   const form = useForm<ClientRulesValues>({
-    resolver: zodResolver(clientRulesSchema as any),
+    resolver: zodResolver(clientRulesSchema),
     defaultValues: { notes: (existing?.content?.notes as string) ?? '' },
   })
 
@@ -560,7 +560,7 @@ function PersonalCommitmentsSection({ existing }: { existing: AgentProfileDoc | 
   const [message, setMessage] = useState('')
 
   const form = useForm<PersonalCommitmentsValues>({
-    resolver: zodResolver(personalCommitmentsSchema as any),
+    resolver: zodResolver(personalCommitmentsSchema),
     defaultValues: { commitments: (existing?.content?.commitments as string) ?? '' },
   })
 
@@ -612,7 +612,7 @@ function BusinessRulesSection({ existing }: { existing: AgentProfileDoc | undefi
   const [message, setMessage] = useState('')
 
   const form = useForm<BusinessRulesValues>({
-    resolver: zodResolver(businessRulesSchema as any),
+    resolver: zodResolver(businessRulesSchema),
     defaultValues: {
       min_spacing_minutes: (existing?.content?.min_spacing_minutes as number) ?? 15,
       max_back_to_back: (existing?.content?.max_back_to_back as number) ?? 4,
@@ -688,7 +688,7 @@ function PrioritiesSection({ existing }: { existing: AgentProfileDoc | undefined
   const [message, setMessage] = useState('')
 
   const form = useForm<PrioritiesValues>({
-    resolver: zodResolver(prioritiesSchema as any),
+    resolver: zodResolver(prioritiesSchema),
     defaultValues: {
       minimize_driving: (existing?.content?.minimize_driving as number) ?? 1,
       maximize_bookings: (existing?.content?.maximize_bookings as number) ?? 2,

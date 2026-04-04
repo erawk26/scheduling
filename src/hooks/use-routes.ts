@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { app } from '@/lib/offlinekit';
-import { optimizeRoute } from '@/lib/routes/optimizer';
+import { optimizeRoute, haversineKm } from '@/lib/routes/optimizer';
 import { fetchOptimizedRoute } from '@/lib/graphhopper/optimize';
 import type { Appointment, Client, Service } from '@/lib/offlinekit/schema';
 
@@ -17,10 +17,22 @@ export interface OptimizedRouteResult {
   stops: RouteAppointment[];
   /** Driving time in seconds for each leg (stop[i-1] → stop[i]). Index 0 is always 0. */
   legDrivingTimesS: number[];
+  /** Distance in meters for each leg (stop[i-1] → stop[i]). Index 0 is always 0. */
+  legDistancesM: number[];
   totalDistanceKm: number;
+  /** Percentage of distance saved vs. original appointment order (0–100). undefined if only 1 stop. */
+  efficiencyScore?: number;
   skippedCount: number;
   polyline?: string;
   source: 'graphhopper' | 'local';
+}
+
+function sequentialDistanceKm(stops: { latitude: number; longitude: number }[]): number {
+  return stops.reduce((sum, stop, i) => {
+    if (i === 0) return 0;
+    const prev = stops[i - 1]!;
+    return sum + haversineKm(prev.latitude, prev.longitude, stop.latitude, stop.longitude);
+  }, 0);
 }
 
 export function useOptimizedRoute(date: string) {
@@ -81,10 +93,23 @@ export function useOptimizedRoute(date: string) {
         geocoded.map((s) => ({ ...s, id: s.appointment.id }))
       );
 
+      const seqDistKm = sequentialDistanceKm(geocoded);
+      const localLegDistancesM = optimized.stops.map((stop, i) => {
+        if (i === 0) return 0;
+        const prev = optimized.stops[i - 1]!;
+        return haversineKm(prev.latitude, prev.longitude, stop.latitude, stop.longitude) * 1000;
+      });
+      const localEfficiency =
+        seqDistKm > 0 && optimized.stops.length > 1
+          ? Math.max(0, Math.round((1 - optimized.totalDistanceKm / seqDistKm) * 100))
+          : undefined;
+
       const localResult: OptimizedRouteResult = {
         stops: optimized.stops,
         legDrivingTimesS: optimized.stops.map(() => 0),
+        legDistancesM: localLegDistancesM,
         totalDistanceKm: optimized.totalDistanceKm,
+        efficiencyScore: localEfficiency,
         skippedCount,
         source: 'local',
       };
@@ -105,14 +130,23 @@ export function useOptimizedRoute(date: string) {
             .map((s) => stopMap.get(s.id))
             .filter((s): s is RouteAppointment => !!s);
 
-          // Build a map from stop id → drivingTimeS from the ordered API result
           const drivingTimeMap = new Map(apiResult.stops.map((s) => [s.id, s.drivingTimeS]));
+          const distanceMap = new Map(apiResult.stops.map((s) => [s.id, s.distanceM]));
           const legTimes = reordered.map((s) => drivingTimeMap.get(s.appointment.id) ?? 0);
+          const legDistancesM = reordered.map((s) => distanceMap.get(s.appointment.id) ?? 0);
+
+          const optimizedDistKm = apiResult.totalDistanceM / 1000;
+          const apiEfficiency =
+            seqDistKm > 0 && reordered.length > 1
+              ? Math.max(0, Math.round((1 - optimizedDistKm / seqDistKm) * 100))
+              : undefined;
 
           return {
             stops: reordered,
             legDrivingTimesS: legTimes,
-            totalDistanceKm: apiResult.totalDistanceM / 1000,
+            legDistancesM,
+            totalDistanceKm: optimizedDistKm,
+            efficiencyScore: apiEfficiency,
             skippedCount,
             polyline: apiResult.polyline,
             source: 'graphhopper',

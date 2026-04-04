@@ -157,9 +157,9 @@ export class TieredContextProvider implements ContextProvider {
   private getRecentDateRange(): DateRange {
     const now = new Date();
     const from = new Date(now);
-    from.setDate(now.getDate() - 7);
+    from.setDate(now.getDate() - 14);
     const to = new Date(now);
-    to.setDate(now.getDate() + 14);
+    to.setDate(now.getDate() + 30);
     return {
       from: from.toISOString().replace('Z', '').split('.')[0]!,
       to: to.toISOString().replace('Z', '').split('.')[0]!,

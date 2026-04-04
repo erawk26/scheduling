@@ -160,6 +160,37 @@ describe('serializeContext (via buildPrompt)', () => {
     expect(content).toContain('@ 123 Main St');
   });
 
+  it('includes appointment status in serialized output', () => {
+    vi.setSystemTime(new Date('2026-04-05T12:00:00'));
+    const context: AgentContext = {
+      query: 'test',
+      schedule: {
+        dateRange: { from: '2026-04-06', to: '2026-04-06' },
+        appointments: [
+          makeAppointment({ status: 'confirmed' }),
+          makeAppointment({
+            id: '40000000-0000-0000-0000-000000000002',
+            start_time: '2026-04-06T10:00:00',
+            end_time: '2026-04-06T11:00:00',
+            clientName: 'Lisa Martinez',
+            serviceName: 'Bath',
+            status: 'cancelled',
+          }),
+        ],
+      },
+    };
+
+    const messages = buildPrompt(
+      { name: 'test', systemPrompt: 'Test.', piiLevel: 'full' },
+      context,
+      'test'
+    );
+
+    const content = messages[0]!.content;
+    expect(content).toContain('[confirmed]');
+    expect(content).toContain('[cancelled]');
+  });
+
   it('handles empty appointments', () => {
     const context: AgentContext = {
       query: 'test',

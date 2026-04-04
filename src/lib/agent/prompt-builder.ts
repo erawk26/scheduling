@@ -46,7 +46,7 @@ function serializeContext(context: AgentContext): string {
       for (const appt of appts) {
         const time = format(parseISO(appt.start_time), 'h:mm a');
         const addr = appt.address ? ` @ ${appt.address}` : '';
-        parts.push(`  ${time} — ${appt.clientName} — ${appt.serviceName} (id: ${appt.id})${addr}`);
+        parts.push(`  ${time} — ${appt.clientName} — ${appt.serviceName} [${appt.status}] (id: ${appt.id})${addr}`);
       }
     }
   }

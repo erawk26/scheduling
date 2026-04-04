@@ -23,7 +23,7 @@ export default function ClientsPage() {
   const createClient = useCreateClient();
 
   const form = useForm<ClientFormData>({
-    resolver: zodResolver(clientSchema as any),
+    resolver: zodResolver(clientSchema),
     defaultValues: {
       first_name: '',
       last_name: '',
