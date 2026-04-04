@@ -1,7 +1,8 @@
 import { useState, useEffect, lazy } from 'react';
 
 import { format, parseISO } from 'date-fns';
-import { Navigation, MapPin, Clock, Route, Car, Calendar, TrendingUp } from 'lucide-react';
+import { Navigation, MapPin, Clock, Route, Car, Calendar, TrendingUp, WifiOff } from 'lucide-react';
+import { useNetworkStatus } from '@/hooks/use-network-status';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -197,6 +198,7 @@ function LoadingSkeletons() {
 }
 
 export default function RoutesPage() {
+  const { isOnline } = useNetworkStatus();
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [credits, setCredits] = useState<{ used: number; limit: number } | null>(null);
@@ -250,6 +252,14 @@ export default function RoutesPage() {
           )}
         </div>
       </div>
+
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 rounded-lg border border-warning-muted-foreground/20 bg-warning-muted px-4 py-3 text-sm text-warning-muted-foreground">
+          <WifiOff className="h-4 w-4 flex-shrink-0" />
+          <span>Route optimization requires internet — showing estimated distances while offline</span>
+        </div>
+      )}
 
       {error && (
         <Card className="border-destructive/20 bg-destructive/10">

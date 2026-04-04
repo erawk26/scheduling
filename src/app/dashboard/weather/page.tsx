@@ -16,7 +16,9 @@ import {
   CloudOff,
   AlertTriangle,
   MapPin,
+  WifiOff,
 } from 'lucide-react';
+import { useNetworkStatus } from '@/hooks/use-network-status';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +59,7 @@ function WeatherIcon({ name, className }: { name: string; className?: string }) 
 type LocationMode = 'business' | 'next_appointment' | 'browser';
 
 export default function WeatherPage() {
+  const { isOnline } = useNetworkStatus();
   const [mode, setMode] = useState<LocationMode>('business');
 
   // Data sources
@@ -146,6 +149,14 @@ export default function WeatherPage() {
           Weather-integrated scheduling for outdoor services
         </p>
       </div>
+
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 rounded-lg border border-warning-muted-foreground/20 bg-warning-muted px-4 py-3 text-sm text-warning-muted-foreground">
+          <WifiOff className="h-4 w-4 flex-shrink-0" />
+          <span>Weather unavailable offline — forecasts will load when you reconnect</span>
+        </div>
+      )}
 
       {/* Location Toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
