@@ -63,11 +63,7 @@ describe('Pagination: loadThreadMessages', () => {
       payload: { id: THREAD_ID, title: 'Pagination Test', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     });
   });
 
@@ -90,11 +86,7 @@ describe('Pagination: loadThreadMessages', () => {
         timestamp: msg.timestamp,
         created_at: msg.timestamp,
         updated_at: msg.timestamp,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: 'INSERT',
       });
     }
 
@@ -125,11 +117,7 @@ describe('Pagination: loadThreadMessages', () => {
         timestamp: msg.timestamp,
         created_at: msg.timestamp,
         updated_at: msg.timestamp,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: 'INSERT',
       });
     }
 
@@ -158,11 +146,7 @@ describe('Pagination: loadThreadMessages', () => {
         timestamp: msg.timestamp,
         created_at: msg.timestamp,
         updated_at: msg.timestamp,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: 'INSERT',
       });
     }
 
@@ -196,11 +180,7 @@ describe('Pagination: loadThreadMessages', () => {
         timestamp: msg.timestamp,
         created_at: msg.timestamp,
         updated_at: msg.timestamp,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: 'INSERT',
       });
     }
 
@@ -225,11 +205,7 @@ describe('Pagination: loadThreadMessages', () => {
         timestamp,
         created_at: timestamp,
         updated_at: timestamp,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: 'INSERT',
       });
     }
 
@@ -277,11 +253,7 @@ describe('Pagination: loadThreadMessages', () => {
         timestamp,
         created_at: timestamp,
         updated_at: timestamp,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: 'INSERT',
       });
     }
 

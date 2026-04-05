@@ -97,11 +97,7 @@ describe('Bootstrap Onboarding Integration (INT-008)', () => {
         content: { completed: true },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: null,
       });
 
       const state = await getBootstrapState();
@@ -347,7 +343,6 @@ describe('Bootstrap Onboarding Integration (INT-008)', () => {
       await mockApp.agentProfile.create({
         id: 'bp0', user_id: 'u', section_id: 'bootstrap', content: { preferredName: 'Alex' },
         created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-        version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
       });
       state = await getBootstrapState();
       expect(state.currentStep).toBe(1);
@@ -363,7 +358,6 @@ describe('Bootstrap Onboarding Integration (INT-008)', () => {
       await mockApp.agentProfile.create({
         id: 'ws1', user_id: 'u', section_id: 'work-schedule', content: { workDays: 'Mon-Fri' },
         created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-        version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
       });
       state = await getBootstrapState();
       expect(state.currentStep).toBe(3);
@@ -379,7 +373,6 @@ describe('Bootstrap Onboarding Integration (INT-008)', () => {
       await mockApp.agentProfile.create({
         id: 'sa1', user_id: 'u', section_id: 'service-area', content: { areas: 'Downtown' },
         created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-        version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
       });
       state = await getBootstrapState();
       expect(state.currentStep).toBe(5);
@@ -389,7 +382,6 @@ describe('Bootstrap Onboarding Integration (INT-008)', () => {
       await mockApp.agentProfile.create({
         id: 'tr1', user_id: 'u', section_id: 'travel-rules', content: { maxDriveTime: '30 min' },
         created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-        version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
       });
       state = await getBootstrapState();
       expect(state.currentStep).toBe(6);

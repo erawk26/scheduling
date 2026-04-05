@@ -78,8 +78,6 @@ async function updateConfirmedAppointments(
       await app.appointments.update(doc._id, {
         status: 'confirmed',
         updated_at: new Date().toISOString(),
-        needs_sync: 1,
-        sync_operation: 'UPDATE',
       });
       updated++;
     } catch {
@@ -115,11 +113,7 @@ async function saveResponseSummary(
     client_id: null,
     created_at: now,
     updated_at: now,
-    version: 1,
-    synced_at: null,
     deleted_at: null,
-    needs_sync: 1,
-    sync_operation: 'INSERT',
   });
 }
 

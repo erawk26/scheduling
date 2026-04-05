@@ -7,11 +7,7 @@ const BaseDoc = z.object({
   user_id: z.string().uuid(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
-  version: z.number().int().default(1),
-  synced_at: z.string().datetime().nullable(),
   deleted_at: z.string().datetime().nullable(),
-  needs_sync: z.number().int().default(0),
-  sync_operation: z.enum(['INSERT', 'UPDATE', 'DELETE']).nullable(),
 });
 
 // Zod schemas for existing KE Agenda V3 entities

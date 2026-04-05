@@ -76,8 +76,6 @@ async function applyCancel(appointmentId: string): Promise<string> {
   await app.appointments.update(target._id, {
     status: 'cancelled',
     updated_at: now,
-    needs_sync: 1,
-    sync_operation: 'UPDATE',
   });
   return `Cancelled appointment ${appointmentId}.`;
 }
@@ -96,8 +94,6 @@ async function applyReschedule(
     start_time: newStartTime,
     end_time: newEndTime,
     updated_at: now,
-    needs_sync: 1,
-    sync_operation: 'UPDATE',
   });
   return `Rescheduled appointment to ${newStartTime}.`;
 }
@@ -116,8 +112,6 @@ async function applySwap(a: SwapTarget, b: SwapTarget): Promise<string> {
     start_time: a.newStartTime,
     end_time: a.newEndTime,
     updated_at: now,
-    needs_sync: 1,
-    sync_operation: 'UPDATE',
   });
 
   try {
@@ -125,16 +119,12 @@ async function applySwap(a: SwapTarget, b: SwapTarget): Promise<string> {
       start_time: b.newStartTime,
       end_time: b.newEndTime,
       updated_at: now,
-      needs_sync: 1,
-      sync_operation: 'UPDATE',
     });
   } catch {
     await app.appointments.update(targetA._id, {
       start_time: origA.start_time,
       end_time: origA.end_time,
       updated_at: now,
-      needs_sync: 1,
-      sync_operation: 'UPDATE',
     });
     return `Swap failed — rolled back. Could not update appointment ${b.id}.`;
   }

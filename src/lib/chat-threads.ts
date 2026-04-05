@@ -62,11 +62,7 @@ export async function createThread(title?: string): Promise<ChatThread> {
     payload: { ...thread },
     created_at: now,
     updated_at: now,
-    version: 1,
-    synced_at: null,
     deleted_at: null,
-    needs_sync: 0,
-    sync_operation: null,
   });
 
   return thread;

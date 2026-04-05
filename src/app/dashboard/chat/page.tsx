@@ -176,11 +176,7 @@ Use ISO format without Z suffix (e.g. 2026-04-05T09:00:00). Only include the blo
         context: null,
         created_at: now,
         updated_at: now,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: null,
       }).catch(() => {});
 
       const agentNow = new Date().toISOString();
@@ -196,11 +192,7 @@ Use ISO format without Z suffix (e.g. 2026-04-05T09:00:00). Only include the blo
         context: null,
         created_at: agentNow,
         updated_at: agentNow,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: null,
       }).catch(() => {});
 
       // Update thread timestamp

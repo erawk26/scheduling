@@ -67,11 +67,7 @@ async function storeConfirmedPatterns(
         },
         created_at: now,
         updated_at: now,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 1,
-        sync_operation: 'INSERT',
       })
     )
   );
@@ -92,8 +88,6 @@ async function applyProfileUpdates(updates: ProfileUpdate[]): Promise<void> {
       await app.agentProfile.update(found._id, {
         content: update.content,
         updated_at: now,
-        needs_sync: 1,
-        sync_operation: 'UPDATE',
       });
     } else {
       await app.agentProfile.create({
@@ -103,11 +97,7 @@ async function applyProfileUpdates(updates: ProfileUpdate[]): Promise<void> {
         content: update.content,
         created_at: now,
         updated_at: now,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 1,
-        sync_operation: 'INSERT',
       });
     }
   }

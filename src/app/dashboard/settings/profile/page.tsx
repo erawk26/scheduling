@@ -43,8 +43,6 @@ async function saveSection(
     await app.agentProfile.update(existing._id, {
       content,
       updated_at: now,
-      needs_sync: 1,
-      sync_operation: 'UPDATE',
     })
   } else {
     await app.agentProfile.create({
@@ -54,11 +52,7 @@ async function saveSection(
       content,
       created_at: now,
       updated_at: now,
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 1,
-      sync_operation: 'INSERT',
     })
   }
 }

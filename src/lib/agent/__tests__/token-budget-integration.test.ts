@@ -107,10 +107,7 @@ describe('Token Budget Enforcement Integration', () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     });
 
     const { processMessage } = await import('@/lib/agent/skills/engine');
@@ -134,10 +131,7 @@ describe('Token Budget Enforcement Integration', () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     });
 
     const { processMessage } = await import('@/lib/agent/skills/engine');
@@ -178,10 +172,7 @@ describe('Token Budget Enforcement Integration', () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     });
 
     const { processMessage } = await import('@/lib/agent/skills/engine');

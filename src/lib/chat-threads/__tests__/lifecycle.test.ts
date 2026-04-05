@@ -117,11 +117,7 @@ async function sendMessage(threadId: string, role: 'user' | 'agent', content: st
     context: null,
     created_at: now,
     updated_at: now,
-    version: 1,
-    synced_at: null,
     deleted_at: null,
-    needs_sync: 0,
-    sync_operation: null,
   })
 }
 
@@ -278,11 +274,7 @@ describe('Chat Thread Lifecycle', () => {
         context: null,
         created_at: ts,
         updated_at: ts,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 0,
-        sync_operation: null,
       })
     }
 

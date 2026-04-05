@@ -73,11 +73,7 @@ export function useChat() {
       context: null,
       created_at: now,
       updated_at: now,
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     }).catch(() => {});
   }, [bootstrapState, allDocs, optimisticMessages.length]);
 
@@ -136,11 +132,7 @@ export function useChat() {
       context: null,
       created_at: now,
       updated_at: now,
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     }).catch(() => {});
 
     let agentText = '';
@@ -247,11 +239,7 @@ export function useChat() {
       context: null,
       created_at: agentNow,
       updated_at: agentNow,
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     }).catch(() => {});
 
     // Extract scheduling notes (skip during bootstrap)

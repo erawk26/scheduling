@@ -117,11 +117,7 @@ export async function saveBootstrapAnswer(stepIndex: number, answer: string): Pr
       content: { [step.field]: answer },
       created_at: now,
       updated_at: now,
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     });
   }
 
@@ -146,11 +142,7 @@ async function markBootstrapComplete(allProfiles: ProfileDoc[]): Promise<void> {
       content: { completed: true },
       created_at: now,
       updated_at: now,
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     });
   }
 }

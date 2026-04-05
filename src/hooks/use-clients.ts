@@ -59,11 +59,7 @@ export function useCreateClient() {
         scheduling_flexibility: data.scheduling_flexibility ?? 'unknown',
         created_at: now,
         updated_at: now,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 1,
-        sync_operation: 'INSERT',
       });
 
       if (data.address) {
@@ -110,8 +106,6 @@ export function useUpdateClient() {
       const updated = await app.clients.update(doc._id, {
         ...sanitized,
         updated_at: new Date().toISOString(),
-        needs_sync: 1,
-        sync_operation: 'UPDATE',
       });
 
       if (data.address) {

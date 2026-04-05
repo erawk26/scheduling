@@ -68,11 +68,7 @@ export function useCreateAppointment() {
         weather_alert: 0,
         created_at: now,
         updated_at: now,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 1,
-        sync_operation: 'INSERT',
       });
 
       if (data.address) {
@@ -113,8 +109,6 @@ export function useUpdateAppointment() {
       const updated = await app.appointments.update(doc._id, {
         ...data,
         updated_at: new Date().toISOString(),
-        needs_sync: 1,
-        sync_operation: 'UPDATE',
       });
 
       if (data.address) {
@@ -155,8 +149,6 @@ export function useUpdateAppointmentStatus() {
       const updated = await app.appointments.update(doc._id, {
         status,
         updated_at: new Date().toISOString(),
-        needs_sync: 1,
-        sync_operation: 'UPDATE',
       });
 
       return updated as unknown as Appointment;

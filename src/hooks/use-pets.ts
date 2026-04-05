@@ -42,11 +42,7 @@ export function useCreatePet() {
         medical_notes: data.medical_notes ?? null,
         created_at: now,
         updated_at: now,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 1,
-        sync_operation: 'INSERT',
       });
 
       return created as unknown as Pet;
@@ -72,8 +68,6 @@ export function useUpdatePet() {
       const updated = await app.pets.update(doc._id, {
         ...data,
         updated_at: new Date().toISOString(),
-        needs_sync: 1,
-        sync_operation: 'UPDATE',
       });
 
       return updated as unknown as Pet;

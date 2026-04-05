@@ -191,11 +191,7 @@ async function writeDrafts(drafts: DraftInput[]): Promise<number> {
         weather_alert: 0,
         created_at: now,
         updated_at: now,
-        version: 1,
-        synced_at: null,
         deleted_at: null,
-        needs_sync: 1,
-        sync_operation: 'INSERT',
       });
       written++;
     } catch {

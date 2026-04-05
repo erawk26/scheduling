@@ -117,8 +117,6 @@ export default function SettingsPage() {
         business_latitude: parsedLat != null && !isNaN(parsedLat) ? parsedLat : null,
         business_longitude: parsedLon != null && !isNaN(parsedLon) ? parsedLon : null,
         updated_at: now,
-        needs_sync: 1 as const,
-        sync_operation: 'UPDATE' as const,
       }
 
       if (existing) {
@@ -129,11 +127,7 @@ export default function SettingsPage() {
           user_id: '00000000-0000-0000-0000-000000000000',
           ...profileData,
           created_at: now,
-          version: 1,
-          synced_at: null,
           deleted_at: null,
-          needs_sync: 1,
-          sync_operation: 'INSERT',
         })
       }
 

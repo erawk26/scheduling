@@ -28,11 +28,7 @@ function meta(id: string) {
     user_id: USER_ID,
     created_at: now,
     updated_at: now,
-    version: 1,
-    synced_at: null,
     deleted_at: null,
-    needs_sync: 0,
-    sync_operation: null,
   } as const;
 }
 

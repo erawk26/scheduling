@@ -70,7 +70,6 @@ describe('Integration: Message Flow Through Tiered Context', () => {
       email: 'jane@example.com', phone: null, address: '123 Main St',
       scheduling_flexibility: 'flexible', notes: null,
       created_at: '2026-03-01T00:00:00', updated_at: '2026-03-01T00:00:00',
-      version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
     })
 
     const searchIndex = new AgentSearchIndex()
@@ -140,13 +139,11 @@ describe('Integration: Message Flow Through Tiered Context', () => {
       id: 'c-1', user_id: 'u-1', first_name: 'Jane', last_name: 'Smith',
       email: null, phone: null, address: null, scheduling_flexibility: 'flexible', notes: null,
       created_at: '2026-03-01T00:00:00', updated_at: '2026-03-01T00:00:00',
-      version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
     })
     await mockApp.services.create({
       id: 's-1', user_id: 'u-1', name: 'Full Groom', description: null,
       duration_minutes: 60, price_cents: 7500, weather_dependent: false, location_type: 'mobile',
       created_at: '2026-03-01T00:00:00', updated_at: '2026-03-01T00:00:00',
-      version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
     })
     await mockApp.appointments.create({
       id: 'apt-1', user_id: 'u-1', client_id: 'c-1', service_id: 's-1',
@@ -155,7 +152,6 @@ describe('Integration: Message Flow Through Tiered Context', () => {
       notes: null, internal_notes: null, weather_alert: 0,
       latitude: null, longitude: null, pet_id: null,
       created_at: '2026-03-01T00:00:00', updated_at: '2026-03-01T00:00:00',
-      version: 1, synced_at: null, deleted_at: null, needs_sync: 0, sync_operation: null,
     })
 
     // Setup search index with a pre-existing note

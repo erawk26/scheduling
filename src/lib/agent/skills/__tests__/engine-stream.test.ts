@@ -202,11 +202,7 @@ describe('processMessageStream', () => {
       payload: { tokens: 85000, skill: 'check-in', month: currentMonth },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     })
 
     const { processMessageStream } = await import('../engine-stream')
@@ -229,11 +225,7 @@ describe('processMessageStream', () => {
       payload: { tokens: 96000, skill: 'check-in', month: currentMonth },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      version: 1,
-      synced_at: null,
       deleted_at: null,
-      needs_sync: 0,
-      sync_operation: null,
     })
 
     const { processMessageStream } = await import('../engine-stream')

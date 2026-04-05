@@ -33,11 +33,7 @@ type ConversationEntry = {
   status: 'sent' | 'received' | 'pending' | 'error';
   created_at: string;
   updated_at: string;
-  version: number;
-  synced_at: null;
   deleted_at: null;
-  needs_sync: number;
-  sync_operation: 'INSERT';
 };
 
 async function storeConversation(
@@ -58,11 +54,7 @@ async function storeConversation(
     status: 'sent',
     created_at: now,
     updated_at: now,
-    version: 1,
-    synced_at: null,
     deleted_at: null,
-    needs_sync: 1,
-    sync_operation: 'INSERT',
   };
 
   const withContext = skillName
