@@ -54,3 +54,28 @@ test.describe('Sign In Page', () => {
     await expect(page.getByText("Don't have an account?")).toBeVisible();
   });
 });
+
+test.describe('Auth error flows', () => {
+  test('sign-in with wrong credentials does not redirect to dashboard', async ({ page }) => {
+    await page.goto('/sign-in');
+    await expect(page).toHaveURL('/sign-in');
+
+    await page.getByLabel('Email').fill('test@keagenda.com');
+    await page.getByLabel('Password').fill('wrongpassword');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+
+    // Should NOT be on dashboard (auth failed)
+    await expect(page).not.toHaveURL(/dashboard/);
+  });
+
+  test('sign-in with non-existent email does not redirect to dashboard', async ({ page }) => {
+    await page.goto('/sign-in');
+    await expect(page).toHaveURL('/sign-in');
+
+    await page.getByLabel('Email').fill('nonexistent@example.com');
+    await page.getByLabel('Password').fill('somepassword');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+
+    await expect(page).not.toHaveURL(/dashboard/);
+  });
+});

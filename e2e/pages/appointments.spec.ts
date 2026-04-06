@@ -162,3 +162,38 @@ test.describe('Appointments agent navigation', () => {
     await expect(authPage.locator('body')).not.toBeEmpty();
   });
 });
+
+test.describe('Appointments form validation', () => {
+  test('missing client prevents form submission', async ({ authPage, seedOfflineKit }) => {
+    await seedOfflineKit({
+      services: [{ id: 'service-1', name: 'Test Service', duration_minutes: 60, price_cents: 1000 }],
+    });
+
+    await authPage.goto('/dashboard/appointments');
+    await authPage.getByRole('button', { name: /schedule appointment/i }).click();
+    await expect(authPage.getByRole('dialog')).toBeVisible();
+
+    await authPage.getByRole('button', { name: /create appointment/i }).click();
+    await expect(authPage.getByRole('dialog')).toBeVisible();
+  });
+
+  test('end time before start time prevents submission', async ({ authPage, seedOfflineKit }) => {
+    await seedOfflineKit({
+      clients: [{ id: 'client-1', first_name: 'Test', last_name: 'Client' }],
+      services: [{ id: 'service-1', name: 'Test Service', duration_minutes: 60, price_cents: 1000 }],
+    });
+
+    await authPage.goto('/dashboard/appointments');
+    await authPage.getByRole('button', { name: /schedule appointment/i }).click();
+    await expect(authPage.getByRole('dialog')).toBeVisible();
+
+    // Set end time before start time
+    await authPage.getByLabel(/date/i).fill('2025-04-10');
+    await authPage.getByLabel(/start time/i).fill('15:00');
+    await authPage.getByLabel(/end time/i).fill('14:00');
+
+    await authPage.getByRole('button', { name: /create appointment/i }).click();
+    // Dialog should remain visible due to validation error
+    await expect(authPage.getByRole('dialog')).toBeVisible();
+  });
+});

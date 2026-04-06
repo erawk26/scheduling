@@ -103,8 +103,7 @@ test.describe.serial('Services CRUD', () => {
 });
 
 test.describe('Services form validation', () => {
-  // KNOWN BUG: zodResolver v3 doesn't parse Zod v4 errors correctly — form submits without validation
-  test.fixme('empty name shows validation error', async ({ authPage }) => {
+  test('empty name shows validation error', async ({ authPage }) => {
     await authPage.goto('/dashboard/services');
     await authPage.waitForLoadState('networkidle');
     await authPage.getByRole('button', { name: /add service/i }).first().click();

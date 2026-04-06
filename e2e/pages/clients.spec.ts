@@ -190,3 +190,30 @@ test.describe('Clients search', () => {
     await expect(authPage.getByRole('heading', { name: 'Clients' })).toBeVisible();
   });
 });
+
+test.describe('Clients form validation', () => {
+  test('empty first name shows validation error', async ({ authPage }) => {
+    await authPage.goto('/dashboard/clients');
+    await authPage.waitForLoadState('networkidle');
+    await authPage.getByRole('button', { name: /add client/i }).first().click();
+    await expect(authPage.getByRole('dialog')).toBeVisible({ timeout: 10000 });
+
+    // Leave first name empty, fill required last name
+    await authPage.getByLabel(/last name/i).fill('Test');
+    await authPage.getByRole('button', { name: /create client/i }).click();
+
+    await expect(authPage.getByText(/first name is required/i)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('empty last name shows validation error', async ({ authPage }) => {
+    await authPage.goto('/dashboard/clients');
+    await authPage.waitForLoadState('networkidle');
+    await authPage.getByRole('button', { name: /add client/i }).first().click();
+    await expect(authPage.getByRole('dialog')).toBeVisible({ timeout: 10000 });
+
+    await authPage.getByLabel(/first name/i).fill('Test');
+    await authPage.getByRole('button', { name: /create client/i }).click();
+
+    await expect(authPage.getByText(/last name is required/i)).toBeVisible({ timeout: 5000 });
+  });
+});
