@@ -116,11 +116,13 @@ async function setupAuth(page: Page) {
   );
 }
 
-/** Seed OfflineKit with test data by writing directly to IndexedDB.
- *  Must be called after the page has been navigated to localhost (for IndexedDB access).
+/** Seed OfflineKit with test data via OfflineKit's API (not raw IndexedDB).
+ *  Uses dynamic import to access the OfflineKit app singleton so data goes
+ *  through the encrypted adapter and triggers the reactive layer.
+ *  Must be called after the page has been navigated to localhost.
  */
 export async function seedOfflineKit(page: Page, data: {
-  clients?: Array<{ id: string; first_name: string; last_name: string; email?: string }>;
+  clients?: Array<{ id: string; first_name: string; last_name: string; email?: string; address?: string | null }>;
   pets?: Array<{ id: string; client_id: string; name: string; species: string; breed?: string | null; size?: string | null; age_years?: number | null; weight_lbs?: number | null; behavior_notes?: string | null; medical_notes?: string | null }>;
   services?: Array<{ id: string; name: string; duration_minutes: number; price_cents?: number }>;
   appointments?: Array<{
@@ -131,7 +133,7 @@ export async function seedOfflineKit(page: Page, data: {
     start_time: string;
     end_time: string;
     status?: string;
-    location_type: string;
+    location_type?: string;
     address?: string | null;
     latitude?: number | null;
     longitude?: number | null;
@@ -142,8 +144,7 @@ export async function seedOfflineKit(page: Page, data: {
   agentProfile?: Array<{ id: string; section_id: string; content: Record<string, unknown> }>;
   businessProfile?: Array<{ id: string; business_name: string; phone?: string | null; timezone?: string; service_area_miles?: number; business_latitude?: number | null; business_longitude?: number | null }>;
 }) {
-  // IndexedDB is only accessible from a page origin (not about:blank).
-  // Navigate to the app root if not already on localhost.
+  // OfflineKit modules are only available from a page on localhost (Vite serves them).
   const currentUrl = page.url();
   if (!currentUrl || currentUrl.startsWith('about:') || currentUrl === 'data:') {
     await page.goto('/dashboard');
@@ -151,171 +152,123 @@ export async function seedOfflineKit(page: Page, data: {
   }
 
   await page.evaluate(async (data) => {
+    const { app } = await import('/src/lib/offlinekit/index.ts') as any;
     const userId = '00000000-0000-0000-0000-000000000000';
     const now = new Date().toISOString();
-    const DB_NAME = 'offlinekit-localkit';
-
-    /**
-     * Open the existing OfflineKit IndexedDB without upgrading.
-     * We never bump the version — OfflineKit owns schema creation.
-     * If the store doesn't exist yet, we retry after a short delay
-     * (OfflineKit may still be initializing on first page load).
-     */
-    function openDb(retries = 10): Promise<IDBDatabase> {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME);
-        req.onerror = () => reject(req.error);
-        req.onupgradeneeded = () => {
-          // Do NOT create stores here — let OfflineKit manage the schema.
-          // If we get here it means OfflineKit hasn't initialized yet.
-        };
-        req.onsuccess = () => resolve(req.result);
-      }).then(async (db: unknown) => {
-        const idb = db as IDBDatabase;
-        // If OfflineKit stores are missing, wait for it to initialize
-        if (!idb.objectStoreNames.contains('clients') && retries > 0) {
-          idb.close();
-          await new Promise(r => setTimeout(r, 300));
-          return openDb(retries - 1);
-        }
-        return idb;
-      });
-    }
-
-    async function putRecord(storeName: string, record: Record<string, unknown>) {
-      const db = await openDb();
-      if (!db.objectStoreNames.contains(storeName)) {
-        db.close();
-        return; // store doesn't exist, skip silently
-      }
-      return new Promise<void>((resolve, reject) => {
-        const tx = db.transaction(storeName, 'readwrite');
-        const store = tx.objectStore(storeName);
-        const req = store.put({ ...record, _id: record.id, _collection: storeName, _deleted: false, _updatedAt: Date.now() });
-        req.onerror = () => reject(req.error);
-        req.onsuccess = () => resolve();
-        tx.oncomplete = () => db.close();
-        tx.onerror = () => reject(tx.error);
-      });
-    }
 
     if (data.clients) {
       for (const client of data.clients) {
-        await putRecord('clients', {
-          ...client,
+        await app.clients.create({
+          id: client.id,
           user_id: userId,
-          created_at: now,
-          updated_at: now,
-          version: 1,
-          synced_at: null,
-          deleted_at: null,
-          needs_sync: 0,
-          sync_operation: null,
+          first_name: client.first_name,
+          last_name: client.last_name,
           email: client.email ?? null,
           phone: null,
-          address: null,
+          address: client.address ?? null,
           latitude: null,
           longitude: null,
           notes: null,
           scheduling_flexibility: 'unknown',
+          created_at: now,
+          updated_at: now,
+          deleted_at: null,
         });
       }
     }
 
     if (data.pets) {
       for (const pet of data.pets) {
-        await putRecord('pets', {
-          ...pet,
+        await app.pets.create({
+          id: pet.id,
+          client_id: pet.client_id,
           user_id: userId,
-          created_at: now,
-          updated_at: now,
-          version: 1,
-          synced_at: null,
-          deleted_at: null,
-          needs_sync: 0,
-          sync_operation: null,
+          name: pet.name,
+          species: pet.species,
           breed: pet.breed ?? null,
           size: pet.size ?? null,
           age_years: pet.age_years ?? null,
           weight_lbs: pet.weight_lbs ?? null,
           behavior_notes: pet.behavior_notes ?? null,
           medical_notes: pet.medical_notes ?? null,
+          created_at: now,
+          updated_at: now,
+          deleted_at: null,
         });
       }
     }
 
     if (data.services) {
       for (const service of data.services) {
-        await putRecord('services', {
-          ...service,
+        await app.services.create({
+          id: service.id,
           user_id: userId,
+          name: service.name,
+          description: null,
+          duration_minutes: service.duration_minutes,
+          price_cents: service.price_cents ?? null,
+          weather_dependent: false,
+          location_type: 'client_location',
           created_at: now,
           updated_at: now,
-          version: 1,
-          synced_at: null,
           deleted_at: null,
-          needs_sync: 0,
-          sync_operation: null,
-          location_type: 'client_location',
-          description: null,
-          weather_dependent: false,
-          price_cents: service.price_cents ?? null,
         });
       }
     }
 
     if (data.appointments) {
       for (const appointment of data.appointments) {
-        await putRecord('appointments', {
-          pet_id: null,
-          address: null,
-          latitude: null,
-          longitude: null,
-          notes: null,
-          internal_notes: null,
-          weather_alert: 0,
-          ...appointment,
+        await app.appointments.create({
+          id: appointment.id,
           user_id: userId,
+          client_id: appointment.client_id,
+          pet_id: appointment.pet_id ?? null,
+          service_id: appointment.service_id,
+          start_time: appointment.start_time,
+          end_time: appointment.end_time,
           status: appointment.status ?? 'scheduled',
+          location_type: appointment.location_type ?? 'client_location',
+          address: appointment.address ?? null,
+          latitude: appointment.latitude ?? null,
+          longitude: appointment.longitude ?? null,
+          notes: appointment.notes ?? null,
+          internal_notes: appointment.internal_notes ?? null,
+          weather_alert: appointment.weather_alert ?? 0,
           created_at: now,
           updated_at: now,
-          version: 1,
-          synced_at: null,
           deleted_at: null,
-          needs_sync: 0,
-          sync_operation: null,
         });
       }
     }
 
     if (data.agentProfile) {
       for (const section of data.agentProfile) {
-        await putRecord('agentProfile', {
-          ...section,
+        await app.agentProfile.create({
+          id: section.id,
+          section_id: section.section_id,
+          content: section.content,
           user_id: userId,
           created_at: now,
           updated_at: now,
-          version: 1,
-          synced_at: null,
           deleted_at: null,
-          needs_sync: 0,
-          sync_operation: null,
         });
       }
     }
 
     if (data.businessProfile) {
       for (const profile of data.businessProfile) {
-        await putRecord('businessProfile', {
-          ...profile,
+        await app.businessProfile.create({
+          id: profile.id,
+          business_name: profile.business_name,
+          phone: profile.phone ?? null,
+          timezone: profile.timezone ?? 'America/New_York',
+          service_area_miles: profile.service_area_miles ?? 25,
+          business_latitude: profile.business_latitude ?? null,
+          business_longitude: profile.business_longitude ?? null,
           user_id: userId,
           created_at: now,
           updated_at: now,
-          version: 1,
-          synced_at: null,
           deleted_at: null,
-          needs_sync: 0,
-          sync_operation: null,
         });
       }
     }
